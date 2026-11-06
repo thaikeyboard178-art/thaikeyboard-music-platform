@@ -127,6 +127,30 @@ h1, h2, p { margin-top: 0; }
 .answer-button.answer-correct { border-color: #76a98c; background: #edf6ef; color: #26674c; box-shadow: inset 0 0 0 1px rgba(68, 132, 91, .14); }
 .answer-button.answer-wrong { border-color: #db9884; background: #fff1ec; color: #b9503f; }
 .answer-result-icon { position: absolute; bottom: 2px; right: 3px; }
+.response-mode-block { margin-top: 15px; }
+.response-mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.response-mode-button { min-height: 34px; padding: 0 5px; display: flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid #e6eae4; border-radius: 7px; background: #fff; color: #718078; font-size: 9px; font-weight: 600; transition: background .15s, border-color .15s, color .15s; }
+.response-mode-button:hover:not(:disabled) { border-color: #adc9b8; background: #f7faf6; }
+.response-mode-button.is-active { border-color: #7da790; background: #edf5f0; color: #285d49; }
+.response-mode-button:disabled:not(.is-active) { opacity: .55; }
+.response-mode-number { font-size: 9px; font-weight: 800; letter-spacing: -.05em; }
+.piano-console { margin-top: 0; padding: 9px; border: 1px solid #e8ece5; border-radius: 8px; background: #fafbf8; }
+.piano-console-heading { margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; color: #818e84; font-size: 8px; font-weight: 700; letter-spacing: .1em; }
+.piano-octave-label { color: #68816d; letter-spacing: .06em; }
+.piano-keybed { position: relative; padding: 3px; overflow: hidden; border: 1px solid #dce3db; border-radius: 7px; background: #273e38; }
+.piano-white-keys { height: 105px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.piano-white-key { position: relative; z-index: 1; min-width: 0; padding: 5px 1px 9px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; border: 1px solid #d8ded6; border-radius: 0 0 5px 5px; background: linear-gradient(180deg, #fff 0%, #f8f8f3 88%, #edf0e9 100%); color: #496051; transition: background .15s, box-shadow .15s, transform .15s; }
+.piano-white-key:first-child { border-bottom-left-radius: 5px; }
+.piano-white-key:last-child { border-bottom-right-radius: 5px; }
+.piano-white-key:hover:not(:disabled) { transform: translateY(1px); background: #f1f6ef; }
+.piano-white-key:disabled { cursor: default; }
+.piano-white-key.is-correct { background: linear-gradient(180deg, #e4f3e6, #d7ecdb); color: #236547; box-shadow: inset 0 0 0 1px #78a88a; }
+.piano-white-key.is-wrong { background: linear-gradient(180deg, #fff0e9, #f9dfd6); color: #a54e40; box-shadow: inset 0 0 0 1px #d99783; }
+.piano-key-note { font-size: clamp(8px, .9vw, 10px); font-weight: 700; }
+.piano-key-pitch { color: #96a096; font-size: 7px; font-weight: 500; }
+.piano-black-keys { position: absolute; z-index: 2; top: 3px; right: 3px; left: 3px; height: 105px; pointer-events: none; }
+.piano-black-key { position: absolute; top: 0; width: 7.2%; height: 58%; transform: translateX(-50%); border: 1px solid #172c27; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, #182f2a, #34453f 65%, #182a26); box-shadow: 0 3px 3px rgba(14, 29, 23, .24); }
+.piano-instruction { margin: 7px 1px 0; color: #8d978f; font-size: 8px; line-height: 1.4; text-align: center; }
 .session-note { min-height: 36px; display: flex; align-items: center; justify-content: center; gap: 7px; color: #909991; font-size: 9px; text-align: center; }
 .note-dot { width: 5px; height: 5px; border-radius: 50%; background: #c6a461; }
 .feedback-row { min-height: 40px; margin-top: 7px; padding: 5px 7px; display: flex; align-items: center; gap: 7px; border-radius: 7px; animation: rise-in .2s ease-out; }
@@ -242,6 +266,10 @@ h1, h2, p { margin-top: 0; }
   .answer-grid { gap: 5px; }
   .answer-button { height: 43px; }
   .answer-letter { font-size: clamp(8px, 2.7vw, 11px); }
+  .response-mode-block { margin-top: 14px; }
+  .piano-console { padding: 7px; }
+  .piano-white-keys, .piano-black-keys { height: 98px; }
+  .piano-key-note { font-size: clamp(8px, 2.8vw, 10px); }
   .feedback-row { gap: 5px; }
   .feedback-message { font-size: 8.5px; }
   .next-button { padding: 0 6px; font-size: 8px; }

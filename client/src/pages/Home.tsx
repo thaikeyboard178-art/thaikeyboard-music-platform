@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -16,10 +16,13 @@ type Clef = "treble" | "bass";
 type ClefMode = "treble" | "bass" | "mix";
 type Scope = "staff" | "ledger" | "wide";
 type SessionMode = "endless" | "challenge";
+type ResponseMode = "multiple" | "piano";
+type SelectedAnswer = { letter: number; octave: number };
 type Note = { letter: number; octave: number; name: string; solfege: string };
 
 const NOTE_NAMES = ["Đô", "Rê", "Mi", "Fa", "Sol", "La", "Si"];
 const LETTER_NAMES = ["C", "D", "E", "F", "G", "A", "B"];
+const PITCH_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
 const SCOPE_RANGE: Record<Scope, [number, number]> = {
   staff: [0, 8],
   ledger: [-2, 10],
@@ -97,22 +100,77 @@ function Stat({ label, value, suffix }: { label: string; value: string | number;
   );
 }
 
+function VirtualPiano({
+  octave,
+  targetLetter,
+  selected,
+  disabled,
+  onChoose,
+}: {
+  octave: number;
+  targetLetter: number;
+  selected: SelectedAnswer | null;
+  disabled: boolean;
+  onChoose: (letter: number, octave: number) => void;
+}) {
+  const blackKeysAfter = [0, 1, 3, 4, 5];
+
+  return (
+    <div className="piano-console">
+      <div className="piano-console-heading">
+        <span>PIANO ẢO</span>
+        <span className="piano-octave-label">QUÃNG TÁM {octave}</span>
+      </div>
+      <div className="piano-keybed" role="group" aria-label={`Piano ảo, quãng tám ${octave}`}>
+        <div className="piano-white-keys">
+          {NOTE_NAMES.map((name, index) => {
+            const isCorrect = selected !== null && index === targetLetter;
+            const isWrong = selected?.letter === index && index !== targetLetter;
+            return (
+              <button
+                key={name}
+                type="button"
+                className={`piano-white-key ${isCorrect ? "is-correct" : ""} ${isWrong ? "is-wrong" : ""}`}
+                onClick={() => onChoose(index, octave)}
+                disabled={disabled}
+                aria-label={`Phím ${name}, quãng tám ${octave}`}
+                aria-pressed={selected?.letter === index && selected.octave === octave}
+              >
+                <span className="piano-key-note">{name}</span>
+                <span className="piano-key-pitch">{LETTER_NAMES[index]}{index === 0 ? octave : ""}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="piano-black-keys" aria-hidden="true">
+          {blackKeysAfter.map((index) => (
+            <span key={index} className="piano-black-key" style={{ left: `${((index + 1) / 7) * 100}%` }} />
+          ))}
+        </div>
+      </div>
+      <div className="piano-instruction">Bấm phím trắng để nghe và trả lời nốt trên khuông.</div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [clefMode, setClefMode] = useState<ClefMode>("treble");
   const [scope, setScope] = useState<Scope>("staff");
   const [sessionMode, setSessionMode] = useState<SessionMode>("endless");
+  const [responseMode, setResponseMode] = useState<ResponseMode>("multiple");
   const [challengeLength, setChallengeLength] = useState(10);
   const [question, setQuestion] = useState(() => makeQuestion("treble", "staff"));
   const [answered, setAnswered] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<SelectedAnswer | null>(null);
   const [finished, setFinished] = useState(false);
   const [guideOpen, setGuideOpen] = useState(true);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-  const result = selected === null ? null : selected === question.note.letter ? "correct" : "wrong";
+  const isCorrect = selected !== null && selected.letter === question.note.letter && (responseMode === "multiple" || selected.octave === question.note.octave);
+  const result = selected === null ? null : isCorrect ? "correct" : "wrong";
   const accuracy = answered === 0 ? 0 : Math.round((correct / answered) * 100);
   const progress = sessionMode === "challenge" ? Math.min((answered / challengeLength) * 100, 100) : 0;
-  const answerLabel = selected === null ? "" : NOTE_NAMES[selected];
 
   const instruction = useMemo(() => {
     if (clefMode === "mix") return "Khóa Sol & Fa · bất ngờ mỗi lượt";
@@ -131,11 +189,39 @@ export default function Home() {
     setQuestion(makeQuestion(nextMode, nextScope));
   }
 
-  function chooseAnswer(index: number) {
+  function chooseAnswer(index: number, octave = question.note.octave) {
     if (selected !== null || finished) return;
-    setSelected(index);
+    setSelected({ letter: index, octave });
     setAnswered((count) => count + 1);
-    if (index === question.note.letter) setCorrect((count) => count + 1);
+    if (index === question.note.letter && octave === question.note.octave) setCorrect((count) => count + 1);
+  }
+
+  function playPianoNote(letter: number, octave: number) {
+    if (typeof window.AudioContext !== "undefined") {
+      try {
+        const audioContext = audioContextRef.current ?? new window.AudioContext();
+        audioContextRef.current = audioContext;
+        void audioContext.resume();
+
+        const midi = (octave + 1) * 12 + PITCH_SEMITONES[letter];
+        const frequency = 440 * Math.pow(2, (midi - 69) / 12);
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(frequency, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.09, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.56);
+      } catch {
+        // Answer checking should still work if the browser blocks audio playback.
+      }
+    }
+    chooseAnswer(letter, octave);
   }
 
   function nextQuestion() {
@@ -154,7 +240,7 @@ export default function Home() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key >= "1" && event.key <= "7") chooseAnswer(Number(event.key) - 1);
+      if (responseMode === "multiple" && event.key >= "1" && event.key <= "7") chooseAnswer(Number(event.key) - 1);
       if ((event.key === "Enter" || event.key === " ") && selected !== null && !finished) {
         event.preventDefault();
         nextQuestion();
@@ -244,7 +330,19 @@ export default function Home() {
               )}
             </div>
 
-            <div className="settings-footer"><Sparkles size={15} /><span>Đáp án được xáo trộn mỗi lượt</span></div>
+            <div className="setting-block response-mode-block">
+              <div className="setting-label">Cách trả lời</div>
+              <div className="response-mode-toggle" role="group" aria-label="Chọn cách trả lời">
+                <button className={`response-mode-button ${responseMode === "multiple" ? "is-active" : ""}`} onClick={() => setResponseMode("multiple")} disabled={selected !== null} aria-pressed={responseMode === "multiple"}>
+                  <span className="response-mode-number">123</span> Trắc nghiệm
+                </button>
+                <button className={`response-mode-button ${responseMode === "piano" ? "is-active" : ""}`} onClick={() => setResponseMode("piano")} disabled={selected !== null} aria-pressed={responseMode === "piano"}>
+                  <Music2 size={14} /> Piano ảo
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-footer"><Sparkles size={15} /><span>{responseMode === "piano" ? "Phím đàn phát nốt khi bạn bấm" : "Đáp án được xáo trộn mỗi lượt"}</span></div>
           </aside>
 
           <section className="practice-card" aria-label="Câu hỏi hiện tại">
@@ -284,28 +382,32 @@ export default function Home() {
                   <Staff clef={question.clef} position={question.position} result={result} />
                   <div className="question-caption">Nốt này tên là gì?</div>
                 </div>
-                <div className="answers-heading"><span>CHỌN TÊN NỐT</span><span className="keyboard-hint">phím 1 — 7</span></div>
-                <div className="answer-grid" role="group" aria-label="Bảy lựa chọn tên nốt">
-                  {NOTE_NAMES.map((name, index) => {
-                    const isCorrectAnswer = selected !== null && index === question.note.letter;
-                    const isWrongAnswer = selected === index && index !== question.note.letter;
-                    return (
-                      <button key={name} className={`answer-button ${isCorrectAnswer ? "answer-correct" : ""} ${isWrongAnswer ? "answer-wrong" : ""}`} onClick={() => chooseAnswer(index)} disabled={selected !== null} aria-label={`Nốt ${name}`}>
-                        <span className="answer-letter">{name}</span><span className="answer-key">{index + 1}</span>
-                        {isCorrectAnswer && <Check size={15} className="answer-result-icon" />}
-                        {isWrongAnswer && <X size={15} className="answer-result-icon" />}
-                      </button>
-                    );
-                  })}
-                </div>
+                <div className="answers-heading"><span>{responseMode === "piano" ? "BẤM PHÍM ĐÀN" : "CHỌN TÊN NỐT"}</span><span className="keyboard-hint">{responseMode === "piano" ? `quãng tám ${question.note.octave}` : "phím 1 — 7"}</span></div>
+                {responseMode === "multiple" ? (
+                  <div className="answer-grid" role="group" aria-label="Bảy lựa chọn tên nốt">
+                    {NOTE_NAMES.map((name, index) => {
+                      const isCorrectAnswer = selected !== null && index === question.note.letter;
+                      const isWrongAnswer = selected?.letter === index && index !== question.note.letter;
+                      return (
+                        <button key={name} className={`answer-button ${isCorrectAnswer ? "answer-correct" : ""} ${isWrongAnswer ? "answer-wrong" : ""}`} onClick={() => chooseAnswer(index)} disabled={selected !== null} aria-label={`Nốt ${name}`}>
+                          <span className="answer-letter">{name}</span><span className="answer-key">{index + 1}</span>
+                          {isCorrectAnswer && <Check size={15} className="answer-result-icon" />}
+                          {isWrongAnswer && <X size={15} className="answer-result-icon" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <VirtualPiano octave={question.note.octave} targetLetter={question.note.letter} selected={selected} disabled={selected !== null} onChoose={playPianoNote} />
+                )}
                 {result ? (
                   <div className={`feedback-row ${result}`} role="status" aria-live="polite">
                     <span className="feedback-symbol">{result === "correct" ? <Check size={16} /> : <X size={16} />}</span>
-                    <span className="feedback-message">{result === "correct" ? "Chính xác! Bạn nhận ra nốt này rồi." : <>Nốt này là <strong>{question.note.name}</strong>. Ghi nhớ vị trí nhé!</>}</span>
+                    <span className="feedback-message">{result === "correct" ? "Chính xác! Bạn nhận ra nốt này rồi." : <>Nốt này là <strong>{question.note.name}{responseMode === "piano" ? ` ${question.note.octave}` : ""}</strong>. Ghi nhớ vị trí nhé!</>}</span>
                     <button className="next-button" onClick={nextQuestion}>{sessionMode === "challenge" && answered >= challengeLength ? "Xem kết quả" : "Tiếp theo"}<ChevronRight size={16} /></button>
                   </div>
                 ) : (
-                  <div className="session-note"><span className="note-dot" />{sessionMode === "challenge" ? `Thử thách ${challengeLength} câu · trả lời theo cảm nhận đầu tiên` : "Cứ thong thả — tốc độ đến sau khi bạn đã quen."}</div>
+                  <div className="session-note"><span className="note-dot" />{responseMode === "piano" ? "Bấm một phím trắng để nghe và trả lời." : sessionMode === "challenge" ? `Thử thách ${challengeLength} câu · trả lời theo cảm nhận đầu tiên` : "Cứ thong thả — tốc độ đến sau khi bạn đã quen."}</div>
                 )}
               </>
             )}
@@ -331,7 +433,7 @@ export default function Home() {
                   <div className="note-ladder spaces"><span className="ladder-label">Kẽ</span><strong>Sol</strong><span>·</span><strong>Mi</strong><span>·</span><strong>Đô</strong><span>·</span><strong>La</strong></div>
                 </div>
                 <div className="guide-tip"><Sparkles size={15} /><p><strong>Mẹo nhỏ</strong><br />Hãy đọc theo thứ tự Đô – Rê – Mi – Fa – Sol – La – Si. Nốt lên một bậc, tên cũng tiến một bước.</p></div>
-                <div className="keyboard-tip"><span className="keycap">1</span><span className="keycap">–</span><span className="keycap">7</span><span>trên bàn phím để trả lời nhanh</span></div>
+                <div className="keyboard-tip"><span>{responseMode === "piano" ? "Bấm phím piano để nghe nốt." : <><span className="keycap">1</span><span className="keycap">–</span><span className="keycap">7</span> trên bàn phím để trả lời nhanh</>}</span></div>
               </div>
             )}
             {!guideOpen && <p className="guide-collapsed-note">Mở phần hướng dẫn để xem tên nốt trên các dòng và khe.</p>}
