@@ -423,8 +423,8 @@ export default function Home() {
               <div className="guide-content">
                 <p className="guide-intro">Đọc từ <strong>dòng dưới cùng</strong> đi lên — mỗi nấc là một nốt kế tiếp.</p>
                 <div className="guide-clef-block">
-                  <div className="guide-clef-title"><span className="guide-clef-symbol">𝄞</span><span>Khóa Sol</span><span className="guide-clef-range">NỐT CAO</span></div>
-                  <div className="note-ladder"><span className="ladder-label">Dòng</span><strong>Fa</strong><span>·</span><strong>Rê</strong><span>·</span><strong>Si</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Mi</strong></div>
+                  <div className="guide-clef-title"><span className="guide-clef-symbol">𝄞</span><span>Khóa Sol</span><span className="guide-clef-range"></span></div>
+                  <div className="note-ladder"><span className="ladder-label">Dòng kẻ</span><strong>Mi</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Si</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Fa</strong></div>
                   <div className="note-ladder spaces"><span className="ladder-label">Kẽ</span><strong>Mi</strong><span>·</span><strong>Đô</strong><span>·</span><strong>La</strong><span>·</span><strong>Fa</strong></div>
                 </div>
                 <div className="guide-clef-block bass-guide">
