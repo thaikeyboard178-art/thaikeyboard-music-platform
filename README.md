@@ -53,3 +53,15 @@ The application can be served as a static Vite build with `dist/public/` as the 
 ## Privacy and pricing
 
 The first two years of the training service are free. The Note Reading module contains no subscription, checkout, paywall, artificial practice limit, mandatory account, or ad. Individual practice and optional aggregate statistics are stored locally in the browser; the module does not send them to the server.
+
+## Shared platform foundation
+
+The application has one explicit typed catalog in `client/src/app/moduleRegistry.ts`. Its active registrations supply a path and lazy page; metadata-only Coming Soon entries cannot supply either. Landing cards, shared header navigation and `App.tsx` routes consume this catalog. Note Reading is the only active module. Rhythm Training and Chord Recognition are Coming Soon only: no pages, training engines, fake actions or routes have been implemented for them. `/` and `/note-reading` remain the only real application page routes.
+
+`client/src/features/training/` owns generic session/scoring/result contracts, `ResultSummary.tsx` scalar presentation, and `progress.ts` local aggregate persistence. Shared sessions no longer require clef/range strings: these remain in Note Reading's module-local setup. Every live `TrainingModule` must provide its own typed Zod configuration schema; each module validates its configuration at session startup. Difficulty metadata is optional and must only advertise levels whose behavior is actually implemented by that module. Note Reading continues to use its real custom-ledger configuration; there is no new difficulty selector or generic difficulty engine.
+
+`client/src/app/TrainingShell.tsx` supplies the reusable header/navigation/footer. Module pages keep their own setup, exercise data, feedback, title/copy and actions; the shared result summary receives only `TrainingResult`. Note Reading's theory, VexFlow, piano, Web Audio, generation, validation, daily seeding, preferences and900ms auto-advance remain module-owned and unchanged.
+
+Aggregate progress preserves `thaikeyboard-music-training-progress-v1` and the legacy scalar fields, safely normalizes corrupted data and repairs it when a valid completed result is recorded. Landing totals are platform totals, not invented per-module history. Consecutive duplicate recording is prevented using `lastSessionId`; cross-tab atomicity, arbitrary historical replay deduplication, session history and account/cloud synchronization are deliberately not implemented.
+
+When a future module is actually developed: place its types/schema/engine/page/tests under its own `client/src/modules/<id>/`, use the generic training contracts, change its catalog registration to active with its real lazy page/path, synchronize `client/public/manus-routes.json`, and run `pnpm check`, `pnpm test`, `pnpm build:static` and `pnpm build`. No router or shared-shell rewrite, dynamic plugin framework, new technology stack, mandatory account or payment system is required. Documentation and GitHub source synchronization do not deploy the application.

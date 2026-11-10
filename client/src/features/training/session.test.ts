@@ -3,7 +3,7 @@ import { advanceSession, createTrainingSession, finishSession, submitSessionAnsw
 
 describe("shared training session", () => {
   it("adds ten points for correct answers and never subtracts for incorrect answers", () => {
-    const first = createTrainingSession({ moduleId: "notes", mode: "free", clefConfiguration: "treble", noteRange: "staff", plannedQuestions: null, sessionId: "s1", startedAt: 10 }, { id: "q1" });
+    const first = createTrainingSession({ moduleId: "notes", mode: "free", plannedQuestions: null, sessionId: "s1", startedAt: 10 }, { id: "q1" });
     const right = submitSessionAnswer(first, true, 500, 10, 1000);
     expect(right.totalScore).toBe(10);
     const next = advanceSession(right, { id: "q2" });
@@ -16,7 +16,7 @@ describe("shared training session", () => {
   });
 
   it("prevents duplicate scoring and completes exactly at the configured question count", () => {
-    const start = createTrainingSession({ moduleId: "notes", mode: "challenge", clefConfiguration: "bass", noteRange: "extended", plannedQuestions: 2, sessionId: "s2", startedAt: 5 }, { id: "q1" });
+    const start = createTrainingSession({ moduleId: "notes", mode: "challenge", plannedQuestions: 2, sessionId: "s2", startedAt: 5 }, { id: "q1" });
     const first = submitSessionAnswer(start, true, 400, 10, 100);
     expect(submitSessionAnswer(first, true, 400, 10, 200)).toBe(first);
     const second = submitSessionAnswer(advanceSession(first, { id: "q2" }), false, 600, 10, 300);
@@ -28,7 +28,7 @@ describe("shared training session", () => {
   });
 
   it("does not count unanswered questions in accuracy and allows manual speed-session finish", () => {
-    const session = createTrainingSession({ moduleId: "notes", mode: "speed", clefConfiguration: "mixed", noteRange: "staff", plannedQuestions: null, sessionId: "s3", startedAt: 1 }, { id: "q1" });
+    const session = createTrainingSession({ moduleId: "notes", mode: "speed", plannedQuestions: null, sessionId: "s3", startedAt: 1 }, { id: "q1" });
     expect(session.accuracy).toBe(0);
     expect(toTrainingResult(session)).toBeNull();
     const answered = submitSessionAnswer(session, true, 250, 10, 2);
@@ -36,23 +36,36 @@ describe("shared training session", () => {
     expect(finished.completedAt).toBe(3);
     expect(toTrainingResult(finished)?.accuracy).toBe(100);
   });
+
+  it("accepts non-note exercise data without clef or range fields", () => {
+    const config = { moduleId: "generic-fixture", mode: "challenge" as const, plannedQuestions: 2, sessionId: "generic-session" };
+    const session = createTrainingSession(config, { id: "one", data: { expectedValue: 42 } });
+    expect("clefConfiguration" in session).toBe(false);
+    expect("noteRange" in session).toBe(false);
+    const correct = submitSessionAnswer(session, true, 100);
+    expect(submitSessionAnswer(correct, false, 100)).toBe(correct);
+    const final = submitSessionAnswer(advanceSession(correct, { id: "two", data: { expectedValue: 8 } }), false, 200);
+    expect(final.totalScore).toBe(10);
+    expect(toTrainingResult(final)?.moduleId).toBe("generic-fixture");
+    expect(toTrainingResult(final)?.totalQuestions).toBe(2);
+  });
 });
 
 describe("QA scoring regressions", () => {
   it.each(["challenge", "daily"] as const)("does not complete a %s session early", (mode) => {
-    const start = createTrainingSession({ moduleId: "notes", mode, clefConfiguration: "treble", noteRange: "staff", plannedQuestions: 10 }, { id: "q1" });
+    const start = createTrainingSession({ moduleId: "notes", mode, plannedQuestions: 10 }, { id: "q1" });
     const first = submitSessionAnswer(start, true, 200);
     expect(finishSession(first)).toBe(first);
     expect(toTrainingResult(first)).toBeNull();
   });
 
   it("honors configured score and rejects negative or non-finite score overrides", () => {
-    const start = createTrainingSession({ moduleId: "notes", mode: "free", clefConfiguration: "bass", noteRange: "staff", plannedQuestions: null, pointsPerCorrect: 20 }, { id: "q1" });
+    const start = createTrainingSession({ moduleId: "notes", mode: "free", plannedQuestions: null, pointsPerCorrect: 20 }, { id: "q1" });
     expect(submitSessionAnswer(start, true, 200).totalScore).toBe(20);
     for (const invalid of [-10, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(submitSessionAnswer(start, true, 200, invalid).totalScore).toBe(20);
     }
-    const invalidConfig = createTrainingSession({ moduleId: "notes", mode: "free", clefConfiguration: "bass", noteRange: "staff", plannedQuestions: null, pointsPerCorrect: -10 }, { id: "q1" });
+    const invalidConfig = createTrainingSession({ moduleId: "notes", mode: "free", plannedQuestions: null, pointsPerCorrect: -10 }, { id: "q1" });
     expect(submitSessionAnswer(invalidConfig, true, 200).totalScore).toBe(10);
   });
 });

@@ -27,9 +27,10 @@ export type TrainingModule<TConfig, TExercise, TAnswer, TResult = TrainingResult
   id: string;
   name: string;
   description: string;
-  configSchema?: z.ZodType<TConfig>;
+  configSchema: z.ZodType<TConfig>;
   generateExercise: (config: TConfig, random?: () => number) => TExercise;
   validateAnswer: (exercise: TExercise, answer: TAnswer) => boolean;
   createResult: (session: TrainingSession<TExercise>) => TResult;
-  difficulties: readonly TrainingDifficulty[];
+  // Optional metadata only when a module implements these levels in its config/generator.
+  difficulties?: readonly TrainingDifficulty[];
 };

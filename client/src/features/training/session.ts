@@ -3,8 +3,6 @@ import type { ExerciseMode, TrainingResult } from "./types";
 export type SessionConfiguration = {
   moduleId: string;
   mode: ExerciseMode;
-  clefConfiguration: string;
-  noteRange: string;
   plannedQuestions: number | null;
   pointsPerCorrect?: number;
   sessionId?: string;
@@ -15,8 +13,6 @@ export type TrainingSession<TExercise> = {
   sessionId: string;
   moduleId: string;
   mode: ExerciseMode;
-  clefConfiguration: string;
-  noteRange: string;
   plannedQuestions: number | null;
   pointsPerCorrect: number;
   questionsAnswered: number;
@@ -41,8 +37,6 @@ export function createTrainingSession<TExercise>(
     sessionId: configuration.sessionId ?? globalThis.crypto?.randomUUID?.() ?? `session-${Date.now()}`,
     moduleId: configuration.moduleId,
     mode: configuration.mode,
-    clefConfiguration: configuration.clefConfiguration,
-    noteRange: configuration.noteRange,
     plannedQuestions: configuration.plannedQuestions,
     pointsPerCorrect: Number.isFinite(configuration.pointsPerCorrect) && configuration.pointsPerCorrect! >= 0 ? configuration.pointsPerCorrect! : 10,
     questionsAnswered: 0,

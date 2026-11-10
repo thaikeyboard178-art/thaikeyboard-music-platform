@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import React from "react";
 import { Link } from "wouter";
-import { ArrowLeft, ArrowRight, Check, Clock3, Home, RotateCcw, Sparkles, Trophy, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, RotateCcw, Sparkles, Trophy, X } from "lucide-react";
+import { TrainingHeader, TrainingFooter } from "@/app/TrainingShell";
+import { ResultSummary } from "@/features/training/ResultSummary";
+import { recordCompletedResult } from "@/features/training/progress";
 import { advanceSession, createTrainingSession, finishSession, submitSessionAnswer, toTrainingResult } from "@/features/training/session";
 import type { TrainingSession } from "@/features/training/session";
 import { ExerciseSetup, type SetupValues } from "../components/ExerciseSetup";
@@ -15,7 +18,6 @@ import { useAutoAdvance } from "../services/useAutoAdvance";
 import { noteReadingModule } from "../module";
 import type { NoteAnswer, NoteExercise } from "../types";
 
-const PROGRESS_KEY = "thaikeyboard-music-training-progress-v1";
 const DEFAULT_SETUP: SetupValues = {
   clef: "treble",
   range: "one-ledger",
@@ -45,40 +47,16 @@ function makeExercise(configuration: SetupValues, index: number, previous?: Note
   });
 }
 
-function saveCompletedProgress(sessionId: string, answered: number, correct: number) {
-  try {
-    const oldValue = localStorage.getItem(PROGRESS_KEY);
-    const current = oldValue ? JSON.parse(oldValue) as { lastSessionId?: string; sessionsCompleted?: number; questionsAnswered?: number; correctAnswers?: number } : {};
-    if (current.lastSessionId === sessionId) return;
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify({
-      lastSessionId: sessionId,
-      sessionsCompleted: (current.sessionsCompleted ?? 0) + 1,
-      questionsAnswered: (current.questionsAnswered ?? 0) + answered,
-      correctAnswers: (current.correctAnswers ?? 0) + correct,
-    }));
-  } catch {
-    // Practice remains fully usable if browser storage is unavailable.
-  }
-}
-
 function ExerciseResult({ session, onRetry, onSetup }: { session: TrainingSession<NoteExercise>; onRetry: () => void; onSetup: () => void }) {
   const result = toTrainingResult(session);
   if (!result) return null;
-  const seconds = Math.max(0, Math.round(result.averageResponseTimeMs / 100) / 10);
   return (
     <section className="result-view" aria-labelledby="result-title">
       <div className="result-badge"><Trophy size={28} /></div>
       <p className="panel-eyebrow">LƯỢT LUYỆN ĐÃ HOÀN THÀNH</p>
       <h2 id="result-title" tabIndex={-1}>Bạn đã làm rất tốt!</h2>
       <p className="result-subtitle">Mỗi nốt bạn đọc hôm nay giúp lần sau tự tin hơn.</p>
-      <div className="result-score"><strong>{result.accuracy}%</strong><span>độ chính xác</span></div>
-      <div className="result-stats">
-        <div><strong>{result.totalQuestions}</strong><span>Tổng số câu</span></div>
-        <div><strong>{result.correctAnswers}</strong><span>Trả lời đúng</span></div>
-        <div><strong>{result.incorrectAnswers}</strong><span>Cần luyện thêm</span></div>
-        <div><strong>{result.totalScore}</strong><span>Điểm tích lũy</span></div>
-        <div><strong>{seconds}s</strong><span>Thời gian trung bình</span></div>
-      </div>
+      <ResultSummary result={result} />
       <div className="result-actions">
         <button type="button" className="start-session-button" onClick={onRetry}><RotateCcw size={17} /> Luyện lại</button>
         <button type="button" className="secondary-action" onClick={onSetup}>Đổi thiết lập</button>
@@ -132,7 +110,7 @@ export default function NoteReadingPage() {
   function startSession() {
     const today = localDateKey();
     challengeDateRef.current = today;
-    noteReadingModule.configSchema?.parse({
+    noteReadingModule.configSchema.parse({
       ...setup,
       challengeDate: today,
     });
@@ -146,8 +124,6 @@ export default function NoteReadingPage() {
     const created = createTrainingSession({
       moduleId: noteReadingModule.id,
       mode: setup.mode,
-      clefConfiguration: setup.clef,
-      noteRange: ledgerRangeLabel(setup.ledgerRange),
       plannedQuestions,
       sessionId: `${setup.mode}-${today}-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
       startedAt: Date.now(),
@@ -258,9 +234,11 @@ export default function NoteReadingPage() {
   }, [session?.sessionId, session?.currentExercise.id, session?.hasAnsweredCurrent, session?.completedAt, complete, setup.mode, setup.speedLimitSeconds]);
 
   useEffect(() => {
-    if (!session?.completedAt || savedSessionRef.current === session.sessionId) return;
+    if (!session || session.completedAt === null || savedSessionRef.current === session.sessionId) return;
+    const result = toTrainingResult(session);
+    if (!result) return;
     savedSessionRef.current = session.sessionId;
-    saveCompletedProgress(session.sessionId, session.questionsAnswered, session.correctAnswers);
+    recordCompletedResult(result);
   }, [session?.completedAt, session?.sessionId, session?.questionsAnswered, session?.correctAnswers]);
 
   useEffect(() => {
@@ -286,12 +264,7 @@ export default function NoteReadingPage() {
 
   return (
     <div className="training-app">
-      <header className="site-header">
-        <div className="header-inner">
-          <Link href="/" className="wordmark" aria-label="THAIKEYBOARD Music Training, trang chủ"><span className="brand-key" aria-hidden="true"><i /><i /><i /></span><span>THAIKEYBOARD<small>MUSIC TRAINING</small></span></Link>
-          <nav aria-label="Điều hướng"><Link href="/" className="nav-link"><Home size={15} /> Trang chủ</Link><span className="nav-current" aria-current="page">Đọc nốt</span></nav>
-        </div>
-      </header>
+      <TrainingHeader currentModuleId={noteReadingModule.id} />
 
       <main className="module-main" ref={mainRef}>
         <div className="module-breadcrumb"><Link href="/">Học nhạc</Link><span>/</span><span>Đọc nốt</span></div>
@@ -342,7 +315,7 @@ export default function NoteReadingPage() {
             </section>
           </>
         ) : null}
-        <footer className="module-footer"><span>THAIKEYBOARD <i>·</i> MUSIC TRAINING</span><span>Học nhạc từng nốt, tiến bộ từng ngày.</span></footer>
+        <TrainingFooter />
       </main>
     </div>
   );

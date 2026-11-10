@@ -464,3 +464,32 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   .answer-feedback .continue-button { min-height: 44px; margin-left: auto; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .switch-track, .switch-track > span { transition: none; } }
+
+/* Shared catalog and navigation: no module-specific exercise styles. */
+.module-catalog { display: flex; flex-direction: column; gap: 13px; }
+.module-card.is-coming-soon { min-height: 150px; background: #faf9f5; box-shadow: none; }
+.module-card.is-coming-soon .module-card-icon { background: #efede6; color: #64716e; }
+.coming-soon-badge { display: inline-flex; padding: 7px 10px; border: 1px solid #d9ded7; border-radius: 5px; color: #53615a; background: #f0f3ed; font-size: 10px; font-weight: 700; }
+.coming-soon-note { margin: 8px 0 0; color: #59666b; font-size: 10px; line-height: 1.5; }
+.platform-progress { margin-bottom: 14px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #e7e3da; border-radius: 7px; background: #fffefa; color: #536168; }
+.platform-progress > span { font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+.platform-progress strong { color: #34444a; font-size: 19px; }
+.platform-progress small { font-size: 10px; font-weight: 500; }
+.nav-coming-soon { display: inline-flex; align-items: center; gap: 5px; color: #59676c; font-size: 11px; }
+.nav-coming-soon small { padding: 3px 5px; border-radius: 4px; background: #efefe8; color: #546259; font-size: 8px; }
+.module-menu-toggle { display: none; }
+@media (max-width: 900px) {
+  .site-header { position: relative; z-index: 20; }
+  .module-menu-toggle { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #e6e3da; border-radius: 6px; background: #fffefa; color: #43555d; }
+  .site-header .platform-navigation { display: none; position: absolute; right: 14px; left: 14px; top: calc(100% - 1px); height: auto; padding: 12px; border: 1px solid #e6e3da; border-radius: 0 0 8px 8px; background: #fffefa; box-shadow: 0 8px 18px #23303b14; }
+  .site-header .platform-navigation.is-expanded { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+  .site-header .platform-navigation .nav-link, .site-header .platform-navigation .nav-current, .site-header .platform-navigation .nav-coming-soon { display: flex; min-height: 44px; padding: 8px 10px; font-size: 12px; }
+  .site-header .platform-navigation .nav-coming-soon { justify-content: space-between; }
+}
+@media (max-width: 520px) {
+  .platform-progress { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .section-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .module-card-aside { flex-wrap: wrap; gap: 10px; }
+  .module-card-aside .progress-summary { max-width: 100%; }
+  .module-card-aside .module-open-button { min-height: 44px; }
+}

@@ -18,5 +18,4 @@ export const noteReadingModule: TrainingModule<NoteReadingConfiguration, NoteExe
   }, random),
   validateAnswer: (exercise, answer) => validateNoteAnswer(exercise.note, answer),
   createResult: (session) => toTrainingResult(session),
-  difficulties: ["beginner", "intermediate", "advanced"],
 };
