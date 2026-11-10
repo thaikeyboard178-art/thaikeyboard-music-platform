@@ -240,7 +240,11 @@ export default function Home() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (responseMode === "multiple" && event.key >= "1" && event.key <= "7") chooseAnswer(Number(event.key) - 1);
+      if (event.key >= "1" && event.key <= "7") {
+        const noteIndex = Number(event.key) - 1;
+        if (responseMode === "piano") playPianoNote(noteIndex, question.note.octave);
+        else chooseAnswer(noteIndex);
+      }
       if ((event.key === "Enter" || event.key === " ") && selected !== null && !finished) {
         event.preventDefault();
         nextQuestion();
@@ -433,7 +437,7 @@ export default function Home() {
                   <div className="note-ladder spaces"><span className="ladder-label">Khe</span><strong>La</strong><span>·</span><strong>Đô</strong><span>·</span><strong>Mi</strong><span>·</span><strong>Sol</strong></div>
                 </div>
                 <div className="guide-tip"><Sparkles size={15} /><p><strong>Mẹo nhỏ</strong><br />Hãy đọc theo thứ tự Đô – Rê – Mi – Fa – Sol – La – Si. Nốt lên một bậc, tên cũng tiến một bước.</p></div>
-                <div className="keyboard-tip"><span>{responseMode === "piano" ? "Bấm phím piano để nghe nốt." : <><span className="keycap">1</span><span className="keycap">–</span><span className="keycap">7</span> trên bàn phím để trả lời nhanh</>}</span></div>
+                <div className="keyboard-tip">Ấn phím từ 1 đến 7 trên bàn phím để trả lời nhanh</div>
               </div>
             )}
             {!guideOpen && <p className="guide-collapsed-note">Mở phần hướng dẫn để xem tên nốt trên các dòng kẻ và khe.</p>}
