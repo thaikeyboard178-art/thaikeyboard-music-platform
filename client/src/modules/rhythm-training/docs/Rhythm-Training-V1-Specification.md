@@ -1,0 +1,637 @@
+# Rhythm Training V1 — Functional and Technical Specification
+
+**Decision status: approval draft, seven-meter contract update, not implemented.** This revised copy supersedes the future V1 meter requirements in the historical specification while preserving unaffected product, exercise, scoring, audio, shell, and release boundaries. It records a read-only review of the existing Phase 1/Phase 2 library and the required seven-meter contract; it does not claim that the new meters work today and does not authorize implementation. This documentation update changes only the assigned Markdown copies; no source, dependency, schema, Git history or configuration, server, WordPress site, deployment, account, payment, microphone, or MIDI behavior is changed. The six-Level order and Bonus placement are already approved. Curriculum content details and any future source, notation, audio or frontend adaptation require separate approval; this update authorizes none of those implementations.
+
+The recommended product decision is to build Rhythm Training as a rhythm-owned module hosted by the existing THAIKEYBOARD training shell. The module should reuse the shared session lifecycle, exercise-level scalar scoring, aggregate progress recording, result summary, and catalog conventions, but should not import Note Reading internals or force Rhythm Training into Note Reading’s theory, generator, components, audio, piano, preferences, or layout. Rhythm-specific notation, exact rhythm mathematics, generation, audio scheduling, tap validation, diagnostics, and detailed feedback remain local to `modules/rhythm-training/`. The public product should expose only the two shared session wrappers **Free** and **Challenge** in V1; the four items Multiple Choice, Tap Rhythm, Listen & Identify, and Count the Beat are local rhythm exercise kinds, not new shared session modes.
+
+## 1. Scope, product contract, and terminology
+
+Rhythm Training V1 is intended for piano and general music learners, especially beginners who need a gradual path from note/rest values and pulse to compound meter, ties, and syncopation. It teaches five related abilities: recognizing notation and values, understanding beats and subdivisions, reading and interpreting patterns, listening to a pattern and identifying it, and reproducing onset patterns by tapping. It does not claim to measure every aspect of performance. In particular, Tap Rhythm assesses the timing of attack/onset events only; it does not assess how long a key, pointer, or keyboard Space key is held. Duration comprehension is assessed through notation, counting, listening with duration-aware sound, and tie/rest interpretation.
+
+The product is free to use and does not require mandatory registration, payment, subscription, server storage, microphone recognition, or MIDI. The design does not add a new framework, plugin registry, shared session mode, server API, database schema, or capability plugin. The eventual activation route is future-only: it may be added to the existing catalog and static route manifest only after implementation approval and the V1 release gate. Until then, the implemented Phase1/Phase2 Rhythm library remains inert/Coming Soon without an active frontend route; Chord Recognition remains Coming Soon and unchanged.
+
+The terms in this specification are intentionally precise. A **measure** is a bar whose written durations must exactly fill its meter. A **pulse** is the felt beat unit used for tempo and counting. In 2/4, 3/4, and 4/4, the pulse is the quarter note. In 3/8, the pulse is the eighth note and the bar contains three simple-triple pulses. In 6/8 and 9/8, the pulse is the dotted quarter: 6/8 has two compound-duple pulses and 9/8 has three compound-triple pulses. In 2/2, the pulse is the half note and the bar contains two alla-breve pulses [1] [29]. Pulse meaning is explicit in the meter definition, not inferred from the numerator or denominator. A **teaching group** is an instructional overlay of three eighth notes; it must not erase the meter’s relative pulse identity. A **tick** is an integer unit in the canonical rhythm timeline. A **segment** is one ordered written note or rest inside a measure. A tied note consists of adjacent note segments sharing a tie group; only the first segment is an attack. An **onset** is an attack event, not a note release or a continuation of a tie.
+
+The product must distinguish three kinds of result. The shared result is one scalar session result with one completed exercise equal to one answer. Rhythm-local detail is a diagnostic explanation of onset errors, duration concepts, meter, ties, and subskills. A provisional curriculum readiness recommendation is a coaching signal, not a shared score, hard lock, or validated educational standard.
+
+## 2. Existing facts, reuse, new work, and necessary change
+
+The following are verified facts from the supplied read-only source context, not seven-meter implementation claims. The project is `/home/ubuntu/notnhac`, existing repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`, baseline commit `8348e1366be87febd58de90752fc1a5d847d397c`, with clean status at the recorded inspection. A Rhythm Training library now exists under `client/src/modules/rhythm-training/` from Phase 1/Phase 2, but it remains inert and Coming Soon; it is not an active product route. The current implemented meter contract is four meters only: 2/4, 3/4, 4/4, and 6/8. The required 3/8 and 9/8 core meters and the 2/2 Bonus meter are not implemented. The recorded Phase 2 result of 436/436 tests across 40 files is historical evidence from the last task, not a fresh seven-meter run and not evidence that any new meter passes. The current code still contains eight legacy, data-only curriculum levels and supports only four implemented meters: 2/4, 3/4, 4/4, and 6/8. Chord Recognition remains Coming Soon and unchanged. This specification does not rerun tests.
+
+**Reuse — existing platform context.** The existing `TrainingShell` provides the header, catalog-driven navigation, mobile menu, and footer. The existing explicit module catalog has active entries with metadata, path, and lazy page, while Coming Soon entries have no page/path. The existing `TrainingModule<TConfig,TExercise,TAnswer,TResult>` contract, generic session lifecycle, exercise-level answer submission, shared +10 correct/+0 wrong default scoring, completion guards, aggregate progress recording, `TrainingResult`, and `ResultSummary` are the intended integration boundaries. The existing application shell and coral brand styling are also reusable. Standard browser DOM pointer/keyboard events and the Web Audio API are available platform capabilities; this proposal does not require a new audio dependency or AudioWorklet.
+
+**New Rhythm functionality.** The module must develop its own exact rhythm model, meter and pulse derivation, validator, seeded generator, ambiguity filter, notation projection, audio timeline projection, Web Audio scheduler, count-in, tap capture/matching, local exercise state machine, rhythm feedback, level catalog, and tests. It must also provide Vietnamese-first user-facing copy while retaining clear canonical English identifiers internally where useful. Detailed onset and duration diagnostics belong to a Rhythm-owned result detail view.
+
+**Necessary shared change.** No shared API change is expected for V1. The only expected host changes after approval are the normal future catalog registration, active route/page binding, and corresponding static-manifest binding for a genuinely implemented module. Those are integration registrations, not a foundation redesign. No shared session-mode union expansion, shared `TrainingResult` field, shared progress schema migration, Note Reading change, database change, account requirement, server change, deployment, WordPress change, or new plugin/capability system is necessary. If a later implementation audit finds an actual mismatch, the smallest additive change must be preferred and this design must be re-approved.
+
+Architecture decisions in the remainder of this document use the same labels: **Reuse** means an existing boundary is used unchanged; **New Rhythm** means code and behavior belong inside the future Rhythm module; **Necessary Shared Change** means a host edit required only when the approved implementation is ready. A decision marked **Proposal** is not a statement that the feature works.
+
+## 3. B. Cấu trúc bài học chính thức và progression
+
+The approved V1 curriculum has six ordered Levels plus one optional Bonus track. Level access remains exploratory in V1: no mandatory locks, paywalls, or hard progression gates. Each Level and the Bonus track contains **Lessons**, **Practice**, and an **Assessment**. These are curriculum/content units, not new shared session modes; the four local exercise kinds remain Multiple Choice, Tap Rhythm, Listen & Identify, and Count the Beat. A teacher or product owner may tune practice quantities and coaching thresholds after learner/device pilot, but may not reorder or redistribute the approved content without a new curriculum decision.
+
+The current implementation does not yet contain this curriculum. The existing eight legacy levels remain data-only and unchanged in code; the table below is the approved replacement specification for future content work.
+
+| Cấp độ / track | Nhóm kiến thức chính | Meters | Lessons | Practice | Assessment |
+|---|---|---|---|---|---|
+| Level 1 | Nốt đen, nốt trắng, nốt tròn; **dấu lặng đen (quarter rest only)** | 4/4 teaching scaffold | Identify values and the quarter rest; count a four-quarter bar | Visual value/rest recognition, Count the Beat, simple onset tapping | Mixed recognition and counting assessment using only the Level 1 vocabulary |
+| Level 2 | Nốt móc đơn, dấu lặng đơn, chia đôi phách | Formal 4/4 teaching scaffold; 2/4 and 3/4 deferred to Level 3 | Pair eighths and eighth rests; subdivide one quarter into two | Compare quarter/eighth patterns, rest placement, and onset taps on binary subdivisions in 4/4 | Mixed eighth-note/eighth-rest assessment with binary-quarter subdivision in 4/4 |
+| Level 3 | Nhịp đơn | 2/4, 3/4, 4/4 | Recognize signatures, count beats, understand accents and bar length | Analyze and perform patterns in all three simple meters | Combined assessment covering all three signatures and their simple-triple/duple distinctions |
+| Level 4 | Dấu chấm dôi và nối trường độ | Simple meters already taught: 2/4, 3/4, 4/4; no new meter | Add a dot as half of the undotted duration; distinguish ties from re-attacks; dotted eighth remains deferred | Dots first, ties second, then controlled dot/tie combinations with rests | Duration, tie-attack, and exact-bar assessment; no dotted-eighth requirement before Level 5 |
+| Level 5 | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao | Simple meters 2/4, 3/4, 4/4; controlled consolidation, not early Level6 or Bonus meters | Read sixteenth grids and combine prior vocabulary; consolidate the former advanced/syncopation material without creating new Levels 7/8 | Sixteenth combinations, rests, dots, ties, and controlled advanced patterns | Integrated advanced-rhythm assessment across prior vocabulary and sixteenth combinations |
+| Level 6 | **Grouping in Threes** as one unified knowledge group | 3/8, 6/8, 9/8 | Progress from one group of three eighths to two and then three groups, preserving meter identity | Compare group counts/accents and analyze notes, rests, dots, and ties across all three signatures | One combined assessment covering 3/8, 6/8, and 9/8 |
+| Bonus | Nhịp 2/2 (Alla Breve), optional learner progression | 2/2 | Understand two half-note pulses and compare 2/2 with 4/4 | Half-pulse counting, notation/value transfer, and optional tapping | Bonus assessment for half-pulse understanding and 2/2-versus-4/4 recognition |
+
+### Level 1 — Black, half, and whole notes; quarter rest only
+
+**Objectives.** The learner identifies the black/quarter note, half note, whole note, and the quarter rest; understands that the quarter rest occupies one quarter-note duration while remaining silent; and follows a steady four-quarter teaching scaffold. Level 1 must not introduce half rests, whole rests, dots, ties, eighths, sixteenths, compound grouping, or syncopation. The quarter rest is the only rest vocabulary in this Level.
+
+**Lessons.** Lessons introduce one note value at a time in the order quarter, half, whole, followed by the quarter rest. They show barline placement, duration accumulation, and the distinction between a sounding note and a silent rest of one quarter duration. Count language is a simple numbered quarter pulse.
+
+**Practice.** Practice uses Multiple Choice for value and duration recognition, Count the Beat for positions in a four-quarter scaffold, Listen & Identify for clearly separated note/rest examples, and Tap Rhythm for quarter-note onset patterns. Generated material uses 4/4, quarter-aligned starts, exact bars, and no rest other than a quarter rest.
+
+**Assessment.** The assessment mixes note-value recognition, whole/half/quarter duration arithmetic, quarter-rest placement, and simple onset reproduction. It must not grade vocabulary that has not been taught. A readiness signal is coaching-only and does not gate access or alter shared scoring.
+
+### Level 2 — Eighth notes, eighth rests, and binary quarter subdivision
+
+**Objectives.** The learner divides one quarter pulse into two equal eighth positions, reads paired eighth notes and eighth rests, and preserves exact duration when a rest replaces an attack. Level 2 uses binary subdivision only; it does not introduce dots, ties, sixteenths, or compound grouping.
+
+**Lessons.** Lessons demonstrate the quarter pulse, its two eighth subdivisions, paired eighth notation, and the corresponding eighth rest in a formal 4/4 teaching scaffold. Formal 2/4 and 3/4 meter transfer is deferred to Level 3; Level 2 does not pre-teach their simple-meter identity. The learner distinguishes an eighth rest from an absent or shortened duration.
+
+**Practice.** Practice compares quarter notes with two eighths, note/eighth-rest combinations, and identical durations with different onset placements. Count the Beat exposes two subdivision positions within a quarter pulse. Tap Rhythm targets onset positions only; it never treats holding a key or surface as duration evidence.
+
+**Assessment.** The assessment covers eighth-note and eighth-rest recognition, binary subdivision coordinates, exact bar filling in 4/4, and short listening/tapping items. Formal 2/4 and 3/4 coverage begins in Level 3. Dots, ties, sixteenths, and compound-meter groupings are excluded.
+
+### Level 3 — Simple Meter: 2/4, 3/4, and 4/4
+
+**Objectives.** The learner recognizes time signatures, counts beats, understands teaching accents, distinguishes bar lengths, and analyzes/practices rhythm patterns in the unified simple-meter group. The three signatures are not independent courses: 2/4 has two quarter-note pulses, 3/4 has three, and 4/4 has four.
+
+**Lessons.** Lessons introduce the common quarter-note pulse and compare 2/4, 3/4, and 4/4 side by side. They teach the approved structural labels: 2/4 `S-W`, 3/4 `S-W-W`, and 4/4 `S-W-M-W` where a medium stress is shown, while keeping exact pulse counts and bar capacity explicit. The learner practices reading the numerator/denominator as meter information rather than as a generic duration shortcut.
+
+**Practice.** Practice rotates all three signatures through Multiple Choice, Count the Beat, Listen & Identify, and Tap Rhythm. Items compare equal written values across different bar lengths, locate rests and eighth subdivisions, and identify strong/weak positions without flattening the signatures into one generic pattern.
+
+**Assessment.** The assessment is a combined simple-meter check containing 2/4, 3/4, and 4/4. It tests signature recognition, beat counting, accent interpretation, bar-capacity arithmetic, and pattern analysis. A learner should demonstrate transfer across all three signatures; the assessment is not a separate course test for each signature.
+
+### Level 4 — Dots and ties
+
+**Objectives.** The learner understands that a dot adds half of the undotted duration and that a tie joins adjacent written segments into one sustained sounding event. Dotted eighth is explicitly deferred until the Level 5 sixteenth grid under the retained duration policy. Level 4 may use dotted quarter and dotted half where the selected meter permits them, but it does not require dotted eighth.
+
+**Lessons.** Lessons teach dots without ties, ties without dots, and then controlled combinations. They distinguish a tie continuation from a second attack, preserve rest duration, and use exact tick arithmetic. Cross-bar ties remain complete validated fixtures, not a reason to change onset-only Tap Rhythm scoring.
+
+**Practice.** Practice begins with duration and notation Multiple Choice, then Listen & Identify with duration-aware gates, Count the Beat for dotted coordinates and tie continuations, and Tap Rhythm only for genuine onset starts. Each item adds at most one new difficulty source until the learner has seen the source in isolation.
+
+**Assessment.** The assessment checks dotted-duration arithmetic, tie-group identity, rest handling, and attack count. It explicitly excludes dotted-eighth mastery until Level 5 and must not claim that onset tapping measures held duration.
+
+### Level 5 — Sixteenths, combinations, and advanced rhythms
+
+**Objectives.** The learner reads four sixteenth positions per quarter pulse, combines sixteenths with quarters, eighths, rests, dots, and ties, and consolidates controlled advanced rhythm material formerly represented by legacy Levels 7/8. This is consolidation within Level 5, not creation of new Levels 7/8. Tuplets, swing, mixed meter, polyrhythm, and arbitrary unsupported cross-pulse ties remain excluded.
+
+**Lessons.** Lessons introduce the sixteenth grid, then combine it with previously mastered values. Dotted eighth is introduced here because it is represented naturally against the sixteenth grid. Advanced lessons add controlled offbeat/syncopated placements and selected tie/rest combinations only after their component grids are stable.
+
+**Practice.** Practice progresses from one sixteenth subdivision group to mixed one-bar combinations, then to controlled advanced patterns. The generator uses a difficulty budget, keeps pulse boundaries readable, and reuses the four local exercise kinds. Old advanced content may be consolidated here, but no new curriculum levels named Level 7 or Level 8 are created.
+
+**Assessment.** The assessment combines sixteenth reading, rest placement, dots, ties, and controlled advanced/syncopated patterns. It evaluates exact bar arithmetic, onset positions, and meter-aware interpretation while preserving the existing one whole-exercise +10/+0 scoring rule.
+
+### Level 6 — Grouping in Threes (one unified knowledge group)
+
+**Objectives.** The learner understands one, two, and three groups of three eighth notes while preserving the distinct theory of 3/8, 6/8, and 9/8. This is one knowledge group, not three independent courses. The exact progression is:
+
+1. Recognize one group of three eighths: 3/8.
+2. Expand to two groups: 6/8.
+3. Expand to three groups: 9/8.
+4. Compare the number of groups and the locations of teaching accents.
+5. Analyze patterns containing notes, rests, dots, and ties.
+6. Complete combined practice and assessment across all three signatures.
+
+**Lessons.** The teaching strings are retained exactly as `3/8 Sww`, `6/8 Sww|Sww`, and `9/8 Sww|Sww|Sww`. These strings describe the instructional group-emphasis overlay. They do not replace relative metrical hierarchy: 3/8 is simple triple with three independent eighth-note pulses of 240 ticks; 6/8 is compound duple with two dotted-quarter pulses of 720 ticks; and 9/8 is compound triple with three dotted-quarter pulses of 720 ticks. The first bar pulse is stronger than internal group starts where relative hierarchy is represented; exact gain/copy behavior requires educator confirmation.
+
+**Practice.** Practice follows the six-step sequence above. It first identifies group count, then compares pulse/group starts, then analyzes notes and rests, and finally adds dots and ties. Count the Beat and notation overlays must show both the teaching group and the technical pulse identity. Tap Rhythm uses the exact meter pulse timeline; it must not convert 3/8 to a single 720-tick pulse or treat 6/8/9/8 as six/nine independent quarter-like beats.
+
+**Assessment.** One combined assessment covers 3/8, 6/8, and 9/8. It tests group-count recognition, structural accents, simple-versus-compound classification, exact bar capacity, and patterns with notes, rests, dots, and ties. It is not three independent course assessments. The 3/8/6/8/9/8 differences must remain visible in feedback and metadata.
+
+The approved source table may describe the 3/8 teaching grouping as “1” under a group-count column. If that quoted table is retained in an implementation-facing document, it must be annotated: **1 is the group count, not one technical pulse**. The technical 3/8 pulse remains three eighth-note pulses at 240 ticks each. The label used for learner-facing emphasis should be confirmed by a teacher before UI/audio copy is finalized.
+
+### Bonus — 2/2 Alla Breve (optional learner progression)
+
+**Objectives.** The learner understands two half-note pulses in one 2/2 bar, compares the half-pulse feel with 4/4, and recognizes that the Bonus is optional while remaining a V1-supported feature. The two pulse starts are 0 and 960 ticks, with `S-W` teaching accents.
+
+**Lessons.** Lessons introduce the half-note pulse, two-pulse bar, and the relationship between four quarter-note units and two half-note pulses. They explicitly label tempo as half-note BPM and compare 2/2 with 4/4 without treating equal 1920-tick capacity as equal pulse semantics.
+
+**Practice.** Practice uses notation/value comparison, Count the Beat on half-pulse positions, Listen & Identify with duration-aware gates, and optional Tap Rhythm on the 0/960 pulse timeline. It remains outside the required six-Level progression and must not be silently treated as Level 4.
+
+**Assessment.** The Bonus assessment checks half-pulse recognition, 2/2-versus-4/4 comparison, exact bar filling, and strong/weak interpretation. It is available as a V1-supported optional learner progression, not a mandatory graduation requirement.
+
+### Curriculum tempo and counting policy
+
+Tempo labels must name the felt pulse. Quarter-note BPM applies to 2/4, 3/4, and 4/4; eighth-note BPM applies to 3/8; dotted-quarter BPM applies to 6/8 and 9/8; half-note BPM applies to 2/2. Values remain pilot hypotheses, not validated teaching standards. The existing matching windows, calibration defaults, scheduler choices, and scoring semantics are unchanged. Counting copy may use Vietnamese-first labels, but the final spoken convention and relative accent gain for Level 6 require educator confirmation before audio/count-in implementation.
+
+## 4. Canonical rhythm model and exact mathematics
+
+**Proposal — New Rhythm:** Use an integer tick representation with `PPQ = 480` ticks per quarter note. PPQ is the canonical resolution, not a floating-point duration. A quarter note is 480 ticks, a half is 960, a whole is 1920, an eighth is 240, and a sixteenth is 120. A dotted value is the undotted duration plus half of that duration: dotted quarter 720, dotted half 1440, dotted eighth 360. The model rejects any duration descriptor whose exact tick result is not representable under the allowed V1 grid. Rhythm arithmetic remains integer-only; floating-point seconds are an audio projection, never the bar-validity authority.
+
+The canonical authoring authority remains the ordered duration descriptor, not both an editable tick count and an editable beat position. Measure and segment IDs are unique within a pattern; the immutable exercise snapshot has its own ID/seed and graded tempo. The following contract is a future design seam, not an implemented source file:
+
+```ts
+type RhythmExerciseKind =
+  | "multiple-choice" | "tap-rhythm" | "listen-identify" | "count-beat";
+type RhythmMeter =
+  | { numerator: 2 | 3 | 4; denominator: 4 }
+  | { numerator: 3; denominator: 8 }
+  | { numerator: 6; denominator: 8 }
+  | { numerator: 9; denominator: 8 }
+  | { numerator: 2; denominator: 2 };
+type WrittenDuration = {
+  denominator: 1 | 2 | 4 | 8 | 16;
+  dots: 0 | 1;
+};
+type RhythmSegment = {
+  id: string;
+  kind: "note" | "rest";
+  duration: WrittenDuration;
+  tieGroupId?: string;
+  accent?: "normal" | "strong";
+  articulation?: "ordinary" | "staccato" | "tenuto";
+};
+type RhythmPattern = {
+  id: string;
+  meter: RhythmMeter;
+  tempo: { pulseBpm: number };
+  measures: { id: string; segments: RhythmSegment[] }[];
+};
+type RhythmExercise = {
+  id: string;
+  seed: string;
+  levelId: string;
+  kind: RhythmExerciseKind;
+  pattern: RhythmPattern;
+  expectedAnswer: unknown; // replaced by the kind-specific answer union
+};
+```
+
+The implementation should make exercise/answer payloads discriminated unions. Choice and listening payloads carry a stable correct option ID and validated options; Count the Beat carries an exact expected coordinate set; Tap Rhythm carries normalized tap timestamps, attempt ID, and timing-confidence metadata. `expectedAnswer: unknown` is an abbreviated design seam, not permission for an unvalidated payload. The module-owned Zod schema and musical validator validate these unions before use.
+
+For denominator `d`, undotted ticks are `480 * 4 / d`; one dot multiplies that exact duration by `3/2`. Derived ticks must be positive safe integers. V1 permits one dot on half, quarter, and, from Level 5, eighth values, with no dotted sixteenth/whole vocabulary, no tuplets/double dots/swing, and only vocabulary enabled by the selected level. Articulation fields reserve explicit meaning: V1 generates and accepts ordinary articulation only. Accent changes gain, never onset time, and explicit segment accent must remain distinct from structural meter accent. All rhythm notes use one neutral fixed-pitch timbre; there is no pitch-recognition or MIDI field.
+
+Ticks, absolute start/end and beat/measure coordinates belong to a derived read-only view. If an imported fixture includes cached ticks, the validator compares them with the duration formula and rejects discrepancies; it never chooses whichever value happens to fit. For all-rest bars, use explicit meter-compatible rest values. Do not coerce a 1920-tick whole rest into a 1440-tick bar. Special conventional whole-measure-rest glyph handling remains deferred unless a separate renderer fixture proves its meter-dependent duration.
+
+A derived segment view adds `absoluteStartTicks`, `absoluteEndTicks`, `measureOffsetTicks`, `pulseIndex`, `subdivisionIndex`, `pulseTicks`, `onset: true|false`, `tieRole: none|start|continue|end|single`, and an answer identity. It records its subdivision grid explicitly. `subdivisionTicks` is 120 for sixteenths, 240 for eighths, or 480 for quarter-only questions, subject to the selected meter's available grid. `subdivisionIndex` is local to a pulse, not a whole-measure cell ordinal. For3/8 eighths on grid240 it is `[0,0,0]`; sixteenths on grid120 have `[0,1,0,1,0,1]`. For2/2 quarters on grid480 it is `[0,1,0,1]`; eighths on grid240 have `[0,1,2,3,0,1,2,3]`. `pulseIndex=floor(measureOffsetTicks/pulseTicks)`; pulse offset is the remainder; subdivision coordinates derive from that offset and grid, never independently assigned. For 3/8, `pulseTicks=240`, pulse starts are `[0,240,480]`, and sixteenths are 2+2+2 inside the three simple-triple pulses. For 6/8, `pulseTicks=720`, pulse starts are `[0,720]`, and eighths are grouped 3+3. For 9/8, `pulseTicks=720`, pulse starts are `[0,720,1440]`, and eighths are grouped 3+3+3; teaching group starts do not erase the three dotted-quarter pulse identities. For 2/2, `pulseTicks=960`, pulse starts are `[0,960]`; quarter/eighth/sixteenth coordinates are relative to each half pulse, with four eighth subdivisions or eight sixteenth subdivisions per half pulse. Notation beam layers are a separate presentation plan, not these pulse coordinates. Ties and durations remain tick-based across either teaching overlay.
+
+A note attacks when it is not a rest and is either untied or the first segment of a tie group. A tied continuation is never a second attack. A rest has no attack and still consumes its full duration. A tie group must consist of adjacent note segments with the same `tieGroupId`; it may cross a barline only by making the final segment of one bar adjacent to the first segment of the next. Ties to rests, non-adjacent tie members, mismatched pitch roles, or second attacks are invalid in V1.
+
+### Explicit seven-meter registry proposal
+
+The future meter registry must be immutable and exact-pair keyed. It must not infer pulse duration from numerator alone, denominator alone, or a simple/compound shortcut. V1 supports **seven meter pairs total**: six core meters (2/4, 3/4, 4/4, 3/8, 6/8, 9/8) plus the optional but supported Bonus meter 2/2.
+
+| Meter | Class and technical pulse | Bar capacity (ticks) | Pulse starts (ticks) | Teaching group / accent metadata |
+|---|---|---:|---|---|
+| 2/4 | Simple duple; quarter pulse 480 | 960 | `[0,480]` | `[1,1]`; `S-W` |
+| 3/4 | Simple triple; quarter pulse 480 | 1440 | `[0,480,960]` | `[1,1,1]`; `S-W-W` |
+| 4/4 | Simple quadruple; quarter pulse 480 | 1920 | `[0,480,960,1440]` | `[1,1,1,1]`; `S-W-M-W` teaching overlay |
+| 3/8 | Simple triple; eighth pulse 240 | 720 | `[0,240,480]` | teaching group count `1`; teaching string `3/8 Sww`; technical pulses remain 3, accents `S-W-W` |
+| 6/8 | Compound duple; dotted-quarter pulse 720 | 1440 | `[0,720]` | groups `3+3`; teaching string `6/8 Sww&#124;Sww`; structural pulses `S-W` |
+| 9/8 | Compound triple; dotted-quarter pulse 720 | 2160 | `[0,720,1440]` | groups `3+3+3`; teaching string `9/8 Sww&#124;Sww&#124;Sww`; structural pulses `S-W-W` |
+| 2/2 Bonus | Alla breve; half pulse 960 | 1920 | `[0,960]` | `[1,1]`; `S-W` |
+
+The supplied technical matrix is normative and must be retained in any implementation-facing copy:
+
+| Parameter | 3/8 | 6/8 | 9/8 |
+|---|---:|---:|---:|
+| Bar capacity | 720 | 1440 | 2160 ticks |
+| Number of eighth notes | 3 | 6 | 9 |
+| Number of groups of three | 1 | 2 | 3 |
+| One eighth-note duration | 240 | 240 | 240 ticks |
+| Technical pulse count | 3 | 2 | 3 |
+| Technical pulse duration | 240 | 720 | 720 ticks |
+| Pulse starts | `[0,240,480]` | `[0,720]` | `[0,720,1440]` |
+| Classification | simple triple | compound duple | compound triple |
+| Teaching group emphasis | `3/8 Sww` | `6/8 Sww&#124;Sww` | `9/8 Sww&#124;Sww&#124;Sww` |
+
+The source curriculum table’s “3/8 phách chính = 1” must not be adopted as the technical pulse count. If quoted, annotate that **1 is the group count, not one technical pulse**, and request teacher confirmation of the learner-facing label. Never change the 3/8 pulse from 240 ticks to 720 ticks without a new approval.
+
+Teaching group emphasis and relative metrical hierarchy are distinct. The required teaching strings are exactly `3/8 Sww`, `6/8 Sww|Sww`, and `9/8 Sww|Sww|Sww`. In 3/8, the three 240-tick eighth pulses are simple triple. In 6/8, the two 720-tick dotted-quarter pulses are compound duple. In 9/8, the three 720-tick dotted-quarter pulses are compound triple. Where gain or copy represents hierarchy, the first bar pulse is stronger than internal group starts; relative gain values and final educator-facing copy require confirmation.
+
+`MeterInfo` may expose readonly derived metadata such as `measureTicks`, `pulseTicks`, `pulseUnit`, `pulseCount`, `pulseStarts`, `groups`, `structuralAccents`, and an explicit notation/beam plan. These are derived from the registry and are not caller-editable fields in serialized `RhythmMeter`. The public serialized meter remains the exact numerator/denominator pair. The future Zod schema must accept exactly these seven pairs and reject unsupported pairs such as 3/2, 6/4, and 5/8.
+
+Meter capacity is derived from the explicit definition and the validator requires exact equality. The authoritative conversion remains:
+
+```text
+seconds = (ticks / pulseTicks) * (60 / BPM)
+```
+
+Thus a 240-tick 3/8 pulse lasts one second at 60 eighth-pulse BPM, a 720-tick 3/8 bar lasts three seconds at that tempo, a 720-tick 6/8 or 9/8 dotted-quarter pulse lasts one second at 60 dotted-quarter BPM, a 1440-tick 6/8 bar lasts two seconds, and a 2160-tick 9/8 bar lasts three seconds at that tempo. A 960-tick 2/2 pulse lasts one second at 60 half-pulse BPM, and a 1920-tick 2/2 bar lasts two seconds. The same conversion is used for notation-derived event positions, future audio gates, metronome pulses, count-in pulses, and expected onset positions.
+
+For any measure, the validator computes the sum of ordered segment ticks and requires exact equality with the selected capacity. It rejects underfilled and overfilled measures, zero or negative durations, malformed dotted descriptors, contradictory ticks, unsupported meters, unsupported tuplets, unsupported swing, mixed meter, polyrhythm, and unsupported articulation semantics. It also validates that notation descriptors and tick values agree. A schema validator may use Zod at the Rhythm boundary, but exact arithmetic and musical constraints must be enforced by Rhythm-owned validation logic rather than by schema shape alone.
+
+### Required canonical examples
+
+**Complete 3/8 examples.** Three eighth notes are `240 + 240 + 240 = 720` ticks. One dotted quarter is `720` ticks. Three eighth rests are `240 + 240 + 240 = 720` ticks and yield no onsets or sounding spans. An underfilled pattern such as two eighths totals 480 and must reject. An overfilled pattern such as four eighths totals 960 and must reject. The three note starts are 0, 240, and 480; their pulse indices are 0, 1, and 2. These are three separate simple-triple pulses even if notation chooses a bar-wide beam for the three continuous eighth notes [1].
+
+**Complete 2/2 examples.** Two half notes are `960 + 960 = 1920` ticks. Four quarter notes are `4 * 480 = 1920` ticks. Eight eighth notes are `8 * 240 = 1920` ticks. Three quarters total 1440 and must reject as underfilled. Five quarters total 2400 and must reject as overfilled. Four quarter starts are 0, 480, 960, and 1440 with pulse indices 0, 0, 1, and 1. Eight eighth starts are 0 through 1680 in 240-tick steps, with four eighths inside each half pulse.
+
+**Complete 4/4 example.** One valid measure contains quarter note, two eighth notes, quarter rest, and quarter note:
+
+```text
+4/4 capacity = 4 * 480 = 1920
+quarter note       480   starts 0,     attacks at 0
+paired eighth      240   starts 480,  attacks at 480
+paired eighth      240   starts 720,  attacks at 720
+quarter rest       480   starts 960,  no attack
+quarter note       480   starts 1440, attacks at 1440
+sum = 480 + 240 + 240 + 480 + 480 = 1920
+```
+
+The pulse positions are 0, 1, 1.5, 2, and 3 quarter beats in measure-relative terms. The rest occupies its exact duration and has no target at its start.
+
+**Complete 3/4 example.** One valid measure contains dotted quarter note, eighth note, and quarter rest:
+
+```text
+3/4 capacity = 3 * 480 = 1440
+dotted quarter  720   starts 0,   attacks at 0
+eighth          240   starts 720, attacks at 720
+quarter rest    480   starts 960, no attack
+sum = 720 + 240 + 480 = 1440
+```
+
+The dotted duration is explicit: 720 ticks equals one and a half quarter beats. The remaining 720 ticks are exactly an eighth plus a quarter rest.
+
+**Complete 6/8 example.** One valid compound-duple measure contains a dotted-quarter note, two eighth notes, and an eighth rest:
+
+```text
+6/8 capacity = 6 * 240 = 1440
+dotted quarter  720   starts 0,    attacks at 0; pulse group 1 = 0..720
+(eighth)        240   starts 720,  attack at 720; pulse group 2 begins
+(eighth)        240   starts 960,  attack at 960
+eighth rest     240   starts 1200, no attack
+sum = 720 + 240 + 240 + 240 = 1440
+```
+
+The full bar is grouped 3+3 eighth units. The second pulse, ticks 720 through 1440, has three subdivisions. The rest occupies the final subdivision. The dotted-quarter BPM governs each 720-tick pulse; it is not six independent quarter-like beats [2]. A dotted half fills a 6/8 bar; a whole note does not.
+
+**Complete 9/8 example.** One valid compound-triple measure contains three dotted-quarter note/rest spans, represented here as three groups of three eighth units:
+
+```text
+9/8 capacity = 9 * 240 = 2160
+(eighth)        240   starts 0,    attack at 0; group 1 / pulse 1
+(eighth)        240   starts 240,  attack at 240
+(eighth rest)   240   starts 480,  no attack
+(dotted quarter)720   starts 720,  attack at 720; group 2 / pulse 2
+(eighth)        240   starts 1440, attack at 1440; group 3 / pulse 3
+(eighth)        240   starts 1680, attack at 1680
+(eighth rest)   240   starts 1920, no attack
+sum = 240 + 240 + 240 + 720 + 240 + 240 + 240 = 2160
+```
+
+The technical pulse starts are 0, 720, and 1440, while the teaching grouping is 3+3+3. A 9/8 bar is not nine independent quarter-like beats and is not a single 2160-tick pulse. The first bar pulse may receive stronger relative emphasis than the internal group starts, subject to educator confirmation.
+
+The existing 4/4, 3/4, and 6/8 rules remain valid and their duration, rest, tie, attack, and bar-capacity semantics continue to apply to all seven supported meters.
+
+**Tie example.** Preserve the prior complete cross-bar 4/4 tie fixture. The same rule applies to 3/8 and 2/2: a tie continuation at the next segment or barline has no attack, the gate spans the contiguous tie group, and a rest between tie members is invalid. A 3/8 cross-bar fixture may span `[480,960)` when a final 240-tick eighth is tied into the next bar; a 2/2 cross-bar fixture may span `[960,2880)` when a final half pulse is tied across bars. These are proposed fixtures, not implementation evidence.
+
+## 5. Generation, notation, and audio parity
+
+**New Rhythm — generation proposal.** The generator is seeded and meter-aware. A level configuration supplies allowed meters, explicit meter capabilities, duration vocabulary, rest policy, tie policy, dot policy, maximum difficulty sources, meter-labeled tempo band, exercise kind balance, and answer/distractor rules. It fills measures from a permitted exact-duration vocabulary, validates every measure, derives attacks, and computes a canonical answer signature. It must reject invalid measures before they reach a mode. It must also reject distractors that are equivalent under the canonical representation, visually identical, audibly indistinguishable for the requested task, or different only in an excluded property.
+
+The generator must preserve the exact requested meter. It must not coerce every non-6/8 meter to denominator 4, classify compound meter by numerator 6, or classify 3/8 as compound because its denominator is 8. Fine-grid and syncopation budgets must use `pulseTicks`, pulse count, and explicit capability metadata. Existing exact-fill, rest, tie, cross-bar, and all-rest validator rules remain authoritative. A canonical all-rest 3/8 bar is valid validator/notation material, although the current generator deliberately rejects all zero-onset generated patterns, not only Tap items; that policy must remain an explicit future choice rather than silently invalidating the canonical fixture.
+
+Adding 3/8 and 2/2 to default pools changes seeded default outputs. The future implementation must either preserve a legacy policy/default-pool version or explicitly document that policy expansion changes old default seeds. Same configuration and same policy version must remain deterministic. No cross-meter fallback or equivalent filler is allowed merely to satisfy a choice count.
+
+**New Rhythm — notation projection proposal.** A single validated derived segment view is passed to a Rhythm-owned VexFlow 5 adapter. The adapter maps canonical note/rest descriptors to `StaveNote`, durations, dots, beams, and `StaveTie` arcs [6] [7] [8] [9]. Strict voice/tick checks are secondary assertions; they do not replace the canonical validator. Beam grouping must be an explicit meter-aware presentation plan separate from the semantic pulse metadata.
+
+The preferred educational proposal is pulse-first semantics with an optional 3/8 bar-wide beam presentation. In 3/8, three eighth-note pulses remain visible in the count/accent overlay as S-W-W. A continuous three-eighth notation beam may connect the notes over 0..720 only if the Music Education Review approves that convention; it must not change `pulseIndex`, `pulseTicks`, accents, tempo, or Count the Beat coordinates. For3/8 sixteenths under the optional bar-wide convention, the primary beam can span all six notes; secondary beams split2+2+2 to expose the three eighth pulses. Under pulse-first presentation both layers split at each pulse. For6/8 eighths the primary plan is3+3; twelve sixteenths are grouped6+6 at dotted-quarter pulse boundaries, with secondary breaks explicitly decided by the educator, not copied from3/8. For2/2 eighths, primary beams are4+4; sixteen sixteenths have primary groups8+8 and secondary quarter-subgroups4+4 |4+4. Rests and barlines break beams under the chosen V1 policy. A valid tie does not by itself require a beam break; a beam may span adjacent tied notes within an approved group while continuation attacks remain suppressed. A rest never becomes a note attack, and a tie continuation never creates a new attack. The exact choice between pulse-first visible beams and the optional 3/8 bar-wide beam is an educational decision pending teacher signoff.
+
+Structural meter accents are separate from explicit segment accents. The meter overlay/metronome may expose 3/8 S-W-W, 6/8 S-W, 9/8 S-W-W, and 2/2 S-W, but a structural downbeat must not silently mutate a segment's explicit `accent` field. The renderer should show explicit note articulation only where the canonical segment requests it. A rest has no articulation or attack.
+
+**New Rhythm — duration-aware audio projection proposal.** The same derived view schedules one attack for each untied note or tie-group start, no attack for rests, and one gate release at the end of each note or tie group. A rest is silent for its full duration. A tie does not become a series of ambiguous clicks. Listening exercises use a bounded sustained timbre/envelope; a gated tone is held for the written duration and released at the duration/group end. The pattern tone lane and metronome lane are separate so a learner can distinguish the musical pattern from reference pulses. A metronome may accent the first pulse of a bar, but it must not conceal rests or create a false attack for a tie continuation. In future 3/8 audio, reference pulses are three 240-tick eighth pulses; in 6/8 they are two 720-tick dotted-quarter pulses; in 9/8 they are three 720-tick dotted-quarter pulses; in 2/2 they are two 960-tick half pulses.
+
+A pre-release parity fixture must compare canonical segments, notation event positions, and audio event positions. If notation says a tied continuation starts at a tick but audio emits a new attack there, the fixture fails. If audio gate ends before a dotted duration, the fixture fails. The new-meter parity fixtures are proposed and not implemented in this review.
+
+## 6. Four exercise kinds and lifecycle
+
+The four kinds share a local rhythm exercise state machine but differ in answer capture. Proposed local states are `setup`, `ready`, `countIn`, `playing`, `collecting`, `feedback`, `complete`, `aborted`, and `audioUnavailable`. A new exercise begins in setup, obtains or resumes audio only after user gesture when required, displays the instructions and target, and enters ready. A user action begins count-in or the question playback. At the end of a completed question, the local validator produces a rhythm answer result. Exactly one shared exercise-level answer is then submitted for that completed graded exercise. A replay or unscored retry never submits another shared answer. An aborted attempt submits no answer and no score.
+
+The UI must show whether the current action is practice/replay, a graded attempt, or an unscored retry. A retry after a wrong answer may be unlimited but does not increase the original shared award. A completed graded exercise is worth exactly +10 if the exercise-level result is correct and +0 if incorrect. There is no partial credit engine, no per-tap shared counting, and no separate score for each subpart. Local diagnostics may report missing, extra, early, late, duration, meter, tie, or syncopation issues without changing the +10/+0 rule.
+
+### A. Multiple Choice
+
+**Screen interaction.** The screen presents a notation panel or a concise theory question and two to four answer choices as native buttons. Choices must be keyboard-operable, visibly focused, large enough for touch, and labeled in Vietnamese-first copy. A notation question may ask for duration, meter, beat position, rest meaning, tie attack count, or matching pattern. The module must avoid importing Note Reading’s internal theory or presentation.
+
+**Lifecycle.** The exercise loads a validated canonical pattern, displays the question, waits for one choice, disables duplicate submission, validates it, shows feedback, and permits next, replay, or unscored retry according to the local flow. If the user changes tempo or display visibility in a way that affects an active audio-backed question, the attempt is aborted before any answer/score is committed.
+
+**Audio.** Audio is optional for purely visual questions and required for audio comparison questions. If audio is used, initialization occurs after a user gesture and the scheduler uses the canonical audio projection. A blocked or interrupted context shows a recovery action rather than silently marking an answer wrong.
+
+**Validation and feedback.** Validation compares the selected choice’s canonical answer identity, not a label string or rendered pixel. Feedback explains the relevant concept: for example, “dotted quarter = quarter + half of quarter,” “6/8 has two dotted-quarter pulses,” or “the second tied segment does not attack.” The feedback may show a corrected notation and a pulse/subdivision overlay.
+
+**Scoring and retry.** The first completed graded response is converted to one shared correct/wrong result and +10/+0. Replay and retry do not rescore. A wrong answer may be reviewed and retried locally, but the original award remains fixed.
+
+**Mobile.** Choice buttons must be touch-safe with no hover-only meaning [25] [26]. Orientation changes during an active audio attempt should abort and require a new visible start gesture if timing could be affected. A mobile screen must preserve the meter label, notation legibility, and feedback without making the learner infer duration from an inaccessible animation.
+
+### B. Tap Rhythm
+
+**Screen interaction.** The learner sees a meter label, optional notation or visual grid according to level, a start/count-in control, a large tap surface, and a keyboard instruction: tap/click or press Space. Supported inputs are pointer down, touch through Pointer Events, and Space keydown. Microphone and MIDI are not implemented. Space key repeats are ignored [23]. Pointer events are deduplicated so a touch does not become both pointer and click input. `pointercancel`, pointer loss, blur, hidden tab, context interruption, output-route change, tempo change, or scheduler starvation aborts the active attempt without penalty.
+
+**Lifecycle.** The proposed graded sequence is one measure of count-in → one complete reference pattern → one measure of response count-in → one complete response pattern with optional primary-pulse metronome. The immutable response-start anchor, not the reference-start anchor, determines expected taps. A read-and-tap practice variant can omit the reference and retain one response count-in. Taps during count-in/reference are not scored. Collection opens just before the response using the first target's matching allowance and closes after the full response duration plus the final target's maximum late allowance. A graded item closes automatically; “Stop” aborts without score, not an early shortcut that hides extras. Free unscored practice may offer manual finish after the response has played. After collection, taps are matched once and one whole-exercise result is submitted. This is the recommended completion default for approval rather than an unresolved implementation choice.
+
+**Audio.** The metronome/reference is scheduled from `AudioContext.currentTime`, with a bounded look-ahead wakeup. The DOM event timestamp is used for input; the audible click timestamp is never substituted for the physical event timestamp. Count-in and pattern tone are separate lanes. If the pattern contains ties, the second segment is not an attack target. Rests are silent; a reference click may indicate pulse but must not be mistaken for a target.
+
+**Validation.** Tap matching is onset-only. Captured events are normalized to a monotonic performance-time domain and mapped to the audio/performance relation described in the timing section. The matcher is ordered and one-to-one. It does not reuse a tap for two targets or a target for two taps. It calculates signed early/late error for matched events and explicit missing and extra events. A provisional local pass requires a configured minimum match ratio and bounded errors; the proposed default is 80%/90%/95% matched targets for beginner/intermediate/advanced and error caps of 100/70/50 ms respectively, subject to pilot validation. The local per-tap diagnostic is not `TrainingResult.accuracy` and not `averageResponseTimeMs`.
+
+**Feedback.** Show a timeline or beat-grid overlay with target onsets, matched taps, early/late direction, missing targets, and extra taps. Explain whether the error is onset placement, pulse/subdivision confusion, or an unrecognized tie/rest. Never claim that a tap result proves the learner held a sound for its written duration.
+
+**Scoring and retry.** The entire exercise is correct or wrong, worth +10 or +0 once. An ungraded practice replay or retry can be repeated without score changes. Choosing a new tempo or changing visibility/notation mode during an active attempt aborts it without answer or score; it cannot be treated as a wrong response.
+
+**Mobile.** Use a large touch target and avoid requiring precise small hit areas. Prevent accidental scroll while the tap surface is active without trapping the rest of the page. Pointer cancellation is a normal abort path [22] [24] [27]. Bluetooth/audio output latency is not assumed fair or constant; the UI should identify degraded technical confidence and may classify the attempt ungraded rather than punitive.
+
+### C. Listen & Identify
+
+**Screen interaction.** The learner hears a rhythm pattern and selects the matching notation or pattern. The answer choices must be generated from distinct canonical signatures. The interface includes play, replay, stop, and submit controls, with a visible count of remaining unscored replays if the product chooses one; the recommended V1 policy is unlimited replay with no score change.
+
+**Lifecycle and audio.** Playback begins only after a user gesture or an already-running context. The pattern schedule is generated from the canonical model. Stop cancels pending sources and invalidates the attempt generation token. Replay restarts the pattern without changing the graded answer state. Visibility loss or context interruption invalidates the active graded attempt and requires a new visible start/count-in rather than resuming mid-pattern.
+
+The listening renderer must be duration-aware. It uses a gated tone with an explicit attack and release. A note’s tone lasts its written duration; a tied note group is one sustained gate through all tied segments; a rest emits no tone; a tie continuation emits no new attack. A click-only implementation is insufficient because it cannot distinguish same-onset/different-duration choices. Content generation must reject distractor pairs that remain indistinguishable on the target audio route. If device confidence is insufficient to distinguish a duration or rest, the item should be marked ungraded rather than punitive.
+
+**Validation, feedback, scoring, retry, and mobile.** Choice identity is compared with the canonical signature. Feedback may show the waveform-like timing strip, onset marks, duration bars, tie grouping, and a slow replay. The shared score is one +10/+0 whole-exercise award. Replays cannot rescore. On mobile, playback controls must be large and announce audio state. If autoplay is blocked, show an explicit “Bắt đầu âm thanh” recovery action. Screen readers need state changes for playing, stopped, interrupted, and ready.
+
+### D. Count the Beat
+
+**Screen interaction.** The learner identifies beat positions, subdivisions, strong/weak pulses, or the compound grouping of a displayed rhythm. A coordinate grid may show pulse columns and subdivision cells, but the visual must not flatten 6/8 into six equal quarter beats. Controls should use native buttons, selectable grid cells with accessible labels, or a concise sequence input; the final selection method is a product choice within this design.
+
+**Lifecycle and audio.** The exercise loads a canonical pattern, shows the meter and count labels, and optionally supplies an accent-only count-in or metronome. The learner selects one or more beat/subdivision answers, submits once, receives concept feedback, and may retry locally without rescore. Tempo changes or visibility changes during an active audio-backed count abort the attempt without penalty.
+
+**Validation and feedback.** Validation compares derived pulse and pulse-local subdivision coordinates. In 6/8 pulse starts are 0 and 720; local eighth subdivision indices are `[0,1,2,0,1,2]`. In 9/8 pulse starts are 0, 720, and 1440; local eighth subdivision indices are `[0,1,2,0,1,2,0,1,2]`. A separate whole-bar display ordinal may show 0..8 grouped 0–2, 3–5, and 6–8, but it is not `subdivisionIndex`. In 3/8 pulse indices 0/1/2 occur at 0/240/480 and remain three technical pulses even when one teaching group is shown. In 2/2 quarter starts 0/480/960/1440 have pulse indices 0/0/1/1 and local quarter subdivision indices 0/1/0/1. Strong/weak labels derive from explicit meter grouping and relative hierarchy, not from a generic numerator. Feedback explains the relationship between written duration, onset position, pulse, and subdivision. A tie continuation can be identified as a written segment without a new onset.
+
+**Scoring and mobile.** One completed exercise maps to +10 or +0; there is no per-cell score. On mobile, coordinate cells must be large, scroll-safe, and keyboard accessible. The user must be able to review the meter label while selecting an answer. Audio failure may allow a visual-only Count the Beat question when audio is not required; an audio-dependent question must not silently become punitive if the context is unavailable.
+
+## 7. Audio and timing architecture
+
+**New Rhythm — Web Audio scheduling proposal.** Use one reusable online `AudioContext`, initialized or resumed from an explicit user gesture [11] [14] [15] [20]. `latencyHint: "interactive"` is a preference, not a guarantee. Schedule source nodes against `AudioContext.currentTime` [11] [16] [21]. JavaScript timers are only bounded look-ahead wakeups; they are not the musical clock. The scheduler maintains a generation token for each attempt. Stop, replay, tempo change, visibility loss, interruption, route change, or starvation invalidates the prior generation so late callbacks cannot emit sound or accept input into a new attempt.
+
+Pattern tones, tie-chain gates, metronome clicks, and count-in pulses use separate logical lanes and gain controls. The scheduler schedules only a bounded future horizon, for example 100–200 ms subject to implementation testing, and wakes frequently enough to refill it. It detects a wakeup that misses the required horizon. A starved graded attempt is invalidated and shown as technical/ungraded; it is never converted into an incorrect learner result. Ordinary timers may be delayed in hidden tabs, so hidden-page scheduling is not trusted.
+
+**Tempo semantics.** Tempo is immutable during a graded attempt. If the learner chooses a different tempo before starting, the canonical target timeline is regenerated. If the learner changes tempo during playback or collection, the current attempt is aborted without answer or score. BPM is meter-aware: quarter-note BPM for 2/4, 3/4, and 4/4; eighth-note BPM for 3/8; dotted-quarter BPM for 6/8 and 9/8; and half-note BPM for 2/2. Count-in labels must preserve these pulse names and must not relabel 3/8 as a 720-tick pulse. The exact conversion is `seconds = (ticks / pulseTicks) * (60 / BPM)`. The scheduler uses the same conversion for count-in, target onset, metronome, gate start, and gate end. This is a future contract, not an audio implementation claim.
+
+**Input-to-output clock mapping.** Normalize DOM event.timeStamp into the performance.now() origin, capturing it at handler entry rather than React render or audible monitor-click time. Reject implausible/nonmonotonic timestamps; a performance.now() handler timestamp is a lower-confidence fallback. With a valid fresh output timestamp `{contextTime:C, performanceTime:P}`, target audio timeA maps to `expectedPerformanceMs(A) = P + 1000*(A-C)`, and input timestampT maps inversely to `tapAudioTime(T) = C + (T-P)/1000` [11] [17]. For example C=5s,P=10000ms,A=5.5s predicts audible target10500ms; a tap10530ms has signed error+30ms before uniform calibration. Never add baseLatency/outputLatency again to this direct mapping.
+
+Without a valid output timestamp, snapshot currentTime=C0 and performance.now()=P0 together and use `expectedPerformanceMs(A) ≈ P0 + 1000*(A-C0+L)`, equivalently `tapAudioTime(T) ≈ C0+(T-P0)/1000-L`. L is a supported finite latency estimate in seconds, using baseLatency plus outputLatency when both apply [18] [19]. This is a degraded estimate, not hardware measurement. Missing estimates do not prove zero latency; practice may use an uncorrected browser clock but strict grading is disabled until confidence is established. Values above the proposed250ms bound are flagged untrusted rather than silently clamped into a confident score. Reject zero startup/stale timestamps, tentatively refreshing within500ms; browser/device pilot determines the real confidence gate.
+
+Calibration is an optional explicit eight-pulse tapping step. Estimate the median mapped signed offset after excluding false/missing calibration taps, require at least six usable pulses, and tentatively reject offset magnitude above120ms or excessive dispersion. Apply that one offset uniformly to the subsequent attempt; do not fit it to a graded answer. Store clock source and confidence locally for feedback, not in shared progress. Recalibrate after output changes or material drift. These numbers are pilot hypotheses, not universal latency accuracy claims; calibration cannot prove physical contact timing or eliminate changing Bluetooth delay. Its offset can include human alignment bias as well as device delay, so feedback retains both raw and corrected errors and the applied offset; this is not a hardware-latency measurement.
+
+**Ordered one-to-one matching.** Let expected audible targetsE and corrected tap timestampsT be ordered milliseconds in the same mapped domain. For an interior target, localIOI is the smaller positive neighboring expected gap; at an edge use its available neighbor; a single-target pattern uses the smaller of pulse duration and pattern duration. The proposed candidate window is `Wmax(i)=min(180ms,0.45*localIOI(i))`, strictly below half the gap. The passing window is `Wpass(i)=min(cap, fraction*localIOI(i))`: introductory 100ms/0.30, core 70ms/0.25, advanced 50ms/0.20. There is no minimum-window floor that may violate the half-gap bound. If clock/input uncertainty is too coarse for these windows, the attempt is ungraded, not widened into overlapping targets.
+
+Use ordered dynamic programming with match, missing-target and extra-tap transitions. A match requires `abs(t-e)<=Wmax`; its proposed cost is `min(abs(t-e)/Wpass,1.5)`, with missing and extra costs1 each. Break equal-cost paths deterministically by fewer missing/extra events then earlier indices. A matched tap outside Wpass remains useful early/late feedback but is not on-time. A tap cannot satisfy two targets. Define on-time ratio as `onTimeTargets / expectedTargets`, and graded pass as ratio at least0.80/0.90/0.95 for introductory/core/advanced with zero false extras; use ceiling of the required target count so short items do not pass after an insufficient single tap. All-rest patterns are valid teaching material but not graded Tap items with a zero denominator. Missing targets, extras and outside-pass matches are reported separately; they never create per-tap shared points. These defaults need learner/device pilot approval.
+
+At quarter-note 120 BPM, a sixteenth gap is125ms: candidate window56.25ms and core passing window31.25ms. A70ms-late tap cannot be borrowed into its neighbor. At a500ms quarter gap, introductory windows are180ms candidate and100ms passing. These numerical examples are derived from pulse-labeled tempo, not independent hardcoded note times.
+
+The product must not publish a meaningless percentage mean absolute error; any reported error must define its population and denominator. If a diagnostic reports MAE, it must define the unit, event population, matching policy, missing/extra treatment, window, and denominator. The recommended default is to report matched-event signed median/mean absolute error in milliseconds separately from matched ratio, missing count, extra count, and technical confidence. No diagnostic is mapped into shared `averageResponseTimeMs`, which remains the shared wall-clock time from question start to answer submission.
+
+**Lifecycle and browser/mobile limits.** A visible user gesture starts or resumes audio. On `visibilitychange` to hidden [13], the safest V1 behavior is to invalidate an active graded attempt and require a visible gesture and fresh count-in. `AudioContext` states `suspended`, `interrupted`, or `closed` are surfaced in the UI. A phone call, screen lock, orientation change, output-route change, Bluetooth reconnection, or browser interruption invalidates the active attempt if timing fairness is affected. A replay cancels all old sources before scheduling a new generation. The scheduler does not promise 1 ms mobile or Bluetooth timing. Technical confidence must be part of local diagnostics and acceptance decisions.
+
+## 8. UI screens and user flows
+
+**Landing page — proposal, New Rhythm using Reuse shell.** The page uses `TrainingHeader` and `TrainingFooter`, the existing coral visual language, and a Rhythm-owned main content layout. It explains the five learning goals, presents Free and Challenge entry points, and links to the six-Level curriculum and optional Bonus exploration. It does not show an active catalog entry until implementation approval and release gate. The copy is Vietnamese-first, with concise terms for pulse, subdivision, rest, tie, and dotted duration. No Note Reading internal component or theory service is imported.
+
+**Level selection — proposal, New Rhythm.** The page lists six ordered Levels plus the optional Bonus 2/2 track with objectives, Lessons, Practice, Assessment, suggested exercise kinds, and a proposed readiness indicator. It must say that readiness is a recommendation, not a mandatory lock. A learner can explore a level without a server account. If optional local mastery is later approved, it is a minimal Rhythm-owned local service and is not required to render the curriculum.
+
+**Setup and ready state — proposal, New Rhythm.** Setup shows level, meter, labeled tempo pulse, exercise kind, audio status, replay/feedback policy, and a clear start button. It states that Tap Rhythm scores onset timing only and does not measure hold duration. It provides a visible audio recovery action when the context is suspended. The ready state makes the expected input and keyboard Space shortcut clear and preserves the current meter label.
+
+**Exercise screen — proposal, New Rhythm.** The desktop layout may place notation and instruction on the left with controls and the tap surface on the right. Mobile stacks the meter/notation, playback controls, and large tap area vertically. It includes a progress indicator that reflects completed exercises, not individual taps. A metronome toggle, replay, stop, and submit/finish controls are native accessible controls. The beat cursor is advisory and must not imply that playback continues after a hidden-tab invalidation.
+
+**Feedback screen — proposal, New Rhythm.** Feedback separates shared correctness from local diagnosis. It shows “correct/incorrect” for the whole exercise, the +10/+0 award when applicable, and a rhythm-specific explanation. Tap feedback includes onset timeline, signed early/late errors, missing and extra events, and technical confidence. Listen feedback includes duration/tie/rest explanation. Count feedback includes pulse/subdivision coordinates. The screen offers next, review, and unscored retry. It never suggests that a per-tap percentage is the shared session accuracy.
+
+**Results screen — Reuse plus New Rhythm detail.** The existing `ResultSummary` renders the shared scalar result: total questions, correct/incorrect, accuracy, total score, and shared wall-clock average response time. A Rhythm-owned detail area may show onset diagnostic summaries, subskill recommendations, meter coverage, duration/tie concepts, and suggested review levels. These details are local and do not mutate shared `TrainingResult`. Result recording uses the existing aggregate progress service; no per-level history is required for launch.
+
+A standard flow is: landing → level → setup → audio gesture/ready → count-in or question → answer capture → local validation → one shared submission for the completed exercise → feedback → next or unscored retry → results. A technical interruption flow is: active attempt → hidden/context/route/starvation event → visible aborted state → new gesture and fresh count-in → new attempt with no wrong score. A tempo/display-change flow is: setup change before start is accepted; the same change during an active graded attempt aborts without answer/score.
+
+## 9. Proposed module folder and file structure
+
+This is a planned folder structure, not a request to create files now. All Rhythm-owned logic remains under `client/src/modules/rhythm-training/` and does not import Note Reading internals.
+
+```text
+client/src/modules/rhythm-training/
+  RhythmTrainingPage.tsx
+  index.ts
+  types.ts
+  config.ts
+  curriculum.ts
+  exerciseKinds.ts
+  sessionAdapter.ts
+  stateMachine.ts
+  components/
+    RhythmLanding.tsx
+    LevelSelection.tsx
+    ExerciseSetup.tsx
+    RhythmExercise.tsx
+    NotationPanel.tsx
+    PlaybackControls.tsx
+    TapSurface.tsx
+    CountGrid.tsx
+    ChoiceList.tsx
+    RhythmFeedback.tsx
+    RhythmResultsDetail.tsx
+  rhythm/
+    durations.ts
+    meters.ts
+    model.ts
+    deriveTimeline.ts
+    validate.ts
+    signatures.ts
+    ties.ts
+  generation/                 # existing Phase2 files retained/adapted
+    random.ts
+    levels.ts
+    generator.ts
+    answerSignatures.ts
+    choices.ts
+  notation/                   # existing Phase2 files retained/adapted
+    projection.ts
+    VexFlowRhythm.ts
+    examples.ts
+  audio/
+    audioContext.ts
+    scheduler.ts
+    toneGate.ts
+    metronome.ts
+    countIn.ts
+    clockMapping.ts
+    calibration.ts
+    lifecycle.ts
+  input/
+    tapCapture.ts
+    pointerKeyboardDedup.ts
+    visibilityAbort.ts
+  validation/
+    multipleChoice.ts
+    tapMatcher.ts
+    listenIdentify.ts
+    countBeat.ts
+    diagnostics.ts
+  services/
+    optionalLocalMastery.ts
+  tests/
+    durations.test.ts
+    meters.test.ts
+    validator.test.ts
+    generator.test.ts
+    notationAudioParity.test.ts
+    tapMatcher.test.ts
+    scheduler.test.ts
+    lifecycle.test.ts
+    browserAcceptance.md
+```
+
+The exact file names are proposals and may be refined during approved implementation. The boundary is mandatory: canonical rhythm data, generation, notation, audio, validation, and UI state are Rhythm-owned. The module may depend on shared training types at the adapter boundary, but must not import Note Reading’s theory, generator, components, VexFlow adapter, audio, piano, or preferences.
+
+## 10. Actual foundation integration plan
+
+**Reuse — module shell and navigation.** The future page should render within the existing `TrainingShell`, use catalog-driven header navigation, preserve mobile menu behavior, and follow current module layout/copy/action conventions. It should not create a second shell, router, or plugin registry.
+
+**Reuse — shared module and session contract.** The future Rhythm adapter should satisfy `TrainingModule<TConfig,TExercise,TAnswer,TResult>` at the existing boundary. `generateExercise` returns a Rhythm-owned canonical exercise; `validateAnswer` validates the completed exercise answer at the adapter boundary; `createResult` and session lifecycle remain shared where practical. Because the generic session counts one completed exercise as one answer, a Tap Rhythm answer containing multiple taps remains one answer.
+
+**Reuse — scoring.** Call the shared submit function once for each completed graded exercise. Pass correct or wrong and the existing response-time semantics. Use the existing +10 correct/+0 wrong behavior. Do not call submit on replay, aborted attempt, technical failure, tempo change, hidden-tab invalidation, or ungraded retry. Do not use one shared submission per tap.
+
+**Reuse — progress and summary.** Call the existing `recordCompletedResult` with the final shared `TrainingResult` and render the existing `ResultSummary`. Its aggregate v1 progress is global-only. If product later requires subskill cards, add a minimal Rhythm-owned optional local service; do not migrate or overload the shared progress schema.
+
+**Necessary Shared Change — future activation only.** After approval, implementation, tests, browser checks, and the V1 gate, add a real active module catalog entry with metadata, route/page binding, and matching static manifest path. The current Coming Soon metadata must remain inert until all four modes and real curriculum content are available. This is the only expected shared host change. Chord Recognition stays Coming Soon and unchanged.
+
+The integration must not make a hardcoded Note Reading dependency. No shared API change is expected. No source edit is authorized by this document.
+
+## 11. Testing strategy: theory correctness and timing correctness are separate
+
+Testing must be split into two independent quality tracks because exact music theory can be correct while browser timing is unfair, and timing can be consistent while notation is wrong. Both tracks are required before activation.
+
+### A. Music-theory and canonical-model tests
+
+Pure tests must verify duration arithmetic for whole, half, quarter, eighth, sixteenth, dotted values, and rests. They must verify exact capacities and pulse metadata for all seven supported meters: 2/4 960/480 with two quarter pulses, 3/4 1440/480 with three, 4/4 1920/480 with four, 3/8 720/240 with three simple-triple pulses, 6/8 1440/720 with 3+3, 9/8 2160/720 with 3+3+3, and 2/2 1920/960. They must verify 3/8 S-W-W and simple-triple identity, 6/8 S-W and compound-duple identity, 9/8 S-W-W and compound-triple identity, and 2/2 S-W and alla-breve identity. They must cover the complete existing fixtures and the required new 3/8, 9/8, and 2/2 fixtures in Section 4 and the companion acceptance review. These tests are future requirements, not passing implementation claims.
+
+Validator tests must reject underfilled and overfilled bars, unsupported meters, malformed dots, contradictory ticks, unsupported tuplets/swing/mixed meter/polyrhythm, invalid tie adjacency, ties through rests, second attacks on tie continuations, and non-adjacent tie groups. Derivation tests must prove that all positions come from ordered segment durations and that no independently editable beat-position field can diverge.
+
+Generator tests must be seeded and deterministic for a given configuration/seed. They must verify level vocabulary, exact capacity, difficulty budgets, valid canonical signatures, and rejection of equivalent or ambiguous distractors. Notation/audio parity golden fixtures must compare attack and gate timing against the same derived timeline. VexFlow strict voice checks are assertions, not the source of truth.
+
+### B. Timing and browser tests
+
+Deterministic fake-clock/offline tests must verify tick-to-second conversion, pulse labels, count-in positions, scheduler event intent, tie gate duration, rest silence, generation cancellation, late callback rejection, ordered one-to-one matching, missing/extra penalties, event timestamp normalization, and the strict local-window inequality. They prove relative logic only, not real device latency fairness.
+
+Browser integration tests must cover AudioContext resume after gesture, currentTime scheduling, stop/replay cancellation, tempo-abort, visibility abort, context suspension/interruption, output-route change handling where observable, pointerdown, touch/pointer deduplication, Space repeat suppression, pointercancel, blur, stale generation events, and audio-unavailable recovery. UI accessibility checks must cover keyboard focus, button semantics, target size, screen-reader state announcements, and mobile orientation behavior.
+
+Manual acceptance must cover representative current desktop browsers, iOS/Android browsers, touch, mouse, keyboard, built-in speakers, headphones, and Bluetooth where available. It must explicitly record that Bluetooth and device output may be best-effort. Hidden-tab throttling, phone interruption, screen lock, autoplay blocking, orientation change, rapid replay, rapid tempo changes, multi-pointer input, and audio-route changes must be exercised. The result of a technically unreliable attempt must be ungraded/no-penalty, not an incorrect learner score.
+
+After an approved implementation only, the project checks recorded in source context should be run: `pnpm check`, `pnpm test`, `pnpm build:static`, and `pnpm build`. This design task does not run them and does not claim fresh results. The historical Phase 2 result of 436/436 tests across 40 files remains recorded context only; it contains no fresh seven-meter pass claim.
+
+## 12. Phases, dependencies, and acceptance criteria
+
+**Current source status; content/framework and implementation approval are separate.** The repository already contains an inert Phase 1/Phase 2 Rhythm library under `client/src/modules/rhythm-training/`. The current code accepts only four meters, and its tests include a deliberate unsupported-3/8 expectation. The approved 3/8 and 9/8 core meters and 2/2 Bonus are therefore a contract adaptation awaiting approval, not an existing implementation. No phase in this specification authorizes changing source or tests during this read-only review.
+
+**Phase0 — approval and contract freeze.** Record the user-required seven-meter V1 contract and obtain approval for source adaptation, explicit pulse metadata, the already approved curriculum sequence as a recorded constraint, counting language, exact PPQ/grid policy, meter/tie notation policy, 3/8 beam convention, duration-aware timbre, tap completion behavior, provisional thresholds, technical ungraded policy, and activation gate. Acceptance requires written decisions on each open item below. No source change occurs in this phase.
+
+**Phase 1 — canonical model and fixtures.** In a future approved implementation, extend the existing Rhythm-owned types, exact tick arithmetic, seven-meter pulse/group registry, validator, tie rules, signatures, and fixtures. Acceptance requires all seven exact definitions, valid/invalid bars, exact cache guards, 3/8 simple-triple identity, 6/8 compound-duple identity, 9/8 compound-triple identity, 2/2 alla-breve identity, and no independently authored timing fields. These are future requirements, not current passing claims.
+
+**Phase 2 — generator and notation projection.** In a future approved implementation, add explicit meter capabilities to seeded generation, difficulty budgets, answer signatures, ambiguity rejection, VexFlow projection, approved beam plans, rests, dots, and ties. Acceptance requires deterministic policy-versioned seeds, valid exact-duration bars, no equivalent distractors, strict notation parity, and documented 3/8/6/8/9/8 grouping and 2/2/4/4 distinctions. The existing historical Phase 2 evidence must not be relabeled as new-meter support.
+
+**Phase 3 — audio scheduler and timing mapper.** This remains future-only and is not started by this review. If approved later, it must add AudioContext lifecycle, currentTime look-ahead, tone gates, metronome/count-in lanes, explicit 3/8 eighth-pulse, 9/8 dotted-quarter-pulse, and 2/2 half-pulse timing, clock mapping, bounded calibration, cancellation, starvation detection, and deterministic timing tests. Technical failures remain ungraded/no-penalty.
+
+**Phase 4 — four exercise kinds and local state machine.** This remains future-only. Multiple Choice, Tap Rhythm, Listen & Identify, and Count the Beat must use the seven-meter canonical model only after Phases 1–3 are approved and complete. Each completed exercise submits once; +10/+0 remains whole-exercise scoring; tap diagnostics remain local; no microphone/MIDI paths are added.
+
+**Phase 5 — shell integration and UI acceptance.** This remains future-only. Add the page within `TrainingShell`, local route/page implementation, responsive screens, Vietnamese-first copy, focus behavior, and result detail only after Phase 4 and activation approval. Do not activate a catalog button during this review.
+
+**Phase 6 — release gate and future activation.** Run project checks, browser/device matrix, theory/timing review, and content review only after all prior approved phases. Only then may normal catalog and static-manifest bindings be activated. Until that gate, Rhythm remains Coming Soon. No deploy, WordPress change, UI activation, audio activation, catalog activation, or Phase 3 work is part of this update.
+
+## 13. Risks, browser limitations, and unresolved decisions
+The approved curriculum order is now fixed as six Levels plus an optional Bonus 2/2 track. Content details, teaching accent gain, and learner-facing 3/8 group-count labeling remain subject to educator/content confirmation; no source implementation is authorized by this document.
+
+
+Web Audio scheduling cannot remove all physical output latency. `outputLatency` is not universal, `baseLatency` is an estimate, Bluetooth and operating-system mixers add variable delay, touch contact timing is not perfectly observed, and hidden-page timers may be throttled. The design therefore refuses to promise universal millisecond fairness. A confidence-insufficient device/attempt is ungraded rather than punitive.
+
+Autoplay and AudioContext suspension may prevent sound before a user gesture. Mobile browsers may interrupt audio on tab switches, calls, screen lock, route changes, or orientation changes. The safest V1 behavior is abort and restart with a new visible gesture and count-in. The UI must not silently continue a cursor or accept stale taps.
+
+Audio duration distinctions can be inaudible on some devices or through some outputs. Listen & Identify must use gated duration-aware tones, reject indistinguishable distractors, and mark insufficient-confidence cases ungraded. This is a product quality risk, not a reason to replace duration with click-only sound.
+
+The curriculum order and placement are fixed by the owner: six core Levels and optional Bonus2/2. Quotas, coaching thresholds, tempo bands, counting syllables and readiness percentages are provisional content/pilot details, not empirically validated or hard gates. Teacher confirmation is needed for 3/8 group-versus-pulse labeling, relative group/bar accent presentation, beams, spoken counting and the display of Bonus—not for changing its already approved placement. The existing automatic graded Tap collection contract and timing windows remain unchanged; this curriculum update does not reopen those unrelated technical decisions.
+
+The recommended contract above chooses 480 ticks per quarter, explicit seven-meter definitions, one-dot descriptors, derived positions, ordinary-articulation V1 gates, explicit meter-compatible rests, automatic graded Tap collection, symmetric local-IOI passing windows, and zero false extras. Approve these defaults or adjust them before implementation. Beginner items keep pulse boundaries readable. For 3/8, pulse-first semantics are preferred, with a possible bar-wide three-eighth notation beam only after teacher approval; for 6/8 and 9/8, compound grouping remains explicit; for 2/2, half-pulse grouping is preferred. Cross-pulse ties remain controlled, with cross-bar ties only as complete validated multi-bar fixtures. Equivalent written forms with the same audible gate timeline cannot both be answers in a Listen question. Counting conventions, beam teaching, timbre/envelope audibility, pilot thresholds/confidence limits, and optional mastery persistence remain genuine product/pilot decisions.
+
+The product must decide whether an audio failure permits a visual-only fallback for each exercise kind. The recommendation is yes only when audio is not part of the question; audio-dependent questions must be ungraded and recoverable. It must also decide the exact local mastery persistence shape if later needed; the recommendation remains a small Rhythm-owned local service without cloud/account requirements.
+
+No shared session mode should be added for exercise kinds. No partial-credit scoring engine should be added. No per-tap shared score should be added. No capability plugin should be added. No difficulty framework should be generalized into the shared foundation for V1. No Note Reading dependency should be introduced. No production WordPress, server, database, deployment, payment, registration, microphone, or MIDI work belongs in this design.
+
+## 14. Deduplicated references
+
+The following references are numbered once and reused throughout this specification. References [1], [2] and [29] were previously checked in the earlier focused meter review; they are retained sources for simple/compound meter and alla breve, not fresh research in this curriculum-only task. References [11]–[28] are inherited from the original specification as retained audio/platform/accessibility sources, not fresh research for this read-only update. Local repository findings are cited by exact path and line in the companion impact review.
+
+[1]: https://viva.pressbooks.pub/openmusictheory/chapter/simple-meter-and-time-signatures/ "Simple Meter and Time Signatures"
+
+[2]: https://viva.pressbooks.pub/openmusictheory/chapter/compound-meters-and-time-signatures/ "Compound Meter and Time Signatures"
+
+[3]: https://viva.pressbooks.pub/openmusictheory/chapter/notating-rhythm/ "Notating Rhythm"
+
+[4]: https://viva.pressbooks.pub/cmus120emu/chapter/rhythmic-rest-values/ "Rhythmic and Rest Values"
+
+[5]: https://www.musictheory.net/lessons/15 "Simple and Compound Meter"
+
+[29]: https://pianote.com/blog/cut-time/ "Understanding Cut Time (Alla Breve)"
+
+[6]: https://raw.githubusercontent.com/0xfe/vexflow/master/src/voice.ts "VexFlow source — Voice"
+
+[7]: https://raw.githubusercontent.com/0xfe/vexflow/master/src/stavetie.ts "VexFlow source — StaveTie"
+
+[8]: https://raw.githubusercontent.com/0xfe/vexflow/master/src/beam.ts "VexFlow source — Beam"
+
+[9]: https://raw.githubusercontent.com/0xfe/vexflow/master/src/stavenote.ts "VexFlow source — StaveNote"
+
+[10]: https://github.com/0xfe/vexflow "VexFlow official repository"
+
+[11]: https://www.w3.org/TR/webaudio-1.1/ "Web Audio API 1.1"
+
+[12]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques "Advanced techniques: Creating and sequencing audio"
+
+[13]: https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API "Page Visibility API"
+
+[14]: https://developer.mozilla.org/en-US/docs/Web/API/AudioContext "AudioContext"
+
+[15]: https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay "Autoplay guide for media and Web Audio APIs"
+
+[16]: https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/currentTime "BaseAudioContext: currentTime property"
+
+[17]: https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/getOutputTimestamp "AudioContext: getOutputTimestamp() method"
+
+[18]: https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/baseLatency "AudioContext: baseLatency property"
+
+[19]: https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/outputLatency "AudioContext: outputLatency property"
+
+[20]: https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/AudioContext "AudioContext: AudioContext() constructor"
+
+[21]: https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode "AudioScheduledSourceNode"
+
+[22]: https://developer.mozilla.org/en-US/docs/Web/API/Element/pointercancel_event "Element: pointercancel event"
+
+[23]: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/repeat "KeyboardEvent: repeat property"
+
+[24]: https://www.w3.org/WAI/WCAG21/Understanding/pointer-cancellation.html "Understanding Success Criterion 2.5.2: Pointer Cancellation"
+
+[25]: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html "Understanding Success Criterion 2.5.8: Target Size (Minimum)"
+
+[26]: https://www.w3.org/WAI/ARIA/apg/patterns/button/ "Button Pattern"
+
+[27]: https://www.w3.org/TR/pointerevents4/ "Pointer Events Level 4"
+
+[28]: https://developer.chrome.com/blog/autoplay/ "Autoplay policy in Chrome"
+
+**Read-only platform evidence used for implementation facts:** the current snapshot and area findings in `/home/ubuntu/six-meter-review/`, plus `/home/ubuntu/rhythm-training-design/current-source-context.md` as historical platform API context; and `/home/ubuntu/upload/pasted_content_4.txt` as the historical six-meter request and `/home/ubuntu/upload/pasted_content_5.txt` as the current authoritative six-Level-plus-Bonus/seven-meter curriculum request. These local context files are not product dependencies; the application source was consulted read-only.
+
+## 15. Approval gate and recommended decisions
+
+Before any implementation begins, approve the following concrete decisions:
+
+1. Approve this as an approval draft only, with the new 3/8 and 9/8 core adapters and 2/2 Bonus adapter not implemented, the existing Phase1/Phase2 library preserved, and the catalog entry still Coming Soon.
+2. Record the already approved six-Level order and optional Bonus2/2 placement; review only updated lesson/practice/assessment content details and tunable coaching recommendations, not a different curriculum order.
+3. Keep the user-required PPQ480/seven-meter V1 contract fixed; approve only its implementation adaptation: 2/4=960/480 quarter, 3/4=1440/480 quarter, 4/4=1920/480 quarter, 3/8=720/240 eighth with three technical pulses, 6/8=1440/720 dotted-quarter with 3+3, 9/8=2160/720 dotted-quarter with 3+3+3, and 2/2=1920/960 half; no pulse inference from numerator.
+4. Approve one canonical derived segment timeline as the source for validation, notation, audio, counting, and onset targets; reject duration/tick mismatches and invalid measures.
+5. Approve ties as contiguous note segments with one attack at the first segment only; the second tied segment is never an attack, click, or tap target.
+6. Approve four local exercise kinds under only the shared Free and Challenge session wrappers; do not add a shared session-mode union, partial credit, per-tap shared score, capability plugin, or generalized difficulty framework.
+7. Approve whole-exercise shared scoring of +10 for correct and +0 for wrong, exactly once per completed graded exercise; replay and retry cannot rescore.
+8. Approve Tap Rhythm as onset-only, with local diagnostic metrics separate from shared `accuracy` and `averageResponseTimeMs`; no microphone, MIDI, or hold-duration claim.
+9. Approve gated duration-aware listening with true rests and tie-chain sustain/release, and mark technically indistinguishable or confidence-insufficient attempts ungraded rather than punitive.
+10. Approve Web Audio `currentTime` scheduling with bounded JS look-ahead, output timestamp mapping where available, bounded fallback/calibration, generation guards, and abort/restart on tempo, visibility, interruption, route, or starvation changes.
+11. Approve the Vietnamese-first shell-compatible UI and the proposed future folder boundary under `client/src/modules/rhythm-training/`, without importing Note Reading internals.
+12. Approve no shared API change as the expected design outcome; authorize only the future normal catalog/route/static-manifest binding after implementation approval, all four modes, real content, testing, browser/device checks, and the V1 release gate.
+13. Leave Chord Recognition Coming Soon and unchanged, make no project recreation/source/dependency/schema/Git history rewriting/configuration/WordPress/deployment/server changes during this approval stage; normal documentation-only commits may record this curriculum update without authorizing runtime work, and do not treat the historical 436/436 Phase 2 result as a new-meter pass.
+
+**Recommended decision:** record the required seven-meter mathematical contract and retain the existing product boundaries, but wait for Music Education Review signoff on 3/8/6/8/9/8 group-versus-pulse labeling, optional Bonus display, counting, accents, and beam presentation. Keep all pedagogical thresholds and browser timing limits provisional, require the Phase 0 decisions plus the Phase 6 release gate, and expose no activation route before implementation and release approval.

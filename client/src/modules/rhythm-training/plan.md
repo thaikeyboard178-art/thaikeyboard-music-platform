@@ -1,5 +1,7 @@
 # Rhythm Training — approved Phase 1
 
+> **Phạm vi tài liệu:** Nội dung Phase1/Phase2 bên dưới là hiện trạng/lịch sử triển khai của code tám level policy và bốn meter, không phải curriculum V1 hiện hành. Khung chính thức đã đổi thành6Level+Bonus; xem [Curriculum V1](docs/Curriculum-V1.md) và [đặc tả hiện hành](docs/Rhythm-Training-V1-Specification.md). Việc sửa tài liệu không triển khai curriculum mới, không bắt đầu Phase3 và không kích hoạt frontend.
+
 Approved on 11 November 2026. Implement only the canonical model, exact duration arithmetic, meter/pulse derivation, validation, tie rules, structural/timing signatures, complete fixtures and automated music-theory tests. The approved specification is `/home/ubuntu/rhythm-training-design/Rhythm-Training-V1-Specification.md`.
 
 Use PPQ480. Whole/half/quarter/eighth/sixteenth ticks are1920/960/480/240/120. Single dots are supported on half/quarter/eighth values; dotted whole/sixteenth, tuplets, swing and nonordinary articulation are unsupported in V1. Supported meters2/4,3/4,4/4,6/8;6/8 capacity1440 with two720-tick dotted-quarter pulses. Duration descriptors and segment order are authoritative; positions, onsets and tie spans are derived. Optional imported cached ticks/onsets must agree and are stripped from canonical output. Every bar is complete. Ties join at least two contiguous note segments and never generate a continuation onset.

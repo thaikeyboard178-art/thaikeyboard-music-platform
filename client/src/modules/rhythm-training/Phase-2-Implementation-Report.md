@@ -1,5 +1,7 @@
 # Rhythm Training — Báo cáo triển khai Phase 2
 
+> **Phạm vi tài liệu:** Nội dung Phase1/Phase2 bên dưới là hiện trạng/lịch sử triển khai của code tám level policy và bốn meter, không phải curriculum V1 hiện hành. Khung chính thức đã đổi thành6Level+Bonus; xem [Curriculum V1](docs/Curriculum-V1.md) và [đặc tả hiện hành](docs/Rhythm-Training-V1-Specification.md). Việc sửa tài liệu không triển khai curriculum mới, không bắt đầu Phase3 và không kích hoạt frontend.
+
 ## 1. Kết luận và phạm vi
 
 Đã triển khai **Rhythm Generator và Notation Projection**, không triển khai Phase3. Kết quả source cuối: **436/436 test passing trong40 file**, bao gồm toàn bộ **328 test nền** và **108 test mới**. `pnpm check`, `pnpm test`, `pnpm build:static` và `pnpm build` đều thành công sau sửa lỗi cuối cùng. Đã chạy riêng320 seed generator,320 bộ lựa chọn,1.920 phép so sánh cặp distractor và84 ca renderer/parity/ink-bounds trong Chromium thật.

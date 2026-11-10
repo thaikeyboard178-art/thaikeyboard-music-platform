@@ -1,0 +1,196 @@
+# Rhythm Training V1 — Generation and Assessment Requirements
+
+**Trạng thái:** tài liệu yêu cầu cho thiết kế tương lai; chưa phải runtime contract và chưa được triển khai.
+
+Tài liệu này mô tả metadata logic cho Lessons, Practice và Assessment, cùng các quy tắc sinh dữ liệu và chẩn đoán. Đây là mô tả nội dung và chính sách để chờ duyệt, không phải yêu cầu tạo type, API, schema, file source, test mới hoặc thay đổi shared architecture ngay bây giờ.
+
+Các quyết định hiện có về duration, PPQ, tie, whole-exercise scoring, onset-only tap, `currentTime`, confidence, matching windows, bốn exercise kinds và các boundary của Rhythm Training được giữ nguyên. Bài học dùng dữ liệu đã được validate; generator tương lai không được làm suy yếu exact-fill validator hoặc biến một chẩn đoán cục bộ thành shared score.
+
+## 1. Phạm vi và trạng thái hiện tại
+
+Curriculum được duyệt gồm sáu Level và một Bonus. Mỗi đơn vị đều phải có đủ **Lessons**, **Practice** và **Assessment**. Bonus là nội dung tùy chọn trong progression, nhưng vẫn là feature được V1 hỗ trợ. Level 6 là một knowledge group thống nhất, không tạo ba level ID độc lập cho 3/8, 6/8 và 9/8.
+
+Code hiện tại vẫn là trạng thái legacy: tám level dữ liệu cũ và bốn meter hiện có. Curriculum mới, generator metadata mới và các assessment set dưới đây **chưa được triển khai**. Tài liệu này không đổi trạng thái đó và không biến bằng chứng lịch sử `436/436 tests` thành kết quả kiểm tra mới.
+
+## 2. Quy tắc metadata logic
+
+Metadata ở đây là khái niệm nội dung để generator, authoring và review cùng hiểu; không phải một runtime contract mới. Tên trường bên dưới chỉ là nhãn logic có thể được ánh xạ sau khi có phê duyệt triển khai.
+
+| Nhóm metadata | Mục đích | Yêu cầu bắt buộc |
+|---|---|---|
+| Curriculum unit | Xác định `level-1` … `level-6` hoặc `bonus-2-2` | Có title, mục tiêu, prerequisite mềm, meter/duration vocabulary được phép và thứ tự lesson; không tạo level ID riêng cho từng meter của Level 6 |
+| Lesson | Nội dung giảng dạy và worked examples | Có mục tiêu, khái niệm, ví dụ đã validate, lời giải thích count/accent và chỉ báo exercise kind nếu có; không graded, không cộng điểm |
+| Practice set | Luyện tập có thể lặp lại | Có wrapper `Free` hoặc `Challenge`, cấu hình kind/meter/difficulty/feedback và policy retry; practice không được biến thành nhiều shared answers cho một item |
+| Assessment set | Đánh giá có cấu hình | Có seed, policy version, phân bổ meter/kind/diagnostic và tiêu chí answer; mỗi exercise hoàn tất là đúng một whole answer, shared result chỉ là +10 hoặc +0 |
+| Diagnostic profile | Phân tích cục bộ sau answer | Có thể phân loại concept, onset, duration, meter, rest, tie, dot, grouping hoặc accent; không thay đổi shared score và không thêm partial-credit engine |
+| Generation policy | Tái lập và kiểm soát độ khó | Có allowed vocabulary, exact-fill policy, rest/dot/tie policy, choice policy, seed và policy version; cấu hình tương đương phải cho kết quả deterministic |
+
+Metadata không được dùng để ngầm mở rộng runtime sang microphone, MIDI, audio scheduler, Note Reading, database, shared session mode mới hoặc một scoring contract mới.
+
+## 3. Curriculum metadata theo Level và Bonus
+
+Bảng này là nguồn nội dung được duyệt cho generation/assessment. Các mục “không được” là guardrails, không phải lời mời triển khai trước khi có phê duyệt.
+
+| Đơn vị | Nội dung và vocabulary | Meter/generation scope | Yêu cầu Lessons | Yêu cầu Practice | Yêu cầu Assessment |
+|---|---|---|---|---|---|
+| **Level 1 — Pulse và note values** | Nốt đen, nốt trắng, nốt tròn; **chỉ dấu lặng đen** | Quarter-note grid trong simple-meter scaffold hiện có; không eighth, dot, tie, sixteenth hoặc compound grouping | Worked examples về giá trị 1/2/4 quarter và dấu lặng đen; không chấm điểm | Free trước, Challenge chỉ khi learner đã xem ví dụ; dùng pattern đơn giản, không thêm rest value ngoài quarter rest | Kiểm tra nhận diện value/rest và exact fill; onset/duration diagnostics ở mức phù hợp; một exercise = một whole answer |
+| **Level 2 — Eighth subdivision** | Nốt móc đơn, dấu lặng đơn, chia đôi phách (binary quarter subdivision) | Formal meter scaffold dùng **4/4**; không đưa 2/4 hoặc 3/4 vào lesson sớm của Level 2; không dot, tie, sixteenth hoặc compound grouping | Worked examples quarter → hai eighth, gồm eighth rest; cho thấy rest vẫn chiếm duration | Free/Challenge với 4/4, quarter/eighth grid và binary subdivision; không đổi sang meter khác để lấp pool | Đánh giá nhận diện subdivision, onset và rest trong 4/4; choice pool phải cùng policy và exact-fill |
+| **Level 3 — Simple Meter** | Nhận diện, đếm phách, trọng âm, độ dài ô nhịp và pattern trong **2/4, 3/4, 4/4** | Ba meter là cùng một knowledge group simple meter; pulse = quarter; không 3/8, 6/8, 9/8 hoặc 2/2 | Có lesson rõ ràng cho từng pair/contrast của 2/4, 3/4, 4/4 nhưng không tách thành ba Level ID | Free/Challenge chuyển có kiểm soát giữa ba meter; meter label luôn hiển thị trong answer/feedback | Cân bằng coverage 2/4, 3/4, 4/4; chẩn đoán meter, pulse, onset, duration và rest; không coi bar capacity giống nhau nếu semantics khác |
+| **Level 4 — Dots và ties** | Dấu chấm, nối trường độ, tie continuation không tạo attack mới | Chỉ simple meters đã học; không có transfer sang **3/8** hoặc **2/2**; giữ dot/tie policy và duration arithmetic hiện có | Worked examples tách dot và tie, sau đó examples kết hợp có kiểm soát; giải thích written duration và attack count | Free/Challenge với quarter/half/eighth theo vocabulary đã phê duyệt, dots/ties từng nguồn một trước khi kết hợp; không compound | Đánh giá duration, tie role, rest và onset; feedback phải phân biệt tied continuation với onset mới; một whole answer |
+| **Level 5 — Sixteenths và controlled consolidation** | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao; consolidation có kiểm soát của nội dung old L7/L8 | Fine-grid và advanced patterns trong simple meters; dùng pulse-relative budget; không tạo Level 7/8 mới và không tự mở rộng sang 3/8/6/8/9/8/2/2 | Worked examples sixteenth grid, combinations, rest/dot/tie và advanced simple patterns theo từng difficulty source; không đưa nhiều nguồn mới cùng lúc | Free/Challenge tăng dần sixteenth density và controlled combinations; old L7/L8 chỉ được gom lại như nội dung consolidation có kiểm soát | Cân bằng onset, duration, meter và advanced-pattern diagnostics; rejection nếu pattern vượt capability hoặc làm mất identity của simple meter |
+| **Level 6 — Grouping in Threes** | Một knowledge group thống nhất về nhóm ba móc đơn: **3/8, 6/8, 9/8** | Không tạo ba course/level độc lập; generation phải giữ distinct meter identity, pulse unit, group count và accent model | Phải đi đúng progression ở mục 4; examples dùng note, rest, dot, tie theo capability đã mở; không dạy 3/8 như compound | Free/Challenge có thể so sánh ba meter trong cùng lesson, nhưng không được nới choice-pool guard; grouping overlay không xóa identity từng meter | Assessment tổng hợp cả ba signature; bắt buộc compare group counts, pulse units và teacher accent model, nhưng không được coi 3/8 là compound |
+| **Bonus — 2/2 / Alla breve** | Half-note pulse, hai phách chính, phân biệt 2/2 với 4/4 | Optional progression; bar `1920`, pulse `960`, starts `[0, 960]`, accent `S-W`; không biến Bonus thành core Level | Lesson độc lập về half pulse và comparison với 4/4; nội dung tùy chọn nhưng feature phải được V1 hỗ trợ | Free/Challenge tùy learner progression; không bắt buộc hoàn thành để mở core curriculum | Assessment optional, có thể kiểm tra half-pulse identity, duration và 2/2-vs-4/4; vẫn one whole answer +10/+0 |
+
+### 3.1. Phạm vi meter và PPQ chuẩn
+
+PPQ chuẩn là `480`. V1 có **7 meter được hỗ trợ**: 6 core meters cộng Bonus, không phải sáu meter tổng cộng.
+
+| Meter | Vai trò | Bar capacity | Pulse unit | Pulse ticks | Pulse starts | Teaching/structural identity |
+|---|---|---:|---|---:|---|---|
+| 2/4 | Level 3 | 960 | quarter | 480 | `[0, 480]` | simple duple, S-W |
+| 3/4 | Level 3 | 1440 | quarter | 480 | `[0, 480, 960]` | simple triple, S-W-W |
+| 4/4 | Level 1 scaffold, Level 2 scaffold, Level 3–5 | 1920 | quarter | 480 | `[0, 480, 960, 1440]` | simple quadruple, teaching accent theo policy hiện có |
+| 3/8 | Level 6 | 720 | eighth | 240 | `[0, 240, 480]` | **simple triple**, `Sww`; ba eighth pulses độc lập |
+| 6/8 | Level 6 | 1440 | dotted quarter | 720 | `[0, 720]` | compound duple, `Sww\|Sww`; hai nhóm 3+3 |
+| 9/8 | Level 6 | 2160 | dotted quarter | 720 | `[0, 720, 1440]` | compound triple, `Sww\|Sww\|Sww`; ba nhóm 3+3+3 |
+| 2/2 | Bonus | 1920 | half | 960 | `[0, 960]` | alla breve, `S-W` |
+
+Trong bảng Level 6, chuỗi teaching accent phải giữ đúng các string đã duyệt: **3/8 `Sww`; 6/8 `Sww|Sww`; 9/8 `Sww|Sww|Sww`**. Đây là teaching group emphasis. Nó không được tự động ghi đè relative metrical hierarchy: first bar pulse mạnh hơn các internal group starts, và relative gain phải theo cấu hình/được educator xác nhận.
+
+3/8 là simple triple với ba eighth pulses, mỗi pulse `240` ticks. 6/8 là compound duple với hai dotted-quarter pulses, mỗi pulse `720` ticks. 9/8 là compound triple với ba dotted-quarter pulses, mỗi pulse `720` ticks. Không được chuyển 3/8 sang pulse `720` nếu chưa có approval mới. Dòng nguồn cũ ghi “3/8 phách chính 1” chỉ được giữ như quoted source table nếu cần; khi đó phải chú thích rằng `1` là **group count**, không phải technical pulse được áp dụng, và phải yêu cầu teacher confirmation cho label.
+
+## 4. Progression bắt buộc của Level 6
+
+Level 6 phải được author như một group thống nhất. Lesson, practice và assessment có thể sử dụng các signature khác nhau, nhưng không được tạo `level-6-3-8`, `level-6-6-8` và `level-6-9-8` như ba course độc lập.
+
+| Bước | Mục tiêu logic | Điều phải giữ rõ |
+|---:|---|---|
+| 1 | Nhận diện **một group 3 eighths** | 3/8 là ba simple-triple pulses `240 + 240 + 240`; không gọi group đó là một compound pulse |
+| 2 | Mở rộng thành **hai groups** | 6/8 là hai dotted-quarter pulses `720`, mỗi pulse chứa 3 eighths; giữ compound-duple identity |
+| 3 | Mở rộng thành **ba groups** | 9/8 là ba dotted-quarter pulses `720`, giữ compound-triple identity |
+| 4 | So sánh group count và vị trí accent | So sánh 1/2/3 groups và teaching strings, nhưng không làm mất meter identity |
+| 5 | Phân tích notes, rests, dots và ties | Exact duration, attack và tie continuation dùng cùng canonical rules; rest không có onset |
+| 6 | Combined practice và assessment cả ba signatures | Assessment phải kiểm tra cả 3/8, 6/8, 9/8; compare pulse units/group counts/accent model; 3/8 không bao giờ bị chấm như compound |
+
+Lesson có thể đặt ba meter cạnh nhau để dạy comparison. Điều đó **không** nới quy tắc choice pool, không cho phép fallback sang meter khác và không cho phép một distractor bằng capacity nhưng khác identity được xem là equivalent.
+
+## 5. Lessons, Practice và Assessment
+
+### 5.1. Lessons: worked examples, không grades
+
+Lesson là nội dung giảng dạy. Một worked example có thể dùng bất kỳ trong bốn exercise kinds hiện có để minh họa, nhưng không submit shared answer, không gọi đây là graded assessment và không cộng +10/+0. Lesson phải hiển thị meter label, value/pulse explanation và kết quả exact-fill đã validate.
+
+Lesson examples phải đi từ đơn giản đến kết hợp. Với dot/tie, nên tách nguồn khó trước khi kết hợp. Với Level 6, explanation phải đồng thời nêu group count, pulse unit và accent teaching model; không để hình thức beam hoặc cùng denominator quyết định meter semantics. Với 3/8, không dùng language làm learner hiểu rằng cả bar là một dotted-quarter pulse.
+
+### 5.2. Practice: chỉ dùng Free và Challenge
+
+Practice chỉ dùng hai shared session wrappers hiện có: **Free** và **Challenge**. Bốn exercise kinds local được phép dùng là **Multiple Choice**, **Tap Rhythm**, **Listen & Identify** và **Count the Beat**. Không thêm shared session mode hoặc exercise kind thứ năm.
+
+Free dùng để lặp lại, xem feedback và thử lại không áp lực điểm. Challenge dùng set có cấu hình và có thể giới hạn số exercise theo policy đã có; nó vẫn gửi tối đa một shared answer cho mỗi exercise hoàn tất. Replay, retry không chấm lại và technical abort không thành wrong answer.
+
+| Exercise kind | Lesson/Worked example | Practice | Assessment |
+|---|---|---|---|
+| Multiple Choice | Hỏi value, meter, rest, pulse, tie role hoặc grouping | Choice pool distinct, feedback giải thích concept | Choice identity canonical; một answer toàn exercise |
+| Tap Rhythm | Minh họa onset và pulse, không dạy rằng tap đo hold duration | Free/Challenge onset practice; onset-only | Onset diagnostic với missing/extra/early/late; không per-tap shared score |
+| Listen & Identify | Minh họa duration-aware sound, rest silence, tie gate | Replay không đổi score; chỉ dùng item audibly distinguishable | Chấm choice theo canonical signature; duration/tie/rest diagnostics |
+| Count the Beat | Minh họa pulse, subdivision, group count và accent | Grid/sequence practice giữ meter label | Chấm derived coordinates và grouping; 3/8 không compound |
+
+### 5.3. Assessment: configured sets và một whole answer
+
+Assessment là một configured set, không phải một score cho từng tap, từng cell hoặc từng subpart. Một completed exercise tạo đúng **một whole answer** tại shared boundary. Kết quả shared giữ nguyên: **đúng = +10, sai = +0**. Diagnostics có thể chi tiết hơn, nhưng không làm phát sinh partial credit, per-tap points hoặc shared schema field mới.
+
+Mỗi configured assessment set nên khai báo logic các nhóm sau:
+
+| Nhóm cấu hình | Nội dung cần cân bằng hoặc khóa |
+|---|---|
+| Meter coverage | Theo level scope; Level 3 phải có 2/4, 3/4, 4/4; Level 6 phải có cả 3/8, 6/8, 9/8; Bonus 2/2 chỉ xuất hiện khi set chọn Bonus |
+| Exercise-kind coverage | Phân bổ bốn kinds theo mục tiêu; không để kind duy nhất đo toàn bộ curriculum |
+| Concept coverage | Value, rest, subdivision, dot, tie, pulse, group count, accent và meter distinction theo level |
+| Onset coverage | Target attacks, rests, tie continuation suppression, tap timing và missing/extra/early/late nếu kind cho phép |
+| Duration coverage | Exact written duration, dotted duration, tie span, rest duration và duration-aware listening |
+| Difficulty budget | Số nguồn khó tối đa, grid, vocabulary và cross-pulse/cross-bar tie policy của level |
+| Answer policy | Choice identity/canonical signature/derived coordinates; duplicate answer và equivalent distractor bị loại |
+| Seed/policy | Seed và policy version bất biến trong set để có thể tái lập; không claim đây là runtime contract hiện tại |
+
+“Balanced” nghĩa là có chủ đích và được cấu hình, không nhất thiết chia đều máy móc theo số signature. Assessment phải ưu tiên capability và learning objective. Với Level 6, balance phải cho thấy ba signature và ba cách hiểu khác nhau; không được xem 3/8, 6/8, 9/8 là ba biến thể cùng một compound meter.
+
+## 6. Generation requirements
+
+### 6.1. Exact fill và reuse validated data
+
+Generator tương lai phải nhận một configuration đã giới hạn theo level/unit, chọn dữ liệu từ vocabulary đã validate, fill measure theo duration descriptors và chỉ phát hành exercise sau khi exact-fill validator chấp nhận. Không tạo một tick cache hoặc onset list độc lập làm nguồn sự thật thứ hai. Segment duration, rest, dot, tie và onset phải tiếp tục tuân theo canonical model hiện có.
+
+Generator phải reuse các fixture, duration rules, tie rules, answer signatures và meter metadata đã được validate khi chúng tồn tại. Không copy lại một phiên bản gần giống rồi để hai nguồn drift. Nếu data chưa đủ cho một set hợp lệ, generator phải fail closed hoặc báo thiếu capacity; không bù bằng item sai meter, item equivalent hoặc item không validate.
+
+### 6.2. Seed, policy version và deterministic behavior
+
+Mỗi generation request tương lai phải có seed và policy version logic. Cùng configuration, cùng seed và cùng policy version phải tạo cùng exercise ordering/content hoặc cùng canonical result theo quy tắc đã định. Mở rộng default pool bằng 3/8, 9/8 hoặc 2/2 có thể đổi output của seed cũ; quyết định preserve legacy output hay ghi nhận policy expansion là **một quyết định tương lai**, không bắt buộc phải tạo framework mới trong tài liệu này.
+
+Generator không được âm thầm fallback sang meter khác để đạt quota. Nếu policy yêu cầu một meter nhưng pool hợp lệ không đủ, set phải fail closed và ghi lý do ở local generation diagnostic.
+
+### 6.3. Choice-pool uniqueness và ambiguity guards
+
+Choice pool phải được kiểm tra theo meter và canonical answer identity trước khi hiển thị. Các quy tắc bắt buộc:
+
+1. Không reuse cùng canonical answer để giả làm distractor khác.
+2. Không coi hai pattern là khác nhau chỉ vì capacity bằng nhau, label khác nhau hoặc presentation khác nhau khi target task không phân biệt được.
+3. Không dùng item cùng capacity để xóa identity: 3/8 `720` không được đổi thành một compound pulse `720`; 6/8 `1440` không được coi là sáu quarter-like pulses; 2/2 `1920` không được coi là 4/4 chỉ vì bar capacity bằng nhau.
+4. Với pool 3/8 nhỏ, nếu không đủ choice distinct và validated thì **fail closed**. Không nới uniqueness, không lấy filler từ 6/8/9/8, không lặp đáp án dưới label mới.
+5. Việc một lesson so sánh cả ba meter Level 6 **không** được relax choice-pool guard. Comparison được phép ở content/prompt đã cấu hình, không phải trong mỗi answer pool thiếu distinct options.
+6. Distractor equivalent về onset, duration, rest/tie semantics hoặc target audio phải bị loại theo task tương ứng.
+
+### 6.4. Meter-aware generation
+
+Generation policy phải dùng explicit meter metadata: bar capacity, pulse ticks, pulse starts, group count, pulse unit và accent model. Không suy pulse từ numerator/denominator đơn lẻ. Fine-grid budget, subdivision index, onset target và difficulty phải tính theo pulse của meter.
+
+Các teaching strings Level 6 là overlay giảng dạy, không phải shortcut thay cho metrical identity. Với 3/8, `Sww` mô tả ba simple-triple eighth pulses. Với 6/8, `Sww|Sww` mô tả hai nhóm 3+3 trên hai dotted-quarter pulses. Với 9/8, `Sww|Sww|Sww` mô tả ba nhóm 3+3+3 trên ba dotted-quarter pulses. Structural downbeat và relative gain phải giữ first-bar-pulse priority; việc chọn gain tiếp theo cần educator confirmation hoặc policy được duyệt.
+
+## 7. Assessment diagnostics và mapping
+
+Diagnostics là local explanation sau khi whole answer đã được xác định. Một item có thể có nhiều diagnostic flags nhưng chỉ có một shared correctness value.
+
+| Diagnostic | Ví dụ dữ liệu cần giải thích | Không được làm |
+|---|---|---|
+| Concept | Learner nhầm quarter/eighth, group count hoặc half pulse | Không tạo partial shared points |
+| Onset | Missing, extra, early, late, tie continuation bị tap nhầm | Không tính mỗi tap là một shared answer |
+| Duration | Dotted value, rest span, tie gate hoặc written duration sai | Không sửa đáp án thành onset-only cho Listen & Identify |
+| Meter | Nhầm 3/8 với 6/8, 6/8 với 9/8 hoặc 2/2 với 4/4 | Không phân loại 3/8 là compound |
+| Grouping/accent | Sai số group, pulse unit hoặc teaching accent model Level 6 | Không đồng nhất teaching group emphasis với toàn bộ relative hierarchy |
+| Technical confidence | Audio interruption, clock uncertainty, visibility/route change | Không biến attempt kỹ thuật không đáng tin thành wrong learner result |
+
+Tap Rhythm tiếp tục onset-only; không tuyên bố rằng tap chứng minh learner giữ note đủ duration. Listen & Identify phải dùng duration-aware validated data, rest silence và tie continuation không attack. Count the Beat phải so sánh derived pulse/subdivision coordinates, không dùng một ordinal whole-bar đơn giản để làm mất grouping.
+
+## 8. Release/acceptance wording cho tương lai
+
+Các test và acceptance dưới đây chỉ là **đề xuất tương lai, chưa chạy và chưa pass**. Release chỉ được xem xét sau khi curriculum, generation, validation, exercise flows, accessibility và technical no-penalty behavior được phê duyệt. Không dùng tài liệu này để tuyên bố source hiện tại đã hỗ trợ curriculum mới.
+
+Acceptance proposal tối thiểu phải chứng minh: mỗi level/Bonus có đủ Lessons, Practice, Assessment; bốn exercise kinds vẫn là bốn kinds hiện có; Lesson không graded; Practice chỉ dùng Free/Challenge; Assessment một whole answer +10/+0; exact-fill và validated-data reuse; deterministic same seed/config/policy; fail-closed small 3/8 pool; no equal-capacity identity collapse; Level 6 progression đủ sáu bước; 3/8 simple triple và 6/8/9/8 compound identities không bị trộn; Bonus 2/2 optional nhưng supported; historical test count không bị ghi là fresh result.
+
+## 9. Required future change paths (path list only)
+
+Các path dưới đây chỉ là danh sách touchpoints tương lai để review, không phải lệnh chỉnh sửa trong nhiệm vụ này:
+
+- `client/src/modules/rhythm-training/curriculum.ts`
+- `client/src/modules/rhythm-training/generation/levels.ts`
+- `client/src/modules/rhythm-training/generation/generator.ts`
+- `client/src/modules/rhythm-training/generation/choices.ts`
+- `client/src/modules/rhythm-training/generation/answerSignatures.ts`
+- `client/src/modules/rhythm-training/rhythm/meters.ts`
+- `client/src/modules/rhythm-training/rhythm/validate.ts`
+- `client/src/modules/rhythm-training/validation/multipleChoice.ts`
+- `client/src/modules/rhythm-training/validation/tapMatcher.ts`
+- `client/src/modules/rhythm-training/validation/listenIdentify.ts`
+- `client/src/modules/rhythm-training/validation/countBeat.ts`
+- `client/src/modules/rhythm-training/validation/diagnostics.ts`
+- `client/src/modules/rhythm-training/docs/Generation-and-Assessment-Requirements.md`
+
+## 10. Open questions và giới hạn phê duyệt
+
+Các chi tiết content và policy vẫn cần approval trước implementation: choice quota cụ thể cho từng configured set; assessment sample size; exact lesson copy/counting language; relative gain của internal group starts; beam/presentation convention cho 3/8; educator confirmation cho accent labels; legacy seed preservation policy; và readiness thresholds nếu sau này cần coaching. Những câu hỏi này không cho phép tự ý đổi 3/8 sang pulse `720`, tách Level 6 thành ba course, thêm Level 7/8 mới, hoặc mở rộng code ngoài phạm vi.
+
+**Kết luận trạng thái:** tài liệu này chỉ bổ sung yêu cầu logic cho generation và assessment của curriculum đã duyệt. Không có source, test, TS/TSX/JS/CSS/JSON/DB/infrastructure/dependency, shared architecture, Note Reading, UI, catalog, audio, metronome, MIDI, mic, Phase 3, deploy hoặc repository mới nào được thay đổi bởi tài liệu này.
+
+## Nguồn nội bộ đã dùng
+
+- `approved_curriculum_request` — curriculum, Level 6 progression, accent strings, PPQ/meter values và implementation boundary.
+- `Rhythm-Training-V1-Six-Meter-Specification.md` — existing four exercise kinds, exact-fill/generation policy, one-answer scoring, diagnostic separation, meter semantics và legacy/current-status caveats.

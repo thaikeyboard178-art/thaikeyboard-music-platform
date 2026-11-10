@@ -1,5 +1,7 @@
 # Rhythm Training staged implementation TODO
 
+> **Phạm vi tài liệu:** Nội dung Phase1/Phase2 bên dưới là hiện trạng/lịch sử triển khai của code tám level policy và bốn meter, không phải curriculum V1 hiện hành. Khung chính thức đã đổi thành6Level+Bonus; xem [Curriculum V1](docs/Curriculum-V1.md) và [đặc tả hiện hành](docs/Rhythm-Training-V1-Specification.md). Việc sửa tài liệu không triển khai curriculum mới, không bắt đầu Phase3 và không kích hoạt frontend.
+
 - [x] **Canonical model and arithmetic** — Implement readonly duration/note/rest/measure/pattern data, exact integer PPQ480 arithmetic, single-dot validation, 2/4/3/4/4/4 capacities and compound6/8 two dotted-quarter pulses. Reject unsupported signatures/values/dots/articulation and invalid durations; do not generate exercises or implement modes.
 - [x] **Validation and ties** — Validate complete bars, IDs, caches, rests and ordinary articulation; derive position/onset data from the same authoritative descriptors/order. Ties contain at least two adjacent notes, may cross a complete barline, cannot pass through rests or reattack on continuation. Invalid inputs yield structured issues, not silent coercion.
 - [x] **Timeline, signatures and fixtures** — Derive immutable exact tick coordinates and coalesced tie spans only. Provide deterministic signatures with explicit ID/tempo/duration semantics. Include independently verified full valid/invalid4/4,3/4,6/8, dotted/rest, intra-bar and cross-bar tie fixtures and automated music-theory tests.

@@ -1,5 +1,7 @@
 # Rhythm Training — Phase 1 foundation and Phase 2 generator/notation
 
+> **Phạm vi tài liệu:** Nội dung Phase1/Phase2 bên dưới là hiện trạng/lịch sử triển khai của code tám level policy và bốn meter, không phải curriculum V1 hiện hành. Khung chính thức đã đổi thành6Level+Bonus; xem [Curriculum V1](docs/Curriculum-V1.md) và [đặc tả hiện hành](docs/Rhythm-Training-V1-Specification.md). Việc sửa tài liệu không triển khai curriculum mới, không bắt đầu Phase3 và không kích hoạt frontend.
+
 This is an inert module library, not an activated frontend training feature. Rhythm Training remains Coming Soon. Phase1 provides canonical music theory; Phase2 adds seeded pattern/choice generation and a Rhythm-owned VexFlow notation adapter. No exercise UI, exercise modes, audio scheduler/playback, tap capture, metronome, microphone or MIDI has been implemented. This phase does not deploy anything.
 
 ## Canonical authority

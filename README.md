@@ -2,6 +2,12 @@
 
 Vietnamese-first, responsive music-practice application. The initial public module teaches note reading in treble (Sol) and bass (Fa) clefs with a standard engraved staff, multiple-choice answers, keyboard shortcuts, and an interactive two-octave virtual piano. Practice modes include unlimited free practice, 10/20/30/50-question challenges, timed speed practice, and a deterministic daily challenge. Core practice does not require an account, server, database, payment, or secret.
 
+## Rhythm V1 — tài liệu curriculum hiện hành
+
+[Curriculum V1](client/src/modules/rhythm-training/docs/Curriculum-V1.md) xác định khung chính thức **6 Level + Bonus**: Level3 gồm2/4,3/4,4/4; Level6 là một nhóm kiến thức chung3/8,6/8,9/8;2/2 là Bonus, không bắt buộc trong progression chính. [Đặc tả đầy đủ](client/src/modules/rhythm-training/docs/Rhythm-Training-V1-Specification.md) và [báo cáo cập nhật](client/src/modules/rhythm-training/docs/Curriculum-Update-Report.md) ghi các yêu cầu generator/notation/test tương lai và các điểm chờ giáo viên xác nhận.
+
+Đây là cập nhật tài liệu, **không phải code migration**. Library Rhythm Phase1/Phase2 hiện vẫn có tám level policy cũ và bốn meter; không có UI/audio hoặc route Rhythm hoạt động. Những phần triển khai đã có, Note Reading, shared architecture và infrastructure giữ nguyên; không deploy.
+
 ## Stack and architecture
 
 The existing React 19, Vite 7, TypeScript, Wouter, Express, tRPC, Drizzle/MySQL, Tailwind 4, Radix UI, Framer Motion, pnpm, and Vitest project structure is retained. Note Reading is isolated under `client/src/modules/note-reading/`; shared module/session/scoring contracts live under `client/src/features/training/`; the module registry lives at `client/src/app/moduleRegistry.ts`. Active practice sessions stay in memory. Optional aggregate progress and two non-sensitive preferences (auto-advance and independent ledger counts) are stored locally; other setup choices remain in memory.
@@ -56,7 +62,7 @@ The first two years of the training service are free. The Note Reading module co
 
 ## Shared platform foundation
 
-The application has one explicit typed catalog in `client/src/app/moduleRegistry.ts`. Its active registrations supply a path and lazy page; metadata-only Coming Soon entries cannot supply either. Landing cards, shared header navigation and `App.tsx` routes consume this catalog. Note Reading is the only active module. Rhythm Training and Chord Recognition are Coming Soon only: no pages, training engines, fake actions or routes have been implemented for them. `/` and `/note-reading` remain the only real application page routes.
+The application has one explicit typed catalog in `client/src/app/moduleRegistry.ts`. Its active registrations supply a path and lazy page; metadata-only Coming Soon entries cannot supply either. Landing cards, shared header navigation and `App.tsx` routes consume this catalog. Note Reading is the only active module. Rhythm Training and Chord Recognition remain Coming Soon with no active pages/actions/routes. Rhythm has an inert Phase1/Phase2 canonical/generator/notation library but no exercise UI or audio; Chord Recognition has no implemented training engine. `/` and `/note-reading` remain the only real application page routes.
 
 `client/src/features/training/` owns generic session/scoring/result contracts, `ResultSummary.tsx` scalar presentation, and `progress.ts` local aggregate persistence. Shared sessions no longer require clef/range strings: these remain in Note Reading's module-local setup. Every live `TrainingModule` must provide its own typed Zod configuration schema; each module validates its configuration at session startup. Difficulty metadata is optional and must only advertise levels whose behavior is actually implemented by that module. Note Reading continues to use its real custom-ledger configuration; there is no new difficulty selector or generic difficulty engine.
 
