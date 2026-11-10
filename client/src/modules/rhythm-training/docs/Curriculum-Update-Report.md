@@ -87,7 +87,11 @@ Hai full copy curriculum/specification ngoài repository vẫn là bản hiện 
 6. Cần xác nhận cách Bonus 2/2 xuất hiện trong learner progression, nhưng không được biến Bonus thành core Level hoặc graduation requirement.
 7. Cần quyết định tương lai về legacy seed preservation so với policy-version expansion; quyết định này không được dùng làm lý do fallback chéo meter hoặc thay đổi curriculum placement.
 
-**Git synchronization:** PENDING until parent push. Không có Git operation, commit, push, hoặc SHA mới được thực hiện trong reducer này. **Runtime status:** current code vẫn legacy eight data-only levels và bốn implemented meters; curriculum mới và bảy-meter registry chưa được triển khai. **Test status:** không chạy fresh runtime tests.
+## GitHub — cập nhật tài liệu đã lưu
+
+Commit documentation-only `636524c4a741b35bb5491a80e7deccd627974ec9` đã push thành công vào `thaikeyboard178-art/thaikeyboard-music-platform`, nhánh `main`; khi push hoàn tất, `HEAD == origin/main` và worktree sạch. Commit chứa đúng13 Markdown (7 tài liệu mới,6 Markdown metadata/historical-reference sửa), không có source/test/config/schema/asset thay đổi. Auto-publish tắt; không deploy hay rewrite/force-push history. Bản ghi handoff/TODO hoàn tất và lời làm rõ guardrails trong generator requirements được lưu tiếp bằng một documentation-only commit, không đổi runtime.
+
+**Runtime status:** code vẫn tám legacy data-only levels và bốn implemented meters; curriculum mới và bảy-meter registry chưa triển khai. **Test status:** chỉ kiểm tra tài liệu, công thức bằng `Fraction`, local links/table integrity và SHA-256 bảo toàn251 file; không chạy fresh runtime tests hoặc sử dụng436/436 lịch sử như bằng chứng cho curriculum mới.
 
 ## Bảo toàn và tài liệu lịch sử đã đồng bộ
 
