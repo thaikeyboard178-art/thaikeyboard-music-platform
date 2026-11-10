@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NoteReadingPage from "./NoteReadingPage";
+import { PREFERENCES_KEY } from "../services/preferences";
 
-afterEach(() => cleanup());
+beforeEach(() => localStorage.setItem(PREFERENCES_KEY, JSON.stringify({ autoAdvance: false, ledgerRange: { above: 1, below: 1 } })));
+afterEach(() => { cleanup(); localStorage.clear(); });
 
 Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
   configurable: true,
@@ -21,9 +23,10 @@ describe("Note Reading browser interactions", () => {
     await user.click(bass);
     expect(bass.getAttribute("aria-pressed")).toBe("true");
 
-    const extended = screen.getByRole("button", { name: /Mở rộng/ });
-    await user.click(extended);
-    expect(extended.getAttribute("aria-pressed")).toBe("true");
+    await user.selectOptions(screen.getByLabelText("Dòng phụ phía trên"), "4");
+    await user.selectOptions(screen.getByLabelText("Dòng phụ phía dưới"), "4");
+    expect((screen.getByLabelText("Dòng phụ phía trên") as HTMLSelectElement).value).toBe("4");
+    expect((screen.getByLabelText("Dòng phụ phía dưới") as HTMLSelectElement).value).toBe("4");
 
     await user.click(screen.getByRole("button", { name: /Luyện tốc độ/ }));
     const fiveSeconds = screen.getByRole("button", { name: "5 giây" });

@@ -6,6 +6,7 @@ export type NoteLetter = "C" | "D" | "E" | "F" | "G" | "A" | "B";
 export type Accidental = "natural" | "sharp" | "flat";
 export type KeySignature = { fifths: number; mode?: "major" | "minor" };
 export type NoteRange = "staff" | "one-ledger" | "extended";
+export type LedgerRange = { above: number; below: number };
 export type AnswerMethod = "multiple-choice" | "piano";
 export type NoteReadingMode = ExerciseMode;
 
@@ -41,6 +42,8 @@ export type NoteReadingConfiguration = {
   questionCount: number;
   speedLimitSeconds: number | null;
   challengeDate: string;
+  ledgerRange?: LedgerRange;
+  autoAdvance?: boolean;
 };
 
 export type ExerciseGenerationOptions = {
@@ -49,4 +52,5 @@ export type ExerciseGenerationOptions = {
   exerciseId: string;
   index: number;
   previous?: Pick<NoteEvent, "clef" | "diatonicPosition">;
+  ledgerRange?: LedgerRange;
 };

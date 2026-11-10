@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NoteReadingPage from "./NoteReadingPage";
+import { PREFERENCES_KEY } from "../services/preferences";
 
+beforeEach(() => localStorage.setItem(PREFERENCES_KEY, JSON.stringify({ autoAdvance: false, ledgerRange: { above: 1, below: 1 } })));
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); localStorage.clear(); });
 Object.defineProperty(HTMLCanvasElement.prototype, "getContext", { configurable: true, value: () => ({ measureText: (text: string) => ({ width: text.length * 8 }) }) });
 
@@ -110,6 +112,9 @@ describe("QA session UI regressions", () => {
         await user.click(screen.getByRole("button", { name: /Câu tiếp/ }));
       }
     }
+    expect(screen.getByRole("status")).not.toBeNull();
+    expect(document.querySelector(".result-view")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Xem kết quả/ }));
     expect(screen.getByRole("heading", { name: "Kết quả luyện tập" })).not.toBeNull();
     const values = Object.fromEntries([...document.querySelectorAll(".result-stats > div")].map(node => [node.querySelector("span")?.textContent, Number(node.querySelector("strong")?.textContent)]));
     expect(values["Tổng số câu"]).toBe(10);

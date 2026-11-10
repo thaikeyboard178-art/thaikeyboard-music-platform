@@ -1,7 +1,9 @@
 import React from "react";
 import { ArrowRight, Clock3, Keyboard, Music2, Sparkles, Timer } from "lucide-react";
-import { NOTE_RANGES } from "../notation/musicTheory";
-import type { AnswerMethod, ClefSelection, NoteRange } from "../types";
+import { ledgerRangeLabel } from "../notation/musicTheory";
+import type { AnswerMethod, ClefSelection, LedgerRange, NoteRange } from "../types";
+import { legacyRangeAlias } from "../services/preferences";
+import { AutoAdvanceSwitch } from "./AutoAdvanceSwitch";
 import type { ExerciseMode } from "@/features/training/types";
 
 export type SetupValues = {
@@ -11,6 +13,8 @@ export type SetupValues = {
   answerMethod: AnswerMethod;
   questionCount: number;
   speedLimitSeconds: number | null;
+  ledgerRange: LedgerRange;
+  autoAdvance: boolean;
 };
 
 type ExerciseSetupProps = {
@@ -24,6 +28,10 @@ const QUESTION_COUNTS = [10, 20, 30, 50];
 export function ExerciseSetup({ value, onChange, onStart }: ExerciseSetupProps) {
   function update(patch: Partial<SetupValues>) {
     onChange({ ...value, ...patch });
+  }
+
+  function updateLedger(ledgerRange: LedgerRange) {
+    update({ ledgerRange, range: legacyRangeAlias(ledgerRange) });
   }
 
   return (
@@ -50,13 +58,18 @@ export function ExerciseSetup({ value, onChange, onStart }: ExerciseSetupProps) 
 
         <fieldset className="setup-group">
           <legend>Phạm vi nốt</legend>
-          <div className="range-grid">
-            {(Object.entries(NOTE_RANGES) as [NoteRange, (typeof NOTE_RANGES)[NoteRange]][]).map(([key, range]) => (
-              <button key={key} type="button" className={`range-card ${value.range === key ? "is-selected" : ""}`} onClick={() => update({ range: key })} aria-pressed={value.range === key}>
-                <span className="range-radio" /><span><strong>{range.label}</strong><small>{range.detail}</small></span>
-              </button>
+          <div className="ledger-controls">
+            {(["above", "below"] as const).map((side) => (
+              <label key={side} className="ledger-control">
+                <span>{side === "above" ? "Dòng phụ phía trên" : "Dòng phụ phía dưới"}</span>
+                <select value={value.ledgerRange[side]} onChange={(event) => updateLedger({ ...value.ledgerRange, [side]: Number(event.target.value) })}>
+                  {[0, 1, 2, 3, 4].map((count) => <option key={count} value={count}>{count === 0 ? "Không có dòng phụ" : `${count} dòng phụ`}</option>)}
+                </select>
+              </label>
             ))}
           </div>
+          <button type="button" className={`staff-only-button ${value.range === "staff" ? "is-selected" : ""}`} aria-pressed={value.ledgerRange.above === 0 && value.ledgerRange.below === 0} onClick={() => updateLedger({ above: 0, below: 0 })}>Chỉ trong khuông · 5 dòng kẻ, 4 khe</button>
+          <p className="ledger-range-summary">{ledgerRangeLabel(value.ledgerRange)} · Bao gồm các dòng kẻ và khe trong phạm vi.</p>
         </fieldset>
 
         <fieldset className="setup-group">
@@ -100,6 +113,8 @@ export function ExerciseSetup({ value, onChange, onStart }: ExerciseSetupProps) 
             <button type="button" className={`answer-method-card ${value.answerMethod === "piano" ? "is-selected" : ""}`} onClick={() => update({ answerMethod: "piano" })} aria-pressed={value.answerMethod === "piano"}><Music2 size={18} /><span><strong>Piano ảo</strong><small>Nghe và chọn cao độ</small></span></button>
           </div>
         </fieldset>
+
+        <AutoAdvanceSwitch enabled={value.autoAdvance} onChange={(autoAdvance) => update({ autoAdvance })} />
 
         <button type="button" className="start-session-button" onClick={onStart}>Bắt đầu luyện <ArrowRight size={18} /></button>
         <p className="setup-footnote">Không cần đăng ký · Luyện bao nhiêu cũng được</p>

@@ -12,6 +12,7 @@ export const noteReadingModule: TrainingModule<NoteReadingConfiguration, NoteExe
   generateExercise: (configuration, random) => generateExercise({
     clef: configuration.clef,
     range: configuration.range,
+    ledgerRange: configuration.ledgerRange,
     exerciseId: `note-${Date.now()}`,
     index: 1,
   }, random),

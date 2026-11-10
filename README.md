@@ -4,9 +4,15 @@ Vietnamese-first, responsive music-practice application. The initial public modu
 
 ## Stack and architecture
 
-The existing React 19, Vite 7, TypeScript, Wouter, Express, tRPC, Drizzle/MySQL, Tailwind 4, Radix UI, Framer Motion, pnpm, and Vitest project structure is retained. Note Reading is isolated under `client/src/modules/note-reading/`; shared module/session/scoring contracts live under `client/src/features/training/`; the module registry lives at `client/src/app/moduleRegistry.ts`. A live practice session and setup choices stay in memory; only optional aggregate practice statistics are stored in the browser's local storage.
+The existing React 19, Vite 7, TypeScript, Wouter, Express, tRPC, Drizzle/MySQL, Tailwind 4, Radix UI, Framer Motion, pnpm, and Vitest project structure is retained. Note Reading is isolated under `client/src/modules/note-reading/`; shared module/session/scoring contracts live under `client/src/features/training/`; the module registry lives at `client/src/app/moduleRegistry.ts`. Active practice sessions stay in memory. Optional aggregate progress and two non-sensitive preferences (auto-advance and independent ledger counts) are stored locally; other setup choices remain in memory.
 
 Notation is rendered from structured note events with [VexFlow 5](https://github.com/vexflow/vexflow), a TypeScript-authored music-engraving library that supports SVG and standard treble/bass clefs, staff notes, and ledger-line rendering. The installed package is pinned in `package.json`/`pnpm-lock.yaml`. See the [VexFlow overview](https://www.vexflow.com/) and its [StaveNote API documentation](https://www.vexflow.com/build/docs/stavenote.html). The music theory and exercise generator are kept separate from the renderer so exercises, answers, and pitch validation share the same note data.
+
+## Note Reading preferences
+
+Auto-advance defaults ON and is available as a switch in setup and practice. Answers score immediately (+10 correct, +0 incorrect), retain feedback and correct-answer highlighting for 900ms, then advance. The next/results button skips the wait; turning OFF keeps feedback until the button is pressed. Final Challenge/Daily feedback is never skipped. Turning ON during feedback starts a fresh 900ms delay. Session/question identity checks and timer cleanup prevent duplicate or stale transitions.
+
+Ledger lines above and below the staff are independently configurable from0 through4, default1/1. The staff-only action selects0/0. Valid diatonic positions are inclusive `-2 * below .. 8 + 2 * above`; this includes all inner lines/spaces and the outside-staff adjacent spaces for an extended side, but not a space beyond the outermost selected ledger line. The existing music-theory conversion and VexFlow renderer remain unchanged. Both ledger counts are included in daily seeds; older service consumers without custom counts retain the legacy range behavior.
 
 ## Requirements
 

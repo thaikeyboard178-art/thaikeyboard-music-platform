@@ -14,7 +14,7 @@ describe("responsive SVG notation regressions", () => {
     expect(document.querySelector(".notation-host svg")?.getAttribute("width")).toBe("240");
   });
   it.each(["treble", "bass"] as const)("renders all staff and extreme ledger fixtures for %s", (clef) => {
-    for (const position of [-8, -2, 0, 1, 8, 9, 10, 16]) {
+    for (const position of Array.from({ length: 25 }, (_, index) => index - 8)) {
       const { unmount } = render(<VexFlowStaff note={noteAtDiatonicPosition(clef, position)} revealAnswer />);
       expect(document.querySelectorAll(".vf-stave path")).toHaveLength(5);
       expect(Number(document.querySelector(".vf-notehead text")?.getAttribute("y"))).toBe(134 - 6 * position);

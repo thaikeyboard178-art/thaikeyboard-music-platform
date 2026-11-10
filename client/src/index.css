@@ -432,3 +432,35 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .range-card, .note-answer { min-height: 44px; }
 .exit-practice { min-width: 44px; }
 .piano-scroll:focus-visible { outline: 2px solid #c94229; outline-offset: 3px; }
+
+/* Focused Note Reading UX additions — existing layout and notation retained. */
+.ledger-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ledger-control { min-width: 0; display: flex; flex-direction: column; gap: 7px; color: #536068; font-size: 11px; font-weight: 600; }
+.ledger-control select { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid #dcded8; border-radius: 7px; background: #fff; color: #37454c; font: inherit; }
+.ledger-control select:focus-visible { outline: 2px solid #c94229; outline-offset: 2px; }
+.staff-only-button { margin-top: 10px; min-height: 44px; padding: 8px 11px; border: 1px solid #e3e1da; border-radius: 6px; background: #fffefa; color: #59666b; font-size: 10px; }
+.staff-only-button.is-selected { border-color: #ef9b86; background: #fff3ef; color: #ba432d; }
+.ledger-range-summary { margin: 8px 0 0; color: #59666b; font-size: 10px; line-height: 1.5; }
+.auto-advance-switch { width: 100%; min-height: 58px; margin-top: 18px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid #e9e5dd; border-radius: 7px; background: #fffefa; color: #37454c; text-align: left; }
+.switch-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.switch-copy strong { font-size: 11px; line-height: 1.4; }
+.switch-copy small { color: #59666b; font-size: 10px; line-height: 1.4; }
+.switch-track { width: 42px; height: 24px; flex: 0 0 42px; padding: 3px; border-radius: 20px; background: #919b9c; transition: background .15s; }
+.switch-track > span { width: 18px; height: 18px; display: block; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0002; transition: transform .15s; }
+.switch-track.is-on { background: #c94229; }
+.switch-track.is-on > span { transform: translateX(18px); }
+.auto-advance-switch:focus-visible { outline: 2px solid #c94229; outline-offset: 3px; }
+.auto-advance-switch.is-compact { min-height: 44px; margin: 0; padding: 8px 10px; background: #faf9f5; }
+.practice-options { margin-top: 12px; }
+.feedback-auto-note { margin: 7px 0 0; color: #59666b; font-size: 10px; line-height: 1.4; text-align: center; }
+@media (max-width: 520px) {
+  .ledger-controls { gap: 7px; }
+  .ledger-control { font-size: 10px; }
+  .ledger-control select { padding-inline: 6px; font-size: 10px; }
+  .switch-copy strong { font-size: 10px; }
+  .switch-copy small { font-size: 9px; }
+  .answer-feedback { flex-wrap: wrap; }
+  .answer-feedback > span:nth-child(2) { flex-basis: calc(100% - 40px); }
+  .answer-feedback .continue-button { min-height: 44px; margin-left: auto; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .switch-track, .switch-track > span { transition: none; } }
