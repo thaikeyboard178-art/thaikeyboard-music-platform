@@ -21,7 +21,7 @@ export function VexFlowStaff({ note, revealAnswer = false, feedback = null }: Ve
 
     const draw = () => {
       if (disposed || !host.isConnected) return;
-      const width = Math.max(300, Math.floor(host.getBoundingClientRect().width || host.clientWidth || 420));
+      const width = Math.max(180, Math.floor(host.getBoundingClientRect().width || host.clientWidth || 420));
       const height = 198;
       host.replaceChildren();
       try {

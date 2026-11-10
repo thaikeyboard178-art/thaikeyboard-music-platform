@@ -18,6 +18,7 @@ export type TrainingSession<TExercise> = {
   clefConfiguration: string;
   noteRange: string;
   plannedQuestions: number | null;
+  pointsPerCorrect: number;
   questionsAnswered: number;
   correctAnswers: number;
   incorrectAnswers: number;
@@ -43,6 +44,7 @@ export function createTrainingSession<TExercise>(
     clefConfiguration: configuration.clefConfiguration,
     noteRange: configuration.noteRange,
     plannedQuestions: configuration.plannedQuestions,
+    pointsPerCorrect: Number.isFinite(configuration.pointsPerCorrect) && configuration.pointsPerCorrect! >= 0 ? configuration.pointsPerCorrect! : 10,
     questionsAnswered: 0,
     correctAnswers: 0,
     incorrectAnswers: 0,
@@ -62,7 +64,7 @@ export function submitSessionAnswer<TExercise>(
   session: TrainingSession<TExercise>,
   isCorrect: boolean,
   responseTimeMs: number,
-  pointsPerCorrect = 10,
+  pointsPerCorrect = session.pointsPerCorrect,
   completedAt = Date.now(),
 ): TrainingSession<TExercise> {
   if (session.hasAnsweredCurrent || session.completedAt !== null) return session;
@@ -79,7 +81,7 @@ export function submitSessionAnswer<TExercise>(
     correctAnswers,
     incorrectAnswers,
     accuracy: Math.round((correctAnswers / questionsAnswered) * 100),
-    totalScore: session.totalScore + (isCorrect ? pointsPerCorrect : 0),
+    totalScore: session.totalScore + (isCorrect ? (Number.isFinite(pointsPerCorrect) && pointsPerCorrect >= 0 ? pointsPerCorrect : session.pointsPerCorrect) : 0),
     averageResponseTimeMs: Math.round(responseTimeTotalMs / questionsAnswered),
     responseTimeTotalMs,
     completedAt: isComplete ? completedAt : null,
@@ -103,6 +105,7 @@ export function advanceSession<TExercise>(
 
 export function finishSession<TExercise>(session: TrainingSession<TExercise>, completedAt = Date.now()): TrainingSession<TExercise> {
   if (session.completedAt !== null || session.questionsAnswered === 0) return session;
+  if ((session.mode === "challenge" || session.mode === "daily") && session.plannedQuestions !== null && session.questionsAnswered < session.plannedQuestions) return session;
   return { ...session, completedAt };
 }
 

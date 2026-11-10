@@ -410,3 +410,25 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   .result-actions { flex-direction: column; }
   .result-actions button { width: 100%; }
 }
+
+/* QA: readable secondary labels, keyboard focus and touch-friendly controls. */
+.module-kicker, .panel-eyebrow, .module-breadcrumb, .piano-help,
+.setup-copy, .setup-footnote, .range-card small, .mode-card small,
+.answer-method-card small, .exercise-context small, .answer-help,
+.notation-instruction, .answer-section-heading > span, .progress-copy,
+.piano-caption small, .octave-navigation, .piano-key-white small,
+.exercise-bottom-note, .rail-eyebrow, .side-stat, .answer-number {
+  color: #59666b;
+}
+.module-kicker, .panel-eyebrow, .module-breadcrumb, .piano-help { font-size: 10px; }
+.octave-navigation button { width: 44px; height: 44px; flex-shrink: 0; }
+.piano-toolbar { flex-wrap: wrap; }
+.piano-keybed { min-width: 560px; }
+.piano-key-white span { font-size: 10px; }
+.piano-key-white small, .piano-key-black span { font-size: 9px; }
+.piano-key-black small { font-size: 8px; }
+.chip-row button, .start-session-button, .continue-button,
+.text-action, .secondary-action, .exit-practice,
+.range-card, .note-answer { min-height: 44px; }
+.exit-practice { min-width: 44px; }
+.piano-scroll:focus-visible { outline: 2px solid #c94229; outline-offset: 3px; }

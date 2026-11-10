@@ -1,3 +1,4 @@
+import React from "react";
 import { ArrowRight, BookOpen, CheckCircle2, Music2, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
@@ -52,9 +53,9 @@ export default function Home() {
             <svg viewBox="0 0 520 270" role="presentation">
               <g className="hero-staff-lines"><line x1="22" y1="75" x2="485" y2="75" /><line x1="22" y1="99" x2="485" y2="99" /><line x1="22" y1="123" x2="485" y2="123" /><line x1="22" y1="147" x2="485" y2="147" /><line x1="22" y1="171" x2="485" y2="171" /></g>
               <text x="36" y="164" className="hero-treble-clef">𝄞</text>
-              <ellipse cx="297" cy="122" rx="17" ry="12" transform="rotate(-18 297 122)" className="hero-notehead" />
-              <line x1="312" y1="122" x2="312" y2="46" className="hero-stem" />
-              <path d="M312 46 C350 48 360 72 342 89" className="hero-flag" />
+              <ellipse cx="297" cy="171" rx="17" ry="12" transform="rotate(-18 297 171)" className="hero-notehead" />
+              <line x1="312" y1="171" x2="312" y2="95" className="hero-stem" />
+              <path d="M312 95 C350 97 360 121 342 138" className="hero-flag" />
               <circle cx="406" cy="112" r="6" className="hero-note-spark" /><circle cx="431" cy="94" r="3" className="hero-note-spark light" /><circle cx="442" cy="131" r="4" className="hero-note-spark light" />
               <text x="369" y="213" className="hero-note-name">Mi₄</text>
               <path d="M347 212 C379 231 427 230 448 204" className="hero-swoosh" />

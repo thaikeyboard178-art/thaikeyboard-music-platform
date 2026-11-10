@@ -42,6 +42,7 @@ describe("Note Reading browser interactions", () => {
     await user.keyboard("1");
     const status = await screen.findByRole("status");
     expect(status.textContent).toMatch(/Chính xác|Chưa đúng/);
+    expect(screen.getByText("Câu 1").textContent).toBe("Câu 1");
     expect(screen.getByRole("button", { name: /Câu tiếp/ })).not.toBeNull();
     await user.click(screen.getByRole("button", { name: /Câu tiếp/ }));
     expect(screen.getByText("Câu 2").textContent).toBe("Câu 2");

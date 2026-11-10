@@ -63,7 +63,7 @@ function ExerciseResult({ session, onRetry, onSetup }: { session: TrainingSessio
     <section className="result-view" aria-labelledby="result-title">
       <div className="result-badge"><Trophy size={28} /></div>
       <p className="panel-eyebrow">LƯỢT LUYỆN ĐÃ HOÀN THÀNH</p>
-      <h2 id="result-title">Bạn đã làm rất tốt!</h2>
+      <h2 id="result-title" tabIndex={-1}>Bạn đã làm rất tốt!</h2>
       <p className="result-subtitle">Mỗi nốt bạn đọc hôm nay giúp lần sau tự tin hơn.</p>
       <div className="result-score"><strong>{result.accuracy}%</strong><span>độ chính xác</span></div>
       <div className="result-stats">
@@ -89,12 +89,14 @@ export default function NoteReadingPage() {
   const sessionStartRef = useRef(0);
   const dailyExercisesRef = useRef<NoteExercise[]>([]);
   const savedSessionRef = useRef<string | null>(null);
+  const challengeDateRef = useRef<string>("");
+  const mainRef = useRef<HTMLElement>(null);
 
   const currentExercise = session?.currentExercise;
   const currentNote = currentExercise?.note;
   const complete = Boolean(session?.completedAt);
   const progress = session?.plannedQuestions ? Math.min((session.questionsAnswered / session.plannedQuestions) * 100, 100) : 0;
-  const responseTime = session?.hasAnsweredCurrent ? session.averageResponseTimeMs : elapsedMs;
+  const responseTime = elapsedMs;
   const remainingMs = setup.speedLimitSeconds === null ? null : Math.max(0, setup.speedLimitSeconds * 1000 - elapsedMs);
   const resultLabel = session?.hasAnsweredCurrent ? (session.lastAnswerCorrect ? "correct" : "incorrect") : null;
   const description = useMemo(() => {
@@ -111,6 +113,7 @@ export default function NoteReadingPage() {
 
   function startSession() {
     const today = localDateKey();
+    challengeDateRef.current = today;
     noteReadingModule.configSchema?.parse({
       ...setup,
       challengeDate: today,
@@ -201,23 +204,22 @@ export default function NoteReadingPage() {
   }, [session?.completedAt, session?.sessionId, session?.questionsAnswered, session?.correctAnswers]);
 
   useEffect(() => {
-    if (!session || session.hasAnsweredCurrent || complete) return;
+    if (!session || session.hasAnsweredCurrent || complete || setup.answerMethod !== "multiple-choice") return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || !(event.key >= "1" && event.key <= "7")) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
       event.preventDefault();
-      if (setup.answerMethod === "multiple-choice") chooseMultipleChoice(NOTE_LETTERS[Number(event.key) - 1]);
-      else if (currentNote) {
-        const index = Number(event.key) - 1;
-        const letter = NOTE_LETTERS[index];
-        const answer: NoteAnswer = { letter, octave: currentNote.octave, accidental: "natural", pitchValue: midiPitch(letter, currentNote.octave) };
-        submitAnswer(answer);
-      }
+      chooseMultipleChoice(NOTE_LETTERS[Number(event.key) - 1]);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [session?.sessionId, session?.currentExercise.id, session?.hasAnsweredCurrent, complete, setup.answerMethod, currentNote]);
+
+  useEffect(() => {
+    const selector = !session ? "h1" : complete ? "#result-title" : session.hasAnsweredCurrent ? ".continue-button" : setup.answerMethod === "piano" ? ".piano-scroll" : ".note-answer";
+    mainRef.current?.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true });
+  }, [session?.sessionId, session?.currentExercise.id, session?.hasAnsweredCurrent, complete, setup.answerMethod]);
 
   const isSpeed = setup.mode === "speed";
   const clockValue = isSpeed && remainingMs !== null ? `${Math.ceil(remainingMs / 1000)}s` : `${(responseTime / 1000).toFixed(1)}s`;
@@ -227,15 +229,15 @@ export default function NoteReadingPage() {
       <header className="site-header">
         <div className="header-inner">
           <Link href="/" className="wordmark" aria-label="THAIKEYBOARD Music Training, trang chủ"><span className="brand-key" aria-hidden="true"><i /><i /><i /></span><span>THAIKEYBOARD<small>MUSIC TRAINING</small></span></Link>
-          <nav aria-label="Điều hướng"><Link href="/" className="nav-link"><Home size={15} /> Trang chủ</Link><span className="nav-current">Đọc nốt</span></nav>
+          <nav aria-label="Điều hướng"><Link href="/" className="nav-link"><Home size={15} /> Trang chủ</Link><span className="nav-current" aria-current="page">Đọc nốt</span></nav>
         </div>
       </header>
 
-      <main className="module-main">
+      <main className="module-main" ref={mainRef}>
         <div className="module-breadcrumb"><Link href="/">Học nhạc</Link><span>/</span><span>Đọc nốt</span></div>
         {!session ? (
           <>
-            <div className="module-heading-row"><div><span className="module-kicker">MODULE 01 · NOTE READING</span><h1>Đọc nốt nhạc</h1><p>Nhận diện nốt đúng vị trí trên khuông, từ khóa Sol đến khóa Fa.</p></div><span className="free-pill"><Sparkles size={14} /> MIỄN PHÍ · KHÔNG CẦN TÀI KHOẢN</span></div>
+            <div className="module-heading-row"><div><span className="module-kicker">MODULE 01 · NOTE READING</span><h1 tabIndex={-1}>Đọc nốt nhạc</h1><p>Nhận diện nốt đúng vị trí trên khuông, từ khóa Sol đến khóa Fa.</p></div><span className="free-pill"><Sparkles size={14} /> MIỄN PHÍ · KHÔNG CẦN TÀI KHOẢN</span></div>
             <ExerciseSetup value={setup} onChange={setSetup} onStart={startSession} />
           </>
         ) : complete ? (
@@ -245,11 +247,11 @@ export default function NoteReadingPage() {
           </>
         ) : currentExercise && currentNote ? (
           <>
-            <div className="module-heading-row practice-heading"><div><span className="module-kicker">MODULE 01 · {session.mode.toUpperCase()}</span><h1>Luyện đọc nốt</h1><p>{description}{session.mode === "daily" ? ` · ${localDateKey()}` : ""}</p></div><button type="button" className="text-action" onClick={stopSession} disabled={session.questionsAnswered === 0}><X size={15} /> Kết thúc lượt</button></div>
+            <div className="module-heading-row practice-heading"><div><span className="module-kicker">MODULE 01 · {session.mode.toUpperCase()}</span><h1>Luyện đọc nốt</h1><p>{description}{session.mode === "daily" ? ` · ${challengeDateRef.current}` : ""}</p></div>{(session.mode === "free" || session.mode === "speed") && <button type="button" className="text-action" onClick={stopSession} disabled={session.questionsAnswered === 0}><X size={15} /> Kết thúc lượt</button>}</div>
             <section className="exercise-workspace" aria-label="Bài luyện đọc nốt">
               <div className="exercise-main">
                 <div className="exercise-toolbar"><div className="exercise-context"><span className="context-mark">01</span><span><strong>{session.mode === "daily" ? "Thử thách hôm nay" : session.mode === "speed" ? "Luyện tốc độ" : session.mode === "challenge" ? "Thử thách" : "Luyện tự do"}</strong><small>{description}</small></span></div><div className="exercise-toolbar-right"><span className="answer-help">{setup.answerMethod === "multiple-choice" ? "PHÍM 1—7 ĐỂ TRẢ LỜI" : "CHỌN ĐÚNG NỐT & QUÃNG TÁM"}</span><button type="button" className="exit-practice" onClick={returnToSetup} aria-label="Quay lại thiết lập"><X size={16} /></button></div></div>
-                <div className="exercise-progress"><div className="progress-copy"><span>{session.mode === "free" ? `Câu ${session.questionsAnswered + 1}` : `Câu ${Math.min(session.questionsAnswered + 1, session.plannedQuestions ?? 0)} / ${session.plannedQuestions}`}</span><span>{session.totalScore} điểm</span></div><div className="progress-track"><span style={{ width: session.mode === "free" ? `${Math.min((session.questionsAnswered % 10) * 10 + 4, 100)}%` : `${progress}%` }} /></div></div>
+                <div className="exercise-progress"><div className="progress-copy"><span>{session.mode === "free" ? `Câu ${currentExercise.index}` : `Câu ${currentExercise.index} / ${session.plannedQuestions}`}</span><span>{session.totalScore} điểm</span></div><div className="progress-track"><span style={{ width: session.mode === "free" ? `${Math.min((session.questionsAnswered % 10) * 10 + 4, 100)}%` : `${progress}%` }} /></div></div>
                 <div className={`notation-stage ${resultLabel ? `is-${resultLabel}` : ""}`}>
                   <div className="notation-stage-top"><span className="clef-label"><span className="clef-symbol">{currentNote.clef === "treble" ? "𝄞" : "𝄢"}</span> KHÓA {currentNote.clef === "treble" ? "SOL" : "FA"}</span><span className="notation-instruction">Hãy đọc tên nốt đang được hiển thị</span></div>
                   <VexFlowStaff note={currentNote} revealAnswer={Boolean(resultLabel)} feedback={resultLabel === "correct" ? "correct" : resultLabel === "incorrect" ? "incorrect" : null} />

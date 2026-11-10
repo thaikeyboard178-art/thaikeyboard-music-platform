@@ -37,3 +37,22 @@ describe("shared training session", () => {
     expect(toTrainingResult(finished)?.accuracy).toBe(100);
   });
 });
+
+describe("QA scoring regressions", () => {
+  it.each(["challenge", "daily"] as const)("does not complete a %s session early", (mode) => {
+    const start = createTrainingSession({ moduleId: "notes", mode, clefConfiguration: "treble", noteRange: "staff", plannedQuestions: 10 }, { id: "q1" });
+    const first = submitSessionAnswer(start, true, 200);
+    expect(finishSession(first)).toBe(first);
+    expect(toTrainingResult(first)).toBeNull();
+  });
+
+  it("honors configured score and rejects negative or non-finite score overrides", () => {
+    const start = createTrainingSession({ moduleId: "notes", mode: "free", clefConfiguration: "bass", noteRange: "staff", plannedQuestions: null, pointsPerCorrect: 20 }, { id: "q1" });
+    expect(submitSessionAnswer(start, true, 200).totalScore).toBe(20);
+    for (const invalid of [-10, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(submitSessionAnswer(start, true, 200, invalid).totalScore).toBe(20);
+    }
+    const invalidConfig = createTrainingSession({ moduleId: "notes", mode: "free", clefConfiguration: "bass", noteRange: "staff", plannedQuestions: null, pointsPerCorrect: -10 }, { id: "q1" });
+    expect(submitSessionAnswer(invalidConfig, true, 200).totalScore).toBe(10);
+  });
+});

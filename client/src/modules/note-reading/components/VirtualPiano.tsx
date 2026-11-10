@@ -24,7 +24,7 @@ type VirtualPianoProps = {
   onAnswer: (answer: NoteAnswer) => void;
 };
 
-const BLACK_KEY_AFTER: Partial<Record<NoteLetter, NoteLetter>> = { C: "D", D: "E", F: "G", G: "A" };
+const BLACK_KEY_AFTER: Partial<Record<NoteLetter, NoteLetter>> = { C: "D", D: "E", F: "G", G: "A", A: "B" };
 const OCTAVE_MIN = 1;
 const OCTAVE_MAX_START = 6;
 
@@ -96,7 +96,7 @@ export function VirtualPiano({ target, disabled, lastAnswer, lastAnswerCorrect, 
           <button type="button" onClick={() => setStartOctave((value) => Math.min(OCTAVE_MAX_START, value + 1))} disabled={startOctave >= OCTAVE_MAX_START} aria-label="Tăng quãng tám"><ChevronRight size={15} /></button>
         </div>
       </div>
-      <div className="piano-scroll" tabIndex={0} aria-label="Bàn phím đàn, có thể cuộn ngang trên màn hình nhỏ">
+      <div className="piano-scroll" role="region" tabIndex={0} aria-label="Bàn phím đàn, có thể cuộn ngang trên màn hình nhỏ">
         <div className="piano-keybed" role="group" aria-label={`Bàn phím hai quãng tám bắt đầu ở quãng ${startOctave}`}>
           <div className="piano-white-keys">
             {whiteKeys.map((key) => (
