@@ -1,5 +1,7 @@
 # Rhythm Training V1 — Yêu cầu Nhịp và Ký hiệu
 
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+
 **Trạng thái:** đặc tả tài liệu, chờ duyệt chi tiết giáo dục và chưa triển khai.
 **Phạm vi:** bảy meter V1 được hỗ trợ (sáu meter cốt lõi và Bonus 2/2), toán học nhịp, ánh xạ ký hiệu, beam và các ví dụ kiểm tra tính hợp lệ. Tài liệu này không thay đổi source code, test, database, UI, audio, MIDI, microphone, deploy hoặc kiến trúc dùng chung.
 
@@ -21,17 +23,17 @@ Các giá trị dưới đây là canonical với `PPQ = 480`. `Starts` là vị
 | `3/4` | Core, simple triple | 1440 | 3 | quarter = 480 | `[0, 480, 960]` | `3` quarter pulses; `S-W-W` | `S-W-W` |
 | `4/4` | Core, simple quadruple | 1920 | 4 | quarter = 480 | `[0, 480, 960, 1440]` | `4` quarter pulses; tối thiểu `S-W-M-W` khi dùng mức trung gian | `S-W-M-W` nếu lớp dạy cần medium; tối thiểu phải giữ downbeat mạnh |
 | `3/8` | Core, simple triple | 720 | **3** | eighth = 240 | `[0, 240, 480]` | `3` independent eighth pulses; one teaching group, không phải một pulse 720 | **`Sww`**; một nhóm dạy gồm 3 móc đơn, nhưng vẫn là ba phách đơn độc lập |
-| `6/8` | Core, compound duple | 1440 | 2 | dotted quarter = 720 | `[0, 720]` | `2` dotted-quarter pulses, mỗi pulse gồm `3` eighths: `3+3` | **`Sww\|Sww`**; hai nhóm dạy, mỗi nhóm 3 móc đơn |
-| `9/8` | Core, compound triple | 2160 | **3** | dotted quarter = 720 | `[0, 720, 1440]` | `3` dotted-quarter pulses, mỗi pulse gồm `3` eighths: `3+3+3` | **`Sww\|Sww\|Sww`**; ba nhóm dạy, mỗi nhóm 3 móc đơn |
+| `6/8` | Core, compound duple | 1440 | 2 | dotted quarter = 720 | `[0, 720]` | `2` dotted-quarter pulses, mỗi pulse gồm `3` eighths: `3+3` | **`Sww\|Mww`**; hai nhóm dạy, mỗi nhóm 3 móc đơn |
+| `9/8` | Core, compound triple | 2160 | **3** | dotted quarter = 720 | `[0, 720, 1440]` | `3` dotted-quarter pulses, mỗi pulse gồm `3` eighths: `3+3+3` | **`Sww\|Mww\|Mww`**; ba nhóm dạy, mỗi nhóm 3 móc đơn |
 | `2/2` | Bonus, alla breve | 1920 | 2 | half = 960 | `[0, 960]` | `2` half-note pulses; `S-W` | `S-W`; tempo phải ghi rõ là **half-note BPM** |
 
 ### 2.1. Phân biệt 3/8, 6/8 và 9/8
 
-`3/8` là simple triple: có **một nhóm giảng dạy** gồm ba móc đơn, nhưng ba móc đơn đó là **ba pulse độc lập**, lần lượt ở tick `0`, `240`, `480`. Không được chuyển `3/8` thành một pulse 720 tick hoặc đưa nó vào compound-meter policy chỉ vì denominator là `8`. Dòng dữ liệu nguồn có thể mô tả “một nhóm gồm 3 móc đơn”; trong đặc tả kỹ thuật, “một nhóm” ở đây là số nhóm dạy, không phải số pulse. Nếu dùng bảng nguồn có cách ghi phách chính là `1`, phải chú thích rõ `1` là group count trong ngữ cảnh bảng, không phải một technical pulse; nhãn này cần giáo viên xác nhận trước khi đưa vào UI hoặc count-in.
+`3/8` là Simple Triple đã xác nhận:3 phách đơn độc lập, mỗi phách=móc đơn240 ticks ở0,240,480, trọng âm Mạnh–Nhẹ–Nhẹ. Không coi720 ticks của cả ô là một phách phức. Nhãn nguồn cũ “phách chính1” là lịch sử bị thay thế, không còn chờ xác nhận nhạc lý.
 
-`6/8` là compound duple: có hai pulse dotted-quarter, mỗi pulse dài `720` tick và chứa ba eighths (`3+3`). `9/8` là compound triple: có ba pulse dotted-quarter dài `720` tick ở `0`, `720`, `1440`, với grouping `3+3+3`. Teaching accent phải giữ nguyên các chuỗi `Sww`, `Sww|Sww` và `Sww|Sww|Sww`; không dùng chuỗi này để làm mất sự khác nhau giữa simple triple và compound meter.
+`6/8` Compound Duple có2 phách phức và `9/8` Compound Triple có3 phách phức. Mỗi phách phức là đen chấm dôi720 ticks, gồm3 phách đơn/subdivisions móc đơn240 ticks. Phách đơn khác phách phức. Accent trên eighth grid lần lượt `Sww|Mww` và `Sww|Mww|Mww`; ở cấp phách phức `S-M` và `S-M-M`. Đây là quyết định đã xác nhận, không phải phương án hierarchy cần educator duyệt lại.
 
-Trong quan hệ trọng âm tương đối, pulse đầu bar mạnh hơn các group start bên trong. Do đó `9/8` có downbeat đầu bar mạnh nhất, còn group start ở `720` và `1440` là các điểm bắt đầu nhóm yếu hơn tương đối. Gain/âm lượng cụ thể và việc copy accent vào educator-facing overlay cần teacher/educator confirmation; không tự ý biến mọi group start thành explicit note accent.
+Bar-level accent tại tick0 là Mạnh; secondary beat accents tại720 (6/8),720 và1440 (9/8) là Vừa; các eighth positions khác Nhẹ. Mạnh>Vừa>Nhẹ đã chốt. UI/encoding cụ thể chưa triển khai; không tự ghi structural accents vào `segment.accent`, không thêm attack ở rest hoặc tie continuation.
 
 ### 2.2. Đếm và tempo
 
@@ -128,7 +130,7 @@ Nếu renderer thể hiện note ở vị trí khác canonical tick, tạo thêm
 1. Giáo viên/educator cần xác nhận có dùng bar-wide beam `3` cho eighths liên tục trong `3/8`, hay luôn dùng pulse-first `1+1+1`.
 2. Giáo viên/educator cần xác nhận secondary beam policy cho `12` sixteenths trong `6/8` (`6+6`) và `18` sixteenths trong `9/8` (`6+6+6`), đặc biệt các break nội bộ.
 3. Cách phát âm và chính tả syllable `1-la-li 2-la-li 3-la-li` cho `9/8` cần teacher confirmation trước khi trở thành count-in string.
-4. Mức gain tương đối giữa downbeat đầu bar và các group starts bên trong `6/8`/`9/8` cần educator confirmation; không copy thành explicit note accent mặc định.
+4. Đề xuất riêng cách hiển thị Mạnh/Vừa/Nhẹ trên UI (nhãn chữ, boundary, độ nổi bật, accessible không chỉ màu); không cần hỏi lại phách đơn/phách phức hoặc thứ tự trọng âm. Gain/velocity cụ thể chỉ là encoding tương lai chưa triển khai.
 5. Các strict-voice parity fixtures cho toàn bộ bảy meter và chính sách rest/barline beam break cần được phê duyệt trước khi có implementation hoặc test claim.
 
 **Kết luận:** Đây là ma trận yêu cầu và notation contract cho bảy meter V1 được hỗ trợ: `2/4`, `3/4`, `4/4`, `3/8`, `6/8`, `9/8` và Bonus `2/2`. Tài liệu không tuyên bố rằng curriculum, renderer, generator, audio hoặc test hiện tại đã được cập nhật hay đã vượt qua kiểm thử.

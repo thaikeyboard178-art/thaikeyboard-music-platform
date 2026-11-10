@@ -1,5 +1,7 @@
 # Rhythm Training V1 — Curriculum V1
 
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+
 **Trạng thái:** Curriculum authoritative, đã chốt khung nội dung; chi tiết ngưỡng sẵn sàng, tempo, quota và cách hiển thị vẫn là đề xuất coaching chờ pilot/giáo viên xác nhận. Tài liệu này chỉ mô tả nội dung và đặc tả giảng dạy; chưa triển khai code, UI, audio, generator, database, test hay route.
 
 **Phạm vi:** V1 có sáu level chính và một Bonus. Sáu level chính là đường học được khuyến nghị; Bonus 2/2 là phần tùy chọn, vẫn phải được hỗ trợ trong V1 nhưng không phải điều kiện để hoàn thành đường chính. Các mức sẵn sàng trong tài liệu là tín hiệu hướng dẫn, không phải khóa cứng, không phải paywall và không tự động ngăn người học mở bài tiếp theo.
@@ -193,8 +195,8 @@ Level 3 là phần **transfer formal** của meter, không phải Level 2 mở r
 **Phân biệt nhạc lý bắt buộc.**
 
 - **3/8** là simple triple: ba eighth pulses độc lập, mỗi pulse 240 ticks; bản chất là ba phách móc đơn, không phải một pulse 720 ticks.
-- **6/8** là compound duple: hai dotted-quarter pulses, mỗi pulse 720 ticks, chia 3+3 eighths.
-- **9/8** là compound triple: ba dotted-quarter pulses, mỗi pulse 720 ticks, chia 3+3+3 eighths.
+- **6/8** là compound duple:2 phách phức nốt đen chấm dôi720 ticks; mỗi phách gồm3 phách đơn móc đơn240 ticks, grouping3+3; trọng âm Mạnh–Nhẹ–Nhẹ | Vừa–Nhẹ–Nhẹ.
+- **9/8** là compound triple:3 phách phức nốt đen chấm dôi720 ticks; mỗi phách gồm3 phách đơn móc đơn240 ticks, grouping3+3+3; trọng âm Mạnh–Nhẹ–Nhẹ | Vừa–Nhẹ–Nhẹ | Vừa–Nhẹ–Nhẹ.
 
 Mô hình nhóm ba chỉ là cách tổ chức dạy học chung; không được xóa sự khác nhau giữa time signature, pulse, tempo label hoặc metrical hierarchy.
 
@@ -205,13 +207,13 @@ Mô hình nhóm ba chỉ là cách tổ chức dạy học chung; không đượ
 **Mở đầu và Lessons — tiến trình bắt buộc.**
 
 1. **Nhận diện một nhóm 3 móc đơn:** nhận diện ba eighth positions và chuỗi giảng dạy `Sww` của 3/8; đếm ba pulse riêng biệt.
-2. **Mở rộng thành hai nhóm:** chuyển sang 6/8, hai nhóm `Sww|Sww`; dạy hai dotted-quarter pulses 720 ticks và điểm bắt đầu nhóm thứ hai ở 720.
-3. **Mở rộng thành ba nhóm:** chuyển sang 9/8, ba nhóm `Sww|Sww|Sww`; dạy ba dotted-quarter pulses bắt đầu ở 0, 720, 1440.
+2. **Mở rộng thành hai nhóm:** chuyển sang 6/8, hai nhóm `Sww|Mww`; dạy hai dotted-quarter pulses 720 ticks và điểm bắt đầu nhóm thứ hai ở 720.
+3. **Mở rộng thành ba nhóm:** chuyển sang 9/8, ba nhóm `Sww|Mww|Mww`; dạy ba dotted-quarter pulses bắt đầu ở 0, 720, 1440.
 4. **So sánh số lượng nhóm và vị trí trọng âm:** so sánh một/ba eighth pulses của 3/8 với hai/ba compound pulses của 6/8/9/8. Thể hiện khác nhau giữa “số nhóm ba” và “số technical pulse”.
 5. **Phân tích note, rest, dot, tie:** đặt rest trong từng nhóm, kiểm tra duration; sau đó thêm dot/tie theo vocabulary đã học. Tied continuation không phải onset; rest không phải onset.
 6. **Combined practice và assessment:** một bộ tổng hợp có đủ 3/8, 6/8, 9/8, đủ bốn exercise kind theo quota được phê duyệt, và câu hỏi phân biệt simple/compound.
 
-**Teaching accent và metrical hierarchy.** Chuỗi trọng âm người dùng nhìn/nghe trong teaching overlay phải giữ đúng: `3/8 Sww`; `6/8 Sww|Sww`; `9/8 Sww|Sww|Sww`. Đây là **teaching-group emphasis**, không phải tuyên bố rằng mọi group start có cùng lực hoặc cùng cấp metrical hierarchy. 3/8 có simple-triple S–weak–weak ở ba eighth pulses. 6/8 có compound-duple S–weak ở hai dotted-quarter pulses. 9/8 có compound-triple S–weak–weak ở ba dotted-quarter pulses. Pulse đầu của bar mạnh hơn các group start nội bộ; gain tương đối của các group start và cách copy vào audio/visual overlay phải được giáo viên xác nhận, không tự suy ra từ chuỗi `Sww`.
+**Quy ước trọng âm đã xác nhận.** Chủ sản phẩm đã chốt 3/8 `Sww`; 6/8 `Sww|Mww`; 9/8 `Sww|Mww|Mww`. Phách đơn là một móc đơn; phách phức của6/8 và9/8 là nốt đen chấm dôi chứa3 phách đơn. Tại cấp phách phức,6/8 có Mạnh–Vừa và9/8 có Mạnh–Vừa–Vừa. Đầu ô là bar-level accent Mạnh; đầu các phách phức tiếp theo là secondary beat accent Vừa; các phách đơn còn lại Nhẹ. Không đồng nhất phách đơn/phách phức và không gán Mạnh ngang nhau cho tất cả nhóm3. Bỏ phương án hierarchy trước đây; chỉ encoding/UI/cách đếm/beam còn là đề xuất, không hỏi lại quy ước nhạc lý.
 
 **Practice.** Dùng scaffold lần lượt một group, hai groups, ba groups; hiển thị boundary và pulse label. Với 3/8, count tại 0/240/480 và giữ eighth pulse 240. Với 6/8, count hai pulse tại 0/720 với ba subdivision trong mỗi pulse. Với 9/8, count ba pulse tại 0/720/1440. Sau đó trộn note/rest/dot/tie trong từng signature, mỗi item giữ một meter. Bài transfer chỉ được hỏi khi label nói rõ đang đổi pulse semantics.
 
@@ -219,7 +221,7 @@ Mô hình nhóm ba chỉ là cách tổ chức dạy học chung; không đượ
 
 - Multiple Choice: phân biệt 3/8 simple triple với 6/8 compound duple; phân biệt 6/8 với 9/8 bằng số dotted-quarter pulses và grouping.
 - Count the Beat: chọn pulse positions, subdivision positions, rest và tie continuation; câu 3/8 không được coi một bar là một pulse 720.
-- Listen & Identify: nghe teaching overlay và nhận diện signature, đồng thời giải thích khác nhau giữa group emphasis và relative meter accent.
+- Listen & Identify: nhận diện nhịp từ pattern được gắn nhãn cùng trọng âm đã chốt; phân biệt trọng âm chính Mạnh đầu ô với trọng âm Vừa đầu các phách phức sau, không dựng hai hierarchy mâu thuẫn.
 - Tap Rhythm: tap onset-only trong từng signature; bộ combined assessment phải chứa cả 3/8, 6/8, 9/8, có note/rest/dot/tie ở mức đã học và giữ matching windows/currentTime policy cũ.
 
 **Củng cố và coaching.** Nếu người học tap đúng nhưng gọi 3/8 là một pulse, giữ onset credit và route sang simple-triple explanation. Nếu người học hiểu hai dotted-quarter pulses nhưng tap thành sáu primary beats, route sang 6/8 compound practice. Nếu nhầm 9/8 với 6/8, cho bài đếm số compound pulses và vị trí group starts. Level 6 không tạo hard lock; readiness của 3/8, 6/8 và 9/8 có thể báo cáo riêng trong coaching nhưng vẫn thuộc cùng một unit.
@@ -278,34 +280,27 @@ PPQ canonical là 480. Bảng dưới đây là hợp đồng nội dung/kỹ th
 | 2/4 | Simple duple | 960 | quarter = 480 | 2 / `[0,480]` | `1+1` | `S-W` |
 | 3/4 | Simple triple | 1440 | quarter = 480 | 3 / `[0,480,960]` | `1+1+1` | `S-W-W` |
 | 4/4 | Simple quadruple | 1920 | quarter = 480 | 4 / `[0,480,960,1440]` | `1+1+1+1` | `S-W-M-W` hoặc minimum strong/weak |
-| 3/8 | Simple triple | 720 | eighth = 240 | 3 / `[0,240,480]` | technical `1+1+1`; teaching group count `1` (quoted label pending teacher confirmation) | **`Sww`** |
-| 6/8 | Compound duple | 1440 | dotted quarter = 720 | 2 / `[0,720]` | `3+3` | **`Sww\|Sww`** |
-| 9/8 | Compound triple | 2160 | dotted quarter = 720 | 3 / `[0,720,1440]` | `3+3+3` | **`Sww\|Sww\|Sww`** |
+| 3/8 | Simple triple | 720 | eighth = 240 | 3 / `[0,240,480]` | 3 phách đơn độc lập; một nhóm minh họa không phải phách phức | **`Sww`** |
+| 6/8 | Compound duple | 1440 | dotted quarter = 720 | 2 / `[0,720]` | `3+3` | **`Sww\|Mww`** |
+| 9/8 | Compound triple | 2160 | dotted quarter = 720 | 3 / `[0,720,1440]` | `3+3+3` | **`Sww\|Mww\|Mww`** |
 | Bonus 2/2 | Alla breve | 1920 | half = 960 | 2 / `[0,960]` | `1+1` | `S-W` |
 
 Bảy dòng trên là **7 V1 supported meters**, trong đó **6 core + 1 Bonus**. Không gọi đây là sáu supported meters.
 
-### Ambiguity của hàng 3/8 trong bảng nguồn
+### Quy ước thay thế nhãn nguồn cũ — đã xác nhận
 
-Bảng nguồn cũ có dòng “Phách chính” ghi `1` cho 3/8. Dòng này được giữ lại chỉ như **quoted source table** để truy nguyên ambiguity:
+Không dùng lại “3/8 phách chính=1” như một câu hỏi nội dung còn mở. Nhãn này là lịch sử bị thay thế. Quyết định hiện hành:3/8 có3 phách đơn, mỗi phách=móc đơn240 ticks tại0,240,480, `Sww`; không phân tích thành một phách phức. Một nhóm ba trong worked example chỉ là cách sắp xếp minh họa.
 
-| Thông số nguồn | 3/8 | 6/8 | 9/8 |
-|---|---:|---:|---:|
-| Bar capacity | 720 | 1440 | 2160 ticks |
-| Số móc đơn | 3 | 6 | 9 |
-| Số nhóm 3 | 1 | 2 | 3 |
-| Độ dài một móc đơn | 240 | 240 | 240 ticks |
-| Phách chính (quoted source wording) | 1 | 2 | 3 |
+### Phân biệt bốn khái niệm — đã xác nhận
 
-**Chú thích normative:** số `1` ở hàng 3/8 phải được đọc là **group count = một nhóm ba eighths**, không được adopt thành `1 technical pulse` dài 720 ticks. Theo curriculum đã duyệt, 3/8 vẫn là simple triple với **ba technical pulses 240 ticks** tại 0, 240, 480 và teaching accent `Sww`. Label cuối cùng của bảng/UI/audio cho ambiguity này cần giáo viên xác nhận; trong mọi trường hợp không chuyển 3/8 sang pulse 720 nếu chưa có approval mới.
+| Khái niệm | Nghĩa trong Level6 |
+|---|---|
+| Subdivision / phách đơn | Móc đơn240 ticks; trong6/8 và9/8 là một trong3 phần của phách phức; trong3/8 là một simple beat độc lập |
+| Compound beat / phách phức | Đen chấm dôi720 ticks gồm3 phách đơn;6/8 có2,9/8 có3,3/8 không có |
+| Bar-level accent | Trọng âm chính Mạnh đầu ô nhịp |
+| Secondary beat accent | Trọng âm Vừa đầu phách phức thứ2 của6/8 và thứ2/3 của9/8 |
 
-### Teaching emphasis không đồng nhất với relative metrical hierarchy
-
-- Chuỗi `Sww`, `Sww|Sww`, `Sww|Sww|Sww` giúp người mới thấy nhóm ba trong bài học; đây là overlay giảng dạy.
-- 3/8: ba eighth pulses độc lập, simple triple; `240 × 3 = 720` ticks.
-- 6/8: hai dotted-quarter pulses, compound duple; mỗi pulse `720`, nhóm `3+3`.
-- 9/8: ba dotted-quarter pulses, compound triple; mỗi pulse `720`, nhóm `3+3+3`.
-- Pulse đầu bar mạnh hơn các internal group starts. Relative gain, âm lượng tương đối và cách copy overlay vào educator-facing audio/visual phải được xác nhận; không dùng chuỗi chữ để ngầm tuyên bố mọi nhóm có lực ngang nhau.
+Phách đơn và phách phức không đồng nhất. Các nhóm không có trọng âm Mạnh ngang nhau:6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`. Thứ tự Mạnh>Vừa>Nhẹ đã chốt; thông số gain/velocity không được tự biến thành runtime defaults. Beam/cách đếm/UI chỉ là đề xuất riêng trong Decision Review.
 
 ## F. Cấu trúc Practice/Assessment và coaching chung
 
@@ -343,10 +338,10 @@ Conversion giữ nguyên: `seconds = (ticks / pulseTicks) × (60 / pulseBPM)`. K
 
 Các quy tắc duration, tie group, rest, whole-exercise scoring, onset-only tap, currentTime, confidence, matching windows, bốn local exercise kinds, Free/Challenge và module boundaries từ đặc tả trước đó vẫn có hiệu lực. Tài liệu curriculum này không thay thế chúng và không tự tạo ra implementation.
 
-## H. Các điểm chờ xác nhận
+## H. Quyết định đã chốt và các đề xuất presentation còn mở
 
-1. Giáo viên cần xác nhận label hiển thị cho dòng quoted “3/8 phách chính = 1”, với chú thích bắt buộc rằng `1` là group count, không phải technical pulse.
-2. Giáo viên cần xác nhận relative gain/cách phát accent của các internal group starts trong teaching strings 6/8 và 9/8; nguyên tắc hiện tại là first bar pulse mạnh hơn internal group starts.
+1. **Đã chốt, không hỏi lại:**3/8 có3 phách đơn móc đơn, không một phách phức; nhãn nguồn cũ “phách chính1” không còn là đề xuất active.
+2. **Đề xuất UI riêng:** cách biểu diễn Mạnh/Vừa/Nhẹ bằng nhãn, độ nổi bật và boundary; không color-only, không gán Mạnh ngang nhau. Numerical gain/velocity thuộc encoding tương lai, không mở lại quyết định nhạc lý.
 3. Cần duyệt spoken counting convention tiếng Việt cho eighth/sixteenth subdivisions trước khi làm audio/count-in. Đây không phải quyền thay đổi pulse semantics.
 4. Tempo bands, quota, matching thresholds và readiness percentages chỉ là coaching proposals; cần pilot/educator review và không được hard-code thành khóa curriculum.
 5. Acceptance/test proposals cho 3/8, 6/8, 9/8 và 2/2 chưa phải test đã chạy. Không dùng historical `436/436` làm bằng chứng fresh.

@@ -1,5 +1,7 @@
 # Rhythm Training V1 — Test và Release Acceptance
 
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+
 **Trạng thái:** đề xuất nghiệm thu cho curriculum đã duyệt; chưa triển khai và chưa phải kết quả test.
 
 **Phạm vi tài liệu:** tài liệu này chỉ ghi các test ID, expected value, tiêu chí migration và release gate cho Rhythm Training V1. Chỉ các Markdown được liệt kê trong change record được chỉnh; không có source code, test source, UI, audio, database, infrastructure, dependency, Note Reading, MIDI, microphone, Phase 3/4/5 hoặc deploy nào được thay đổi. Không chạy test hiện có trong nhiệm vụ documentation-only này.
@@ -24,8 +26,8 @@ Tất cả expected tick values dưới đây dùng `PPQ = 480`. Bar capacity, p
 | `3/4` | Simple triple | `1440` | `480` / quarter | `[0, 480, 960]` | `Sww` | Ba phách chính, không phải grouping compound |
 | `4/4` | Simple quadruple | `1920` | `480` / quarter | `[0, 480, 960, 1440]` | `SwMw` hoặc tối thiểu `Swww` | Bốn phách quarter; medium accent nếu renderer có biểu diễn |
 | `3/8` | **Simple triple**, một teaching group gồm ba eighth pulses | `720` | `240` / eighth | `[0, 240, 480]` | `Sww` | Ba pulse kỹ thuật độc lập; không được biến thành một pulse `720` và không được gán compound |
-| `6/8` | Compound duple, hai dotted-quarter pulses | `1440` | `720` / dotted quarter | `[0, 720]` | `Sww\|Sww` | Hai pulse chính, mỗi pulse gồm nhóm `3+3` eighths |
-| `9/8` | Compound triple, ba dotted-quarter pulses | `2160` | `720` / dotted quarter | `[0, 720, 1440]` | `Sww\|Sww\|Sww` | Ba pulse chính, nhóm `3+3+3` eighths |
+| `6/8` | Compound duple, hai dotted-quarter pulses | `1440` | `720` / dotted quarter | `[0, 720]` | `Sww\|Mww` | Hai phách phức, mỗi phách gồm3 phách đơn; grouping toàn ô là3+3 |
+| `9/8` | Compound triple, ba dotted-quarter pulses | `2160` | `720` / dotted quarter | `[0, 720, 1440]` | `Sww\|Mww\|Mww` | Ba pulse chính, nhóm `3+3+3` eighths |
 | `2/2` Bonus | Alla breve, two half-note pulses | `1920` | `960` / half | `[0, 960]` | `Sw` | Hai phách chính theo half-note pulse, không đồng nhất ngữ nghĩa với `4/4` |
 
 ### 2.1 Schema và registry IDs
@@ -35,11 +37,23 @@ Tất cả expected tick values dưới đây dùng `PPQ = 480`. Bar capacity, p
 | `AT-MTR-001` | Serialized meter schema chỉ nhận các cặp được duyệt | Accept đúng `2/4`, `3/4`, `4/4`, `3/8`, `6/8`, `9/8`, `2/2`; reject `3/2`, `6/4`, `5/8` và mọi cặp chưa được duyệt. |
 | `AT-MTR-002` | Registry lookup exact-pair keyed | Mỗi cặp trả đúng capacity, pulseTicks, pulseUnit, pulseCount, pulseStarts, grouping và structural accents của bảng trên; không fallback sang meter khác. |
 | `AT-MTR-003` | `3/8` simple-triple semantics | Expected `capacity=720`, `pulseTicks=240`, `pulseCount=3`, starts `[0,240,480]`, type `simple-triple`, accents `Sww`, teaching group count `1`. Không được trả `pulseTicks=720`, `pulseCount=1`, hoặc `compound`. |
-| `AT-MTR-004` | `6/8` compound-duple semantics | Expected `capacity=1440`, `pulseTicks=720`, `pulseCount=2`, starts `[0,720]`, grouping `[3,3]`, accents `Sw` ở cấp pulse và teaching string `Sww\|Sww` ở cấp eighth grouping. |
-| `AT-MTR-005` | `9/8` compound-triple semantics | Expected `capacity=2160`, `pulseTicks=720`, `pulseCount=3`, starts `[0,720,1440]`, grouping `[3,3,3]`, accents `Sw` ở cấp pulse và teaching string `Sww\|Sww\|Sww`. |
+| `AT-MTR-004` | `6/8` compound-duple semantics | Expected `capacity=1440`, `pulseTicks=720`, `pulseCount=2`, starts `[0,720]`, grouping `[3,3]`;2 phách phức, mỗi phách3 phách đơn; accents `S-M` tại cấp phách phức và `Sww\|Mww` tại eighth positions; không hỏi lại hierarchy. |
+| `AT-MTR-005` | `9/8` compound-triple semantics | Expected `capacity=2160`, `pulseTicks=720`, `pulseCount=3`, starts `[0,720,1440]`, grouping `[3,3,3]`;3 phách phức, mỗi phách3 phách đơn; accents `S-M-M` và `Sww\|Mww\|Mww`; không gán Mạnh ngang nhau cho3 nhóm. |
 | `AT-MTR-006` | `2/2` Bonus semantics | Expected `capacity=1920`, `pulseTicks=960`, `pulseCount=2`, starts `[0,960]`, pulse unit `half`, accents `Sw`; không dùng quarter-pulse metadata của `4/4`. |
 | `AT-MTR-007` | BPM label follows felt pulse | `2/4`, `3/4`, `4/4`: quarter-note BPM; `3/8`: eighth-note BPM; `6/8`, `9/8`: dotted-quarter BPM; `2/2`: half-note BPM. Label không được chỉ hiện “BPM” không có pulse unit trong acceptance fixture. |
 | `AT-MTR-008` | Seven-meter count is stable | Registry/coverage report phải liệt kê 6 core + 1 Bonus = 7 supported meters; không dùng assertion cũ “six supported meters” sau migration. |
+
+### 2.1a Acceptance cho đính chính Level6 — chưa thực thi
+
+| Test ID đề xuất | Expected |
+|---|---|
+| `AT-ACC-L6-001` | 3/8=3 phách đơn; accents `[S,w,w]` tại `[0,240,480]`; không compound beat720 |
+| `AT-ACC-L6-002` | 6/8=2 phách phức,6 phách đơn; eighth vector `[S,w,w,M,w,w]`; compound vector `[S,M]` |
+| `AT-ACC-L6-003` | 9/8=3 phách phức,9 phách đơn; eighth vector `[S,w,w,M,w,w,M,w,w]`; compound vector `[S,M,M]` |
+| `AT-ACC-L6-004` | Reject semantic labels đồng nhất phách đơn/phách phức hoặc gán Mạnh ngang nhau đầu mọi nhóm |
+| `AT-ACC-L6-005` | Accent không tạo attack ở rest/tie continuation hoặc đổi PPQ/pulse/tempo/scoring; UI/beam/counting không ghi đè nhạc lý |
+
+Các ID trên chỉ là yêu cầu kiểm thử bằng tài liệu, không code/test mới, chưa chạy/chưa pass.
 
 ### 2.2 Tránh nhầm `3/8` giữa nhóm giảng dạy và nhịp học thuật
 
@@ -48,7 +62,7 @@ Expected acceptance cho `3/8` phải ghi đồng thời hai lớp thông tin:
 1. **Teaching grouping:** một group gồm `3` eighths, giữ chuỗi hiển thị/trọng âm dạy học `Sww`.
 2. **Relative metrical identity:** `3/8` là simple triple với `3` eighth pulses độc lập, mỗi pulse `240` ticks; không được xoá identity bằng cách gọi group count `1` là một technical pulse `720` ticks.
 
-Bảng nguồn cũ có dòng “phách chính 1” cho `3/8`. Nếu bảng đó được trích dẫn lại, phải chú thích rằng `1` là **group count theo teaching overlay**, không phải technical pulse count, và phải yêu cầu giáo viên xác nhận label. Không chuyển `3/8` sang `720` pulse nếu không có phê duyệt mới. Relative metrical hierarchy (first bar pulse stronger than internal group starts) phải được phân biệt với teaching accent string; gain hoặc cách copy accent chỉ được chốt sau educator confirmation.
+Nhãn nguồn cũ “3/8 phách chính1” là lịch sử bị thay thế. Acceptance hiện hành đòi3 phách đơn móc đơn độc lập, không một phách phức720. Compound beats6/8 là Mạnh–Vừa,9/8 Mạnh–Vừa–Vừa; subdivisions còn lại Nhẹ. Đây là yêu cầu chủ sản phẩm đã xác nhận, không gửi lại để hỏi educator về semantics; chỉ beam/count/UI presentation còn riêng pending.
 
 ## 3. Tick, duration, BPM và coordinate acceptance
 
@@ -111,8 +125,8 @@ Curriculum chính thức không được suy ra từ legacy eight-level count. M
 | `AT-CUR-005` | Level 5 | Lessons/Practice/Assessment cover sixteenths, combinations, advanced rhythms, and controlled consolidation of retained old Level 7/8 outcomes. This is not permission to create new Level 7/8. |
 | `AT-CUR-006` | Level 6 single group | One unified `Grouping in Threes` knowledge group contains `3/8`, `6/8`, `9/8`; catalog/content must not expose three independent courses. |
 | `AT-CUR-007` | Level 6 progression step 1 | Lessons introduce recognition of one group of three eighths; Practice and Assessment contain a corresponding one-group concept before expansion. |
-| `AT-CUR-008` | Level 6 progression step 2 | Content expands to two groups; expected identity is `6/8`, with `3+3` grouping and `Sww\|Sww` teaching accent, without losing meter identity. |
-| `AT-CUR-009` | Level 6 progression step 3 | Content expands to three groups; expected identity is `9/8`, with `3+3+3` grouping and `Sww\|Sww\|Sww`. |
+| `AT-CUR-008` | Level 6 progression step 2 | Content expands to two groups; expected identity is `6/8`, with `3+3` grouping and `Sww\|Mww` teaching accent, without losing meter identity. |
+| `AT-CUR-009` | Level 6 progression step 3 | Content expands to three groups; expected identity is `9/8`, with `3+3+3` grouping and `Sww\|Mww\|Mww`. |
 | `AT-CUR-010` | Level 6 progression step 4 | Lessons/Practice/Assessment compare group counts and accent positions across all three signatures. The comparison must distinguish `3/8` three simple pulses from `6/8` two compound pulses and `9/8` three compound pulses. |
 | `AT-CUR-011` | Level 6 progression step 5 | Content analyzes notes, rests, dots and ties in all three signatures; rests consume duration, ties suppress continuation attacks, and dots remain exact tick values. |
 | `AT-CUR-012` | Level 6 progression step 6 | Combined Practice and Assessment cover all `3/8`, `6/8`, `9/8` in one unified group, with meter-labeled pulse semantics and no cross-meter fallback. |
@@ -126,10 +140,10 @@ Curriculum chính thức không được suy ra từ legacy eight-level count. M
 | Signature | Teaching group count | Technical pulse count | Technical pulse unit | Teaching string | Required interpretation |
 |---|---:|---:|---|---|---|
 | `3/8` | `1` | `3` | eighth `240` | `Sww` | Simple triple: three independent eighth pulses. “Group count 1” is not “one technical pulse.” |
-| `6/8` | `2` | `2` | dotted quarter `720` | `Sww\|Sww` | Compound duple: two main pulses, each internally `3` eighths. |
-| `9/8` | `3` | `3` | dotted quarter `720` | `Sww\|Sww\|Sww` | Compound triple: three main pulses, each internally `3` eighths. |
+| `6/8` | `2` | `2` | dotted quarter `720` | `Sww\|Mww` | Compound duple: two main pulses, each internally `3` eighths. |
+| `9/8` | `3` | `3` | dotted quarter `720` | `Sww\|Mww\|Mww` | Compound triple: three main pulses, each internally `3` eighths. |
 
-First-bar pulse is stronger than internal group starts in relative metrical hierarchy. Teaching accent strings are retained exactly for learner-facing curriculum fixtures. Relative gain, copy and educator-facing wording require confirmation; neither may mutate canonical pulse coordinates.
+Owner-confirmed convention:3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`; compound-beat vectors `S-M`,`S-M-M`. Proposed acceptance must reject all-group-strong or compound3/8 interpretations. Numeric gain and UI encoding are not implementation claims and may not change canonical coordinates.
 
 ## 6. Generator, answer, distractor và notation acceptance
 
@@ -172,7 +186,7 @@ These are retained technical contracts, not claims that UI or audio currently wo
 - Curriculum review confirms Levels 1–6 and Bonus order exactly as approved.
 - Level 6 is one unified `Grouping in Threes` group with the six-step progression and all three signatures.
 - The seven-meter registry table, pulse BPM labels, `3/8` simple-triple distinction, and `2/2` Bonus contract are present.
-- Ambiguous `3/8` “group count 1” wording is annotated and sent for teacher confirmation.
+- Record the closed owner decision:3/8 has3 simple eighth beats, not1 compound beat;6/8/9/8 use medium secondary compound-beat accents. No repeated teacher confirmation for these semantics.
 - No source/test implementation or active UI route is implied by this document.
 
 ### Gate B — Future canonical model, generator và notation implementation
@@ -200,8 +214,8 @@ Only after Gate D may the normal catalog/static-manifest activation be considere
 ## 9. Open questions requiring explicit confirmation
 
 1. **3/8 notation beam:** Should the renderer use pulse-first breaks or an optional bar-wide beam for three eighths? Either choice must preserve simple-triple pulse coordinates; teacher approval is required before implementation.
-2. **3/8 table label:** Confirm the annotation that source-table “phách chính 1” means one teaching group, not one technical `720`-tick pulse. The acceptance contract currently retains three `240`-tick pulses and must not switch to `720` without new approval.
-3. **Accent presentation:** Confirm learner-facing gain/copy for `3/8 Sww`, `6/8 Sww|Sww`, and `9/8 Sww|Sww|Sww`, while keeping first-bar pulse stronger than internal group starts in the relative metrical hierarchy.
+2. **Quy ước đã đóng:**3/8=3 phách đơn; phách phức chỉ áp dụng6/8/9/8 với Mạnh đầu ô và Vừa ở các phách phức sau. Không còn open question về “phách chính1” hoặc accent hierarchy.
+3. **UI presentation — đề xuất riêng:** nhãn chữ/marker/boundary/độ nổi bật phải phân biệt Mạnh/Vừa/Nhẹ, không chỉ màu; không thay semantics đã xác nhận, không tự biến thành runtime/gain defaults.
 4. **Counting language:** Confirm the final Vietnamese spoken counting convention before any future audio/count-in implementation.
 5. **Pilot thresholds:** Confirm timing-confidence, tap matching and readiness thresholds during a later product/device pilot; they are not acceptance evidence in this documentation-only task.
 6. **Bonus progression display:** Confirm how optional `2/2` appears to learners while keeping core completion independent of Bonus and retaining V1 support.

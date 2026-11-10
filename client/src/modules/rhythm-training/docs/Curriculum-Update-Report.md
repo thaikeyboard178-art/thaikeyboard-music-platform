@@ -1,6 +1,8 @@
 # Curriculum Update Report — Rhythm Training V1
 
-**Trạng thái:** documentation-only. Placement curriculum đã được duyệt và đã được đồng bộ trong các tài liệu dưới đây; các chi tiết timing, label, accent, beam, counting và pilot vẫn chờ xác nhận nội dung. Không có source code, test source, runtime, UI, audio, database, infrastructure, dependency, shared architecture, Note Reading, catalog, metronome, MIDI, microphone, Phase 3/4/5, deploy nào bị thay đổi. README, TODO, plan và nhãn phạm vi trong báo cáo Phase2 chỉ được cập nhật Markdown để dẫn chiếu curriculum mới; không sửa kết quả test/SHA lịch sử hoặc implementation bên dưới. Các Markdown được liệt kê trong report này là những thay đổi có chủ đích.
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+
+**Trạng thái:** documentation-only. Placement curriculum đã được duyệt và đã được đồng bộ trong các tài liệu dưới đây; quy ước nhạc lý/trọng âm Level6 đã được chủ sản phẩm xác nhận; beam, lời đếm tiếng Việt, UI presentation và các chi tiết pilot không liên quan vẫn là đề xuất riêng. Không có source code, test source, runtime, UI, audio, database, infrastructure, dependency, shared architecture, Note Reading, catalog, metronome, MIDI, microphone, Phase 3/4/5, deploy nào bị thay đổi. README, TODO, plan và nhãn phạm vi trong báo cáo Phase2 chỉ được cập nhật Markdown để dẫn chiếu curriculum mới; không sửa kết quả test/SHA lịch sử hoặc implementation bên dưới. Các Markdown được liệt kê trong report này là những thay đổi có chủ đích.
 
 ## Tóm tắt điều chỉnh
 
@@ -31,23 +33,23 @@ Level 6 được ghi nhất quán trong [Curriculum-V1.md](./Curriculum-V1.md), 
 5. Phân tích notes, rests, dots và ties; rest tiêu thụ duration, tie continuation không tạo attack mới.
 6. Combined Practice và Assessment phải bao phủ cả 3/8, 6/8 và 9/8 trong cùng một unified knowledge group.
 
-Teaching strings được giữ nguyên: `3/8 Sww`, `6/8 Sww|Sww`, `9/8 Sww|Sww|Sww`. Đây là teaching-group emphasis, không phải toàn bộ relative metrical hierarchy. Pulse đầu bar mạnh hơn internal group starts; gain/copy cụ thể vẫn cần educator confirmation.
+Đính chính đã được chủ sản phẩm chốt:3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`. Phách đơn là móc đơn; phách phức là đen chấm dôi gồm3 phách đơn. Mạnh là bar-level accent đầu ô; Vừa là secondary beat accent đầu các phách phức sau, Nhẹ ở vị trí còn lại. Các chuỗi cũ bị thay thế và semantics không còn pending. Beam/count/UI vẫn là ba đề xuất presentation riêng.
 
 ## Tác động kỹ thuật và chính sách 9/8
 
 | Meter | Capacity / PPQ | Technical pulse | Pulse starts | Structural grouping | Teaching string |
 |---|---:|---:|---|---|---|
 | 3/8 | `720`, PPQ `480` | 3 eighth pulses × `240` | `[0,240,480]` | Simple triple; một teaching group | `Sww` |
-| 6/8 | `1440`, PPQ `480` | 2 dotted-quarter pulses × `720` | `[0,720]` | Compound duple; `3+3` | `Sww\|Sww` |
-| 9/8 | `2160`, PPQ `480` | 3 dotted-quarter pulses × `720` | `[0,720,1440]` | Compound triple; `3+3+3` | `Sww\|Sww\|Sww` |
+| 6/8 | `1440`, PPQ `480` | 2 dotted-quarter pulses × `720` | `[0,720]` | Compound duple; `3+3` | `Sww\|Mww` |
+| 9/8 | `2160`, PPQ `480` | 3 dotted-quarter pulses × `720` | `[0,720,1440]` | Compound triple; `3+3+3` | `Sww\|Mww\|Mww` |
 
 Các tài liệu đã bổ sung/giữ các điểm sau cho 9/8:
 
 - `9/8` phải giữ numerator `9`, denominator `8` trong notation projection; không rút thành `3/8` chỉ vì cùng eighth grid.
 - Chín eighths, ba dotted quarters, dotted half + dotted quarter và chín eighth rests là các ví dụ exact-fill hợp lệ; whole note là underfill và whole + quarter là overfill.
 - Strict voice layer `16384 × 9/8 = 18432` được tách khỏi canonical PPQ bar `2160`; Fraction/parity layer là lớp liên kết, không thay thế authority của canonical ticks.
-- 3/8 vẫn là simple triple với ba technical pulses `240`. Dòng nguồn “phách chính = 1” chỉ được giữ như quoted teaching-group count; label cuối cùng cần teacher confirmation. Không được chuyển 3/8 sang pulse `720` nếu chưa có approval mới.
-- Accent overlay không tự biến thành explicit segment accent. First-bar pulse priority, relative gain và copy vào audio/visual overlay vẫn chờ educator confirmation.
+- 3/8 đã chốt Simple Triple với3 phách đơn240 ticks, không một phách phức720. Nhãn lịch sử “phách chính1” bị thay thế, không yêu cầu giáo viên xác nhận lại.
+- Quy ước trọng âm Mạnh/Vừa/Nhẹ đã xác nhận; structural overlay không tự biến thành explicit segment accent, đổi onset/rest/tie hoặc numerical gain. UI encoding vẫn là đề xuất riêng.
 
 ## Các chính sách duration, exercise và biên giới được giữ nguyên
 
@@ -79,8 +81,8 @@ Hai full copy curriculum/specification ngoài repository vẫn là bản hiện 
 
 ## Quyết định còn mở
 
-1. Giáo viên cần xác nhận learner-facing label cho quoted `3/8 phách chính = 1`, với chú thích bắt buộc rằng `1` là teaching group count, không phải một technical pulse `720`.
-2. Educator cần xác nhận relative gain/copy của internal group starts trong `6/8` và `9/8`, trong khi giữ first-bar pulse mạnh hơn các group starts nội bộ và giữ nguyên teaching strings.
+1. **CLOSED — đã xác nhận:**3/8 có3 phách đơn;6/8 có2 và9/8 có3 phách phức; các phách phức sau là Vừa. Không còn câu hỏi về hierarchy hoặc nhãn nguồn “3/8 phách chính1”.
+2. **PROPOSED — UI riêng:** thể hiện Mạnh/Vừa/Nhẹ bằng chữ/marker/boundary accessible; không color-only hoặc numerical gain mặc định, không mở lại semantics.
 3. Cần chốt beam presentation cho continuous eighths trong 3/8: optional bar-wide beam hay pulse-first `1+1+1`; cần chốt secondary-beam policy cho sixteenths trong 6/8 và 9/8.
 4. Cần duyệt spoken Vietnamese counting convention, gồm cách phát âm/ghi `1-la-li 2-la-li 3-la-li` cho 9/8, trước audio/count-in implementation.
 5. Tempo bands, assessment quotas, pattern density, matching thresholds và readiness percentages vẫn là coaching/pilot proposals, không phải hard gates.
@@ -125,4 +127,4 @@ Các tài liệu nghiên cứu/review cũ dưới đây có nhãn lịch sử/su
 
 Đã đối chiếu SHA-256 với snapshot trước chỉnh sửa: **251 file tracked được bảo vệ giữ nguyên byte**, ngoài sáu Markdown được phép chỉnh. Các file mới trong repository đều là bảy Markdown nói trên. Không tạo/đổi source hoặc test, không gọi DB/WordPress, không chỉnh cấu hình Manus/infra, không activate UI/catalog, không triển khai Audio Scheduler/MIDI/microphone hay production. Git commit tài liệu không đồng nghĩa với deployment; auto-publish được xác nhận tắt.
 
-Đây là nhiệm vụ tài liệu nên không chạy `pnpm test/check/build` và không tuyên bố test cho curriculum mới đã pass. Không dùng 436/436 lịch sử thay cho các acceptance proposals chưa thực thi. Curriculum placement hiện hành được đồng bộ; nhãn “phách chính1” cho3/8 vẫn cần giáo viên xác nhận và không được đưa vào runtime như một pulse720.
+Đây là nhiệm vụ tài liệu: không chạy pnpm test/check/build, không dùng436/436 lịch sử làm bằng chứng cho curriculum hoặc accent mới. Đính chính Level6 đã chốt và không còn chờ giáo viên xác nhận nhạc lý; beam notation, lời đếm tiếng Việt và UI presentation còn là đề xuất riêng. Xem [Music Education Review](./Music-Education-Review-Scope.md) và [Decision Review](./Decision-Review.md).

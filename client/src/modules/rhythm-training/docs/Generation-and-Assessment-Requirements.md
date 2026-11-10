@@ -1,5 +1,7 @@
 # Rhythm Training V1 — Generation and Assessment Requirements
 
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+
 **Trạng thái:** tài liệu yêu cầu cho thiết kế tương lai; chưa phải runtime contract và chưa được triển khai.
 
 Tài liệu này mô tả metadata logic cho Lessons, Practice và Assessment, cùng các quy tắc sinh dữ liệu và chẩn đoán. Đây là mô tả nội dung và chính sách để chờ duyệt, không phải yêu cầu tạo type, API, schema, file source, test mới hoặc thay đổi shared architecture ngay bây giờ.
@@ -38,7 +40,7 @@ Bảng này là nguồn nội dung được duyệt cho generation/assessment. C
 | **Level 3 — Simple Meter** | Nhận diện, đếm phách, trọng âm, độ dài ô nhịp và pattern trong **2/4, 3/4, 4/4** | Ba meter là cùng một knowledge group simple meter; pulse = quarter; không 3/8, 6/8, 9/8 hoặc 2/2 | Có lesson rõ ràng cho từng pair/contrast của 2/4, 3/4, 4/4 nhưng không tách thành ba Level ID | Free/Challenge chuyển có kiểm soát giữa ba meter; meter label luôn hiển thị trong answer/feedback | Cân bằng coverage 2/4, 3/4, 4/4; chẩn đoán meter, pulse, onset, duration và rest; không coi bar capacity giống nhau nếu semantics khác |
 | **Level 4 — Dots và ties** | Dấu chấm, nối trường độ, tie continuation không tạo attack mới | Chỉ simple meters2/4,3/4,4/4 đã học; không transfer sang3/8 hoặc2/2; dotted half/quarter được phép, dotted eighth hoãn đến sixteenth gridLevel5; giữ canonical duration arithmetic và tie rules | Worked examples tách dot và tie, sau đó examples kết hợp có kiểm soát; giải thích written duration và attack count | Free/Challenge với quarter/half/eighth theo vocabulary đã phê duyệt, dots/ties từng nguồn một trước khi kết hợp; không compound | Đánh giá duration, tie role, rest và onset; feedback phải phân biệt tied continuation với onset mới; một whole answer |
 | **Level 5 — Sixteenths và controlled consolidation** | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao; consolidation có kiểm soát của nội dung old L7/L8 | Fine-grid và advanced patterns trong simple meters; dùng pulse-relative budget; không tạo Level 7/8 mới và không tự mở rộng sang 3/8/6/8/9/8/2/2 | Worked examples sixteenth grid, combinations, rest/dot/tie và advanced simple patterns theo từng difficulty source; không đưa nhiều nguồn mới cùng lúc | Free/Challenge tăng dần sixteenth density và controlled combinations; old L7/L8 chỉ được gom lại như nội dung consolidation có kiểm soát | Cân bằng onset, duration, meter và advanced-pattern diagnostics; rejection nếu pattern vượt capability hoặc làm mất identity của simple meter |
-| **Level 6 — Grouping in Threes** | Một knowledge group thống nhất về nhóm ba móc đơn: **3/8, 6/8, 9/8** | Không tạo ba course/level độc lập; generation phải giữ distinct meter identity, pulse unit, group count và accent model | Phải đi đúng progression ở mục 4; examples dùng note, rest, dot, tie theo capability đã mở; không dạy 3/8 như compound | Free/Challenge có thể so sánh ba meter trong cùng lesson, nhưng không được nới choice-pool guard; grouping overlay không xóa identity từng meter | Assessment tổng hợp cả ba signature; bắt buộc compare group counts, pulse units và teacher accent model, nhưng không được coi 3/8 là compound |
+| **Level 6 — Grouping in Threes** | Một knowledge group thống nhất về nhóm ba móc đơn: **3/8, 6/8, 9/8** | Không tạo ba course/level độc lập; generation phải giữ distinct meter identity, pulse unit, group count và accent model | Phải đi đúng progression ở mục 4; examples dùng note, rest, dot, tie theo capability đã mở; không dạy 3/8 như compound | Free/Challenge có thể so sánh ba meter trong cùng lesson, nhưng không được nới choice-pool guard; grouping overlay không xóa identity từng meter | Assessment tổng hợp cả ba signature; bắt buộc compare group counts, pulse units và owner-confirmed accent model, nhưng không được coi 3/8 là compound |
 | **Bonus — 2/2 / Alla breve** | Half-note pulse, hai phách chính, phân biệt 2/2 với 4/4 | Optional progression; bar `1920`, pulse `960`, starts `[0, 960]`, accent `S-W`; không biến Bonus thành core Level | Lesson độc lập về half pulse và comparison với 4/4; nội dung tùy chọn nhưng feature phải được V1 hỗ trợ | Free/Challenge tùy learner progression; không bắt buộc hoàn thành để mở core curriculum | Assessment optional, có thể kiểm tra half-pulse identity, duration và 2/2-vs-4/4; vẫn one whole answer +10/+0 |
 
 ### 3.1. Phạm vi meter và PPQ chuẩn
@@ -51,13 +53,13 @@ PPQ chuẩn là `480`. V1 có **7 meter được hỗ trợ**: 6 core meters c�
 | 3/4 | Level 3 | 1440 | quarter | 480 | `[0, 480, 960]` | simple triple, S-W-W |
 | 4/4 | Level 1 scaffold, Level 2 scaffold, Level 3–5 | 1920 | quarter | 480 | `[0, 480, 960, 1440]` | simple quadruple, teaching accent theo policy hiện có |
 | 3/8 | Level 6 | 720 | eighth | 240 | `[0, 240, 480]` | **simple triple**, `Sww`; ba eighth pulses độc lập |
-| 6/8 | Level 6 | 1440 | dotted quarter | 720 | `[0, 720]` | compound duple, `Sww\|Sww`; hai nhóm 3+3 |
-| 9/8 | Level 6 | 2160 | dotted quarter | 720 | `[0, 720, 1440]` | compound triple, `Sww\|Sww\|Sww`; ba nhóm 3+3+3 |
+| 6/8 | Level 6 | 1440 | dotted quarter | 720 | `[0, 720]` | compound duple, `Sww\|Mww`; hai nhóm 3+3 |
+| 9/8 | Level 6 | 2160 | dotted quarter | 720 | `[0, 720, 1440]` | compound triple, `Sww\|Mww\|Mww`; ba nhóm 3+3+3 |
 | 2/2 | Bonus | 1920 | half | 960 | `[0, 960]` | alla breve, `S-W` |
 
-Trong bảng Level 6, chuỗi teaching accent phải giữ đúng các string đã duyệt: **3/8 `Sww`; 6/8 `Sww|Sww`; 9/8 `Sww|Sww|Sww`**. Đây là teaching group emphasis. Nó không được tự động ghi đè relative metrical hierarchy: first bar pulse mạnh hơn các internal group starts, và relative gain phải theo cấu hình/được educator xác nhận.
+Trong Level6, quy ước chủ sản phẩm đã xác nhận:3/8 `Sww`;6/8 `Sww|Mww`;9/8 `Sww|Mww|Mww`. Bar-level accent là Mạnh đầu ô; secondary beat accent là Vừa đầu các phách phức sau; Nhẹ tại các phách đơn còn lại. Không dùng lại teaching strings cũ có Mạnh ở đầu mọi nhóm, không chia thành một overlay khác với hierarchy đã chốt. Không cần xác nhận lại semantics; UI/beam/counting được đề xuất riêng.
 
-3/8 là simple triple với ba eighth pulses, mỗi pulse `240` ticks. 6/8 là compound duple với hai dotted-quarter pulses, mỗi pulse `720` ticks. 9/8 là compound triple với ba dotted-quarter pulses, mỗi pulse `720` ticks. Không được chuyển 3/8 sang pulse `720` nếu chưa có approval mới. Dòng nguồn cũ ghi “3/8 phách chính 1” chỉ được giữ như quoted source table nếu cần; khi đó phải chú thích rằng `1` là **group count**, không phải technical pulse được áp dụng, và phải yêu cầu teacher confirmation cho label.
+3/8 Simple Triple có3 phách đơn móc đơn240 ticks độc lập, không có một phách phức.6/8 có2 phách phức,9/8 có3; mỗi phách phức là đen chấm dôi720 ticks gồm3 phách đơn/subdivisions. Nhãn cũ “3/8 phách chính1” bị thay thế, không được dùng làm pulse count hoặc câu hỏi cần giáo viên xác nhận.
 
 ## 4. Progression bắt buộc của Level 6
 
@@ -143,7 +145,7 @@ Choice pool phải được kiểm tra theo meter và canonical answer identity 
 
 Generation policy phải dùng explicit meter metadata: bar capacity, pulse ticks, pulse starts, group count, pulse unit và accent model. Không suy pulse từ numerator/denominator đơn lẻ. Fine-grid budget, subdivision index, onset target và difficulty phải tính theo pulse của meter.
 
-Các teaching strings Level 6 là overlay giảng dạy, không phải shortcut thay cho metrical identity. Với 3/8, `Sww` mô tả ba simple-triple eighth pulses. Với 6/8, `Sww|Sww` mô tả hai nhóm 3+3 trên hai dotted-quarter pulses. Với 9/8, `Sww|Sww|Sww` mô tả ba nhóm 3+3+3 trên ba dotted-quarter pulses. Structural downbeat và relative gain phải giữ first-bar-pulse priority; việc chọn gain tiếp theo cần educator confirmation hoặc policy được duyệt.
+Generation metadata tương lai phải thể hiện đúng quy ước đã chốt:3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`; compound-beat accents6/8 `S-M`,9/8 `S-M-M`. Structural labels không làm thay đổi exact duration, onset, rest silence hoặc tie suppression, không tự biến thành explicit segment articulation. Không thay generator code hoặc schema trong update tài liệu này.
 
 ## 7. Assessment diagnostics và mapping
 
@@ -155,7 +157,7 @@ Diagnostics là local explanation sau khi whole answer đã được xác địn
 | Onset | Missing, extra, early, late, tie continuation bị tap nhầm | Không tính mỗi tap là một shared answer |
 | Duration | Dotted value, rest span, tie gate hoặc written duration sai | Không sửa đáp án thành onset-only cho Listen & Identify |
 | Meter | Nhầm 3/8 với 6/8, 6/8 với 9/8 hoặc 2/2 với 4/4 | Không phân loại 3/8 là compound |
-| Grouping/accent | Sai số group, pulse unit hoặc teaching accent model Level 6 | Không đồng nhất teaching group emphasis với toàn bộ relative hierarchy |
+| Grouping/accent | Sai số group, pulse unit hoặc teaching accent model Level 6 | Không đồng nhất phách đơn với phách phức hoặc gán Mạnh cho mọi group start |
 | Technical confidence | Audio interruption, clock uncertainty, visibility/route change | Không biến attempt kỹ thuật không đáng tin thành wrong learner result |
 
 Tap Rhythm tiếp tục onset-only; không tuyên bố rằng tap chứng minh learner giữ note đủ duration. Listen & Identify phải dùng duration-aware validated data, rest silence và tie continuation không attack. Count the Beat phải so sánh derived pulse/subdivision coordinates, không dùng một ordinal whole-bar đơn giản để làm mất grouping.
@@ -186,7 +188,7 @@ Các path dưới đây chỉ là danh sách touchpoints tương lai để revie
 
 ## 10. Open questions và giới hạn phê duyệt
 
-Các chi tiết content và policy vẫn cần approval trước implementation: choice quota cụ thể cho từng configured set; assessment sample size; exact lesson copy/counting language; relative gain của internal group starts; beam/presentation convention cho 3/8; educator confirmation cho accent labels; legacy seed preservation policy; và readiness thresholds nếu sau này cần coaching. Những câu hỏi này không cho phép tự ý đổi 3/8 sang pulse `720`, tách Level 6 thành ba course, thêm Level 7/8 mới, hoặc mở rộng code ngoài phạm vi.
+Quy ước nhạc lý Level6 và tên phách đơn/phách phức/bar-level/secondary accent đã chốt, không hỏi lại. Những đề xuất còn mở riêng: beam notation; lời đếm tiếng Việt; cách thể hiện trọng âm trên UI. Choice quota, assessment size, tempo/pilot/readiness và legacy seed policy giữ nguyên trạng thái chưa chốt; chúng không cho phép đổi3/8 thành một phách phức, đổi Level6 thành ba course hoặc mở code phase mới.
 
 **Kết luận trạng thái:** tài liệu này chỉ bổ sung yêu cầu logic cho generation và assessment của curriculum đã duyệt. Không có source, test, TS/TSX/JS/CSS/JSON/DB/infrastructure/dependency, shared architecture, Note Reading, UI, catalog, audio, metronome, MIDI, mic, Phase 3, deploy hoặc repository mới nào được thay đổi bởi tài liệu này.
 

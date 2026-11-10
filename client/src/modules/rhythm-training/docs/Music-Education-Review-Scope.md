@@ -1,10 +1,12 @@
 # Music Education Review Scope — Rhythm Training V1
 
+> **Nguồn quyết định đã chốt:** đính chính trực tiếp của chủ sản phẩm ngày2026-11-11 lúc02:48:29 +07:00. Xem [Decision Review](./Decision-Review.md). Không sử dụng phương án accent hierarchy trước đây của Manus/ChatGPT. Đây là quyết định nội dung, không phải giáo viên signoff do Manus tự nhận hoặc quyền triển khai code.
+
 **Trạng thái tài liệu:** cập nhật phạm vi nội dung đã được duyệt; chỉ là tài liệu review, chưa triển khai.
 
 **Phạm vi được ghi nhận:** curriculum V1 gồm **6 Level chính + 1 Bonus**, tương ứng **7 meter V1 được hỗ trợ về mặt nội dung**: 2/4, 3/4, 4/4, 3/8, 6/8, 9/8 và Bonus 2/2. Tài liệu này không coi 7 meter là “6 meter”, không giữ cấu trúc tám level cũ, và không coi bốn meter hiện có trong code là phạm vi curriculum đã hoàn tất.
 
-**Ranh giới công việc:** đây là bản cập nhật documentation-only. Không có source, test, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading nào được sửa. Không kích hoạt UI hoặc catalog, không thêm audio, metronome, MIDI, microphone, Phase 3, deploy, project mới hay repository mới. Không có Git operation trong công việc này.
+**Ranh giới công việc:** đây là bản cập nhật documentation-only. Không có source, test, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading nào được sửa. Không kích hoạt UI hoặc catalog, không thêm audio, metronome, MIDI, microphone, Phase 3, deploy, project mới hay repository mới. Chỉ có thể lưu các Markdown/review bằng commit thường trong GitHub hiện hữu; không rewrite history hoặc deploy. Tài liệu này không cấp quyền sửa runtime.
 
 ## 1. Quyết định curriculum và trạng thái phê duyệt
 
@@ -49,21 +51,23 @@ Level 6 không phải ba khóa 3/8, 6/8 và 9/8. Đây là một learning group 
 
 ### Các lớp nghĩa phải được tách rõ
 
-| Meter | Bản chất nhạc lý và pulse kỹ thuật | Teaching grouping/accent string | Điều không được suy ra |
+| Meter | Bản chất nhạc lý và pulse kỹ thuật | Structural accent / shorthand | Điều không được suy ra |
 |---|---|---|---|
-| 3/8 | **Simple triple**: 3 eighth-note pulses, mỗi pulse 240 ticks; bar 720 ticks; pulse starts 0, 240, 480 | `Sww` | Không coi toàn bộ 720 ticks là một pulse compound; không đổi thành một phách kỹ thuật chỉ vì một bảng cũ ghi group count là 1 |
-| 6/8 | **Compound duple**: 2 dotted-quarter pulses, mỗi pulse 720 ticks; bar 1440 ticks; group 3+3 | `Sww\|Sww` | Không đọc thành sáu quarter-like pulses; hai group không phải ba group |
-| 9/8 | **Compound triple**: 3 dotted-quarter pulses, mỗi pulse 720 ticks; bar 2160 ticks; group 3+3+3 | `Sww\|Sww\|Sww` | Không gộp thành một 2160-tick pulse; ba teaching groups không làm mất compound-triple identity |
+| 3/8 | **Simple triple**: 3 phách đơn độc lập, mỗi phách là một eighth/móc đơn và dài 240 ticks; bar 720 ticks; pulse starts 0, 240, 480 | `Sww` — Mạnh–Nhẹ–Nhẹ | Không dựng một phách phức/compound parent cho cả ô; không đổi thành một phách kỹ thuật 720 ticks chỉ vì một bảng cũ ghi group count là 1 |
+| 6/8 | **Compound duple**: 2 phách phức, mỗi phách là dotted-quarter và dài 720 ticks; mỗi phách phức gồm 3 phách đơn/eighths; bar 1440 ticks; group 3+3 | `Sww\|Mww` — Mạnh–Nhẹ–Nhẹ\|Vừa–Nhẹ–Nhẹ | Không đọc thành sáu phách phức hoặc sáu quarter-like pulses; phách đơn là subdivision bên trong phách phức |
+| 9/8 | **Compound triple**: 3 phách phức, mỗi phách là dotted-quarter và dài 720 ticks; mỗi phách phức gồm 3 phách đơn/eighths; bar 2160 ticks; group 3+3+3 | `Sww\|Mww\|Mww` — Mạnh–Nhẹ–Nhẹ\|Vừa–Nhẹ–Nhẹ\|Vừa–Nhẹ–Nhẹ | Không gộp thành một 2160-tick pulse; ba phách phức không làm mất compound-triple identity |
 
-Trong các chuỗi teaching ở trên, `S` là đầu nhóm đang được nhấn trong overlay giảng dạy và `w` là các đơn vị nhẹ hơn trong nhóm. Đây là teaching accent pattern, không phải toàn bộ relative metrical hierarchy. Với 6/8 và 9/8, pulse đầu ô nhịp phải mạnh hơn các group start nội bộ theo hierarchy tương đối; các group start sau đó được dạy là yếu hơn theo cấu trúc compound. Cách biểu diễn gain, velocity hoặc mức nhấn cụ thể không được tự suy diễn: cần copy/relative-gain review và educator confirmation trước khi đưa vào runtime.
+Trong các chuỗi trên, `S` = **Mạnh**, `M` = **Vừa**, `w` = **Nhẹ**. Đây là structural accent của meter/teaching overlay, tách khỏi explicit note articulation; không thay đổi schema `segment.accent` binary. `S` là bar-level accent ở đầu ô; `M` là secondary beat accent ở đầu các phách phức sau; `w` là các phách đơn còn lại. Thứ bậc đã chốt là **Mạnh > Vừa > Nhẹ**; không coi mọi đầu nhóm là Mạnh. Không tự suy diễn numerical gain, velocity hoặc runtime behavior.
 
-Với 3/8, ba pulse eighth-note là ba phách đơn độc lập và giữ identity `Sww`. Mô hình group ba là cách tổ chức nội dung giảng dạy chung, không được dùng để chuyển 3/8 sang pulse 720 hoặc compound meter. Với 6/8 và 9/8, 3+3 và 3+3+3 là subdivision bên trong lần lượt hai và ba dotted-quarter pulses.
+Với 3/8, ba eighth/móc đơn là **ba phách đơn độc lập**, giữ identity `Sww`, không phân tích thành một phách phức. Với 6/8 và 9/8, mỗi eighth là một **phách đơn/subdivision** bên trong lần lượt hai và ba **phách phức** dotted-quarter; pulse-level shorthand tương ứng là `S-M` và `S-M-M`.
+
+Exact shorthand: `Sww`, `Sww|Mww`, `Sww|Mww|Mww`; `S` = Mạnh, `M` = Vừa, `w` = Nhẹ.
 
 ### Ghi chú về bảng nguồn “phách chính”
 
-Bảng dữ liệu nguồn trước đây có thể được trích dẫn với dòng 3/8 ghi “phách chính: 1”. Dòng này chỉ được giữ lại nếu cần đối chiếu lịch sử, và phải kèm chú thích sau:
+Bảng dữ liệu nguồn trước đây có thể được trích dẫn với dòng 3/8 ghi “phách chính: 1”. Dòng này chỉ được giữ lại nếu cần đối chiếu lịch sử, và phải kèm chú thích sau; cách diễn đạt này đã **SUPERSEDED**, không còn là câu hỏi chờ xác nhận semantic:
 
-> “1” trong cột đó được hiểu là **số group ba móc đơn dùng cho teaching grouping**, không phải số technical pulse của 3/8. Contract V1 sử dụng **3 technical eighth pulses**, mỗi pulse 240 ticks. Không được áp dụng cách đọc “1 phách kỹ thuật” cho 3/8 nếu chưa có phê duyệt mới; cũng không được chuyển pulse 3/8 sang 720 ticks.
+> “1” trong cột đó là cách ghi lịch sử đã bị thay thế. Contract V1 sử dụng **3 phách đơn/eighth pulses**, mỗi pulse 240 ticks; 3/8 không có compound parent và không chuyển sang một pulse 720 ticks. Cách đọc “3/8 phách chính 1” không còn được dùng để hỏi lại semantic đã chốt.
 
 ## 3. Meter registry nội dung V1 và PPQ = 480
 
@@ -74,9 +78,9 @@ Phạm vi review là **6 meter core + 1 meter Bonus**. Bảng dưới đây là 
 | 2/4 | Simple duple | 960 | quarter | 480 | 2 | 0, 480 | S-W |
 | 3/4 | Simple triple | 1440 | quarter | 480 | 3 | 0, 480, 960 | S-W-W |
 | 4/4 | Simple quadruple | 1920 | quarter | 480 | 4 | 0, 480, 960, 1440 | S-W-M-W nếu dùng medium stress; tối thiểu S-W |
-| 3/8 | Simple triple | 720 | eighth | 240 | 3 | 0, 240, 480 | 1 teaching group of 3; `Sww` |
-| 6/8 | Compound duple | 1440 | dotted quarter | 720 | 2 | 0, 720 | 2 groups of 3; `Sww\|Sww` |
-| 9/8 | Compound triple | 2160 | dotted quarter | 720 | 3 | 0, 720, 1440 | 3 groups of 3; `Sww\|Sww\|Sww` |
+| 3/8 | Simple triple | 720 | eighth | 240 | 3 | 0, 240, 480 | 3 simple beats; `Sww` |
+| 6/8 | Compound duple | 1440 | dotted quarter | 720 | 2 | 0, 720 | 2 compound beats, each 3 simple-beat subdivisions; `Sww\|Mww`; pulse `S-M` |
+| 9/8 | Compound triple | 2160 | dotted quarter | 720 | 3 | 0, 720, 1440 | 3 compound beats, each 3 simple-beat subdivisions; `Sww\|Mww\|Mww`; pulse `S-M-M` |
 | Bonus 2/2 | Alla breve | 1920 | half | 960 | 2 | 0, 960 | S-W; mỗi pulse tương ứng một nốt trắng |
 
 Các giá trị phải tiếp tục được hiểu cùng với duration, rest, tie, whole-exercise và onset-only policies đã có. Công thức thời gian tương lai vẫn là `seconds = (ticks / pulseTicks) * (60 / BPM)`, trong đó BPM phải gắn nhãn với pulse đang được dạy: quarter-note BPM cho 2/4, 3/4, 4/4; eighth-note BPM cho 3/8; dotted-quarter BPM cho 6/8 và 9/8; half-note BPM cho 2/2. Không được dùng numerator hoặc denominator đơn độc để suy ra pulse.
@@ -95,16 +99,39 @@ Các giá trị phải tiếp tục được hiểu cùng với duration, rest, 
 | Placement | Optional; không chen vào Level 4 và không thay đổi thứ tự approved |
 | Cấu phần | Lessons, Practice, Assessment vẫn bắt buộc nếu feature được mở cho learner |
 
-## 5. Các quyết định nội dung vẫn đang pending xác nhận chi tiết
+## 5. Ba đề xuất presentation riêng — chưa chốt, chưa triển khai
+
+Ba mục dưới đây chỉ là **PROPOSED** cho cách trình bày; không phải quyết định music semantics và không được dùng để thay đổi meter, pulse, timing, duration, attack, tie, rest hoặc scoring.
+
+### PROPOSED 1 — Beam notation
+
+- **Đề xuất ngắn:** cho 3/8 phép hai presentation option: beam toàn ô `3` hoặc beam theo từng pulse-first; cả hai đều phải hiển thị đúng **3 phách đơn**. Với compound, giữ group `3+3` cho 6/8 và `3+3+3` cho 9/8.
+- **Lý do:** beam cần giúp người học nhìn thấy cấu trúc mà không biến 3/8 thành compound parent; compound cần cho thấy phách phức và ba phách đơn bên trong.
+- **Guardrail:** option 3/8 không đổi 3 simple beats, pulse starts hoặc PPQ. Secondary sixteenth-beam convention trong 6/8 và 9/8 chưa chốt; không tự suy ra implementation.
+- **Trạng thái:** **PROPOSED**.
+
+### PROPOSED 2 — Cách đếm bằng tiếng Việt
+
+- **Đề xuất ngắn:** dùng phương án Việt rõ nghĩa, không chỉ dùng chuỗi “la-li” hoặc số tiếng Anh. Simple meter có thể nói `1–2–3`; compound có thể thử `Một-và-a / Hai-và-a / Ba-và-a` hoặc nhãn `phách 1, phần 1/2/3` tùy mục tiêu bài.
+- **Lý do:** cần phân biệt `simple 1-2-3` với một phách phức được chia thành ba phách đơn; người học phải nghe và nói được tầng phách đang đếm.
+- **Guardrail:** các syllable tiếng Việt cụ thể chưa được duyệt; không đưa vào audio/count-in/runtime, không gọi một phách compound là ba phách ngang hàng. Giữ đúng distinction giữa phách đơn và phách phức.
+- **Trạng thái:** **PROPOSED**.
+
+### PROPOSED 3 — Cách thể hiện trọng âm trên UI
+
+- **Đề xuất ngắn:** hiển thị 3 mức bằng text label, font/weight và boundary/grouping rõ ràng: `Mạnh`, `Vừa`, `Nhẹ`; thể hiện bar boundary và compound-beat boundary trực tiếp.
+- **Lý do:** learner cần thấy hierarchy `Mạnh > Vừa > Nhẹ` và ranh giới phách, kể cả khi không nghe audio hoặc có hạn chế về màu sắc.
+- **Guardrail:** không dùng màu đơn độc; text labels, font và boundaries phải accessible. Đây là structural accent presentation, không phải explicit note articulation và không thay schema `segment.accent` binary.
+- **Trạng thái:** **PROPOSED**.
+
+## 6. Các quyết định nội dung vẫn đang pending xác nhận chi tiết
 
 Các mục dưới đây **không làm thay đổi thứ tự hoặc placement đã approved**. Chúng chỉ là chi tiết nội dung/pilot cần xác nhận trước khi biến curriculum thành runtime behavior.
 
 | Hạng mục pending | Câu hỏi cần xác nhận | Ranh giới tạm thời trong tài liệu này |
 |---|---|---|
-| Nhãn “3/8 phách chính 1” | Nhãn “1” có phải group count trong bảng nguồn hay có ý nghĩa khác? | Mặc định tài liệu này là group count; technical contract vẫn là 3 eighth pulses × 240 ticks. Cần teacher confirmation label. |
-| Accent tương đối giữa các bar/group | Dạy sự lặp `Sww` như teaching overlay thế nào mà vẫn giữ first-bar-pulse hierarchy? | Giữ exact strings `Sww`, `Sww\|Sww`, `Sww\|Sww\|Sww`; gain/velocity/relative hierarchy cần educator confirmation. |
-| Beam và secondary-beam convention | 3/8 có beam cả bar hay tách theo từng pulse? 6/8 và 9/8 dùng secondary break nào? | Beam là presentation convention, không thay đổi pulse coordinates, duration, onset hay meter identity. Chưa chọn convention cuối. |
-| Spoken Vietnamese labels/counting | Dùng tên gọi nào cho pulse, group, “móc đơn”, “phách”, dotted-quarter và subdivision? | Vietnamese-first copy là yêu cầu; chuỗi nói cụ thể cần content/educator review trước audio/count-in. |
+| Chi tiết beam/secondary-beam | Chọn presentation convention nào trong các phương án ở mục 5? | Chỉ là PROPOSED; không thay đổi pulse coordinates, duration, onset hoặc meter identity. |
+| Chi tiết spoken Vietnamese labels/counting | Chọn syllable/label tiếng Việt nào sau content review? | Vietnamese-first là yêu cầu; syllable cụ thể vẫn PROPOSED và chưa dùng cho audio/count-in. |
 | Tempo ranges và pilot | Khoảng BPM nào phù hợp từng pulse unit và learner cohort? | Chỉ dùng meter-labeled tempo hypotheses trong content review; chưa coi là validated standard hoặc hard gate. |
 | Lesson/Practice/Assessment density | Mỗi level/Bonus cần bao nhiêu bài, pattern diversity và mức interaction? | Mỗi mục phải có đủ ba cấu phần; quotas/density/thresholds chờ pilot và content confirmation. |
 | Dotted eighth | Đưa dotted eighth vào thời điểm nào sau khi sixteenth grid đã được dạy? | Không có dotted eighth trong Level 4; giữ deferred-until-Level-5 policy. |
@@ -113,7 +140,7 @@ Các mục dưới đây **không làm thay đổi thứ tự hoặc placement �
 
 Không có expert approval, teacher signoff, pilot result hoặc job-status completion claim nào được đưa ra trong tài liệu này.
 
-## 6. Phạm vi ảnh hưởng đến đặc tả và những gì được giữ nguyên
+## 7. Phạm vi ảnh hưởng đến đặc tả và những gì được giữ nguyên
 
 ### Các phần cần đồng bộ khi có implementation approval sau này
 
@@ -128,7 +155,7 @@ Không có expert approval, teacher signoff, pilot result hoặc job-status comp
 | Rhythm generator | Sau này phải chọn meter-aware vocabulary và difficulty budget theo curriculum; không fallback/coerce 3/8 thành 6/8 |
 | Notation renderer | Beam là presentation decision pending; không được làm mất pulse identity |
 | Test coverage requirements | Chỉ là test proposals/future acceptance requirements; chưa có test mới được chạy hoặc pass claim |
-| Release acceptance criteria | Content approval và runtime/release approval là hai cổng riêng, xem mục 7 |
+| Release acceptance criteria | Content approval và runtime/release approval là hai cổng riêng, xem mục 8 |
 
 ### Các contract không bị thay đổi bởi review này
 
@@ -136,11 +163,15 @@ Giữ nguyên các quyết định kỹ thuật đã được ghi nhận trong t
 
 Các thay đổi curriculum này không cho phép sửa Note Reading, shared architecture, Audio Scheduler, database, WordPress, UI activation, MIDI, microphone, production deployment hay shared progress schema. Mọi điều chỉnh runtime tương lai phải được phê duyệt riêng sau content review.
 
-## 7. Release content approval tách biệt với runtime approval
+### Trạng thái code hiện tại
+
+Code hiện tại vẫn ở trạng thái **8 legacy levels** và **4 meters trong library ở trạng thái inert/ComingSoon**. **7 V1-supported meters và current curriculum chưa được triển khai**; tài liệu này không claim runtime support, không mở module và không thay đổi schema.
+
+## 8. Release content approval tách biệt với runtime approval
 
 ### Content approval
 
-Content approval chỉ xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage và pending content decisions đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **thứ tự và placement đã approved**; các chi tiết trong mục 5 vẫn cần confirmation.
+Content approval chỉ xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage và pending content decisions đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **thứ tự, placement và quy ước nhạc lý/trọng âm Level6 đã được chủ sản phẩm xác nhận**. Không hỏi lại3/8=3 phách đơn hoặc hierarchy Mạnh/Vừa/Nhẹ. Chỉ ba đề xuất presentation trong mục5 và các chi tiết pilot không liên quan trong mục6 còn mở.
 
 ### Runtime/implementation approval
 
@@ -148,15 +179,15 @@ Runtime approval là cổng riêng, chưa được cấp bởi tài liệu này.
 
 Release gate tương lai phải kiểm tra đủ **7 V1-supported meters** theo đúng semantics, cùng curriculum coverage của 6 Level + Bonus. Không được dùng bằng chứng “4 legacy meters” để kết luận curriculum mới đã được hỗ trợ. Kết quả lịch sử **436/436 tests trên 40 files** chỉ là historical context từ tài liệu trước, không phải fresh run và không phải bằng chứng hỗ trợ 3/8, 9/8 hoặc 2/2.
 
-## 8. Kết luận review
+## 9. Kết luận review
 
 Bản scope này thay thế cách diễn đạt cũ về tám level và phạm vi meter cũ bằng curriculum đã duyệt: Level 1 quarter rest only trong vocabulary cơ bản; Level 2 eighth/binary subdivision; Level 3 simple meters 2/4–3/4–4/4; Level 4 dots/ties với dotted eighth deferred; Level 5 sixteenths và advanced combinations có consolidation kiểm soát; Level 6 là một learning group Grouping in Threes gồm 3/8, 6/8, 9/8; Bonus 2/2 optional nhưng V1-supported.
 
-Các quyết định pending còn lại chỉ là detail confirmation về nhãn 3/8, accent hierarchy, beam/secondary convention, spoken Vietnamese labels, tempo pilot và lesson/assessment density. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, Phase 3, deploy, database hoặc shared architecture được thực hiện.
+Các quyết định pending còn lại chỉ là detail confirmation về beam/secondary convention, spoken Vietnamese labels, tempo pilot, lesson/assessment density và các quota/pilot không liên quan. Ba cách trình bày beam, đếm tiếng Việt và trọng âm UI chỉ ở trạng thái **PROPOSED**, chưa chốt và chưa triển khai. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, Phase 3, deploy, database hoặc shared architecture được thực hiện.
 
 **Các path đã viết:**
 
 1. `/home/ubuntu/six-meter-review/Music-Education-Review-Scope.md`
 2. `/home/ubuntu/notnhac/client/src/modules/rhythm-training/docs/Music-Education-Review-Scope.md`
 
-**Open questions:** các mục trong bảng pending ở mục 5, đặc biệt teacher confirmation cho “3/8 phách chính 1” và xác nhận relative accent/beam/spoken-label/tempo/density. Không có Git commit hoặc trạng thái đồng bộ GitHub nào được thực hiện hay khẳng định trong update này.
+**Open questions:** các mục trong bảng pending ở mục 6 và ba đề xuất PROPOSED ở mục 5. “3/8 phách chính 1” và accent hierarchy trước đây chỉ là lịch sử đã bị thay thế, không còn là câu hỏi semantic. Trạng thái GitHub bàn giao được ghi riêng sau push của parent; review này không tự nhận teacher signoff, test pass hoặc runtime approval.
