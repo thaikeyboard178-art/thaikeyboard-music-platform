@@ -1,12 +1,14 @@
 # Music Education Review Scope — Rhythm Training V1
 
-> **Nguồn quyết định đã chốt:** đính chính trực tiếp của chủ sản phẩm ngày2026-11-11 lúc02:48:29 +07:00. Xem [Decision Review](./Decision-Review.md). Không sử dụng phương án accent hierarchy trước đây của Manus/ChatGPT. Đây là quyết định nội dung, không phải giáo viên signoff do Manus tự nhận hoặc quyền triển khai code.
+> **Presentation APPROVED — 2026-11-11 lúc 03:04:52 +07:00:** chủ sản phẩm đã chốt P-01/P-02/P-03. Quyết định nhạc lý trước đó giữ nguyên; không cần hỏi lại và không cấp quyền triển khai runtime.
+
+> **Nguồn quyết định đã chốt:** đính chính trực tiếp của chủ sản phẩm ngày 2026-11-11. Xem [Decision Review](./Decision-Review.md). Không sử dụng phương án accent hierarchy trước đây của Manus/ChatGPT. Đây là quyết định nội dung, không phải giáo viên signoff do Manus tự nhận hoặc quyền triển khai code.
 
 **Trạng thái tài liệu:** cập nhật phạm vi nội dung đã được duyệt; chỉ là tài liệu review, chưa triển khai.
 
 **Phạm vi được ghi nhận:** curriculum V1 gồm **6 Level chính + 1 Bonus**, tương ứng **7 meter V1 được hỗ trợ về mặt nội dung**: 2/4, 3/4, 4/4, 3/8, 6/8, 9/8 và Bonus 2/2. Tài liệu này không coi 7 meter là “6 meter”, không giữ cấu trúc tám level cũ, và không coi bốn meter hiện có trong code là phạm vi curriculum đã hoàn tất.
 
-**Ranh giới công việc:** đây là bản cập nhật documentation-only. Không có source, test, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading nào được sửa. Không kích hoạt UI hoặc catalog, không thêm audio, metronome, MIDI, microphone, Phase 3, deploy, project mới hay repository mới. Chỉ có thể lưu các Markdown/review bằng commit thường trong GitHub hiện hữu; không rewrite history hoặc deploy. Tài liệu này không cấp quyền sửa runtime.
+**Ranh giới công việc:** đây là bản cập nhật documentation-only. Không có source, test, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading nào được sửa. Không kích hoạt UI hoặc catalog, không thêm audio, metronome, MIDI, microphone, Phase 3, deploy, project mới hay repository mới. Tài liệu này không cấp quyền sửa runtime.
 
 ## 1. Quyết định curriculum và trạng thái phê duyệt
 
@@ -99,46 +101,55 @@ Các giá trị phải tiếp tục được hiểu cùng với duration, rest, 
 | Placement | Optional; không chen vào Level 4 và không thay đổi thứ tự approved |
 | Cấu phần | Lessons, Practice, Assessment vẫn bắt buộc nếu feature được mở cho learner |
 
-## 5. Ba đề xuất presentation riêng — chưa chốt, chưa triển khai
+## 5. Ba presentation decision đã được owner APPROVED
 
-Ba mục dưới đây chỉ là **PROPOSED** cho cách trình bày; không phải quyết định music semantics và không được dùng để thay đổi meter, pulse, timing, duration, attack, tie, rest hoặc scoring.
+Ba ID P-01/P-02/P-03 được giữ để truy vết lịch sử, nhưng trạng thái hiện hành của cả ba là **APPROVED OWNER DECISION**. Các quyết định này chốt cách trình bày nội dung; chúng không cấp runtime/implementation approval và không cần hỏi lại.
 
-### PROPOSED 1 — Beam notation
+### P-01 — Beam notation
 
-- **Đề xuất ngắn:** cho 3/8 phép hai presentation option: beam toàn ô `3` hoặc beam theo từng pulse-first; cả hai đều phải hiển thị đúng **3 phách đơn**. Với compound, giữ group `3+3` cho 6/8 và `3+3+3` cho 9/8.
-- **Lý do:** beam cần giúp người học nhìn thấy cấu trúc mà không biến 3/8 thành compound parent; compound cần cho thấy phách phức và ba phách đơn bên trong.
-- **Guardrail:** option 3/8 không đổi 3 simple beats, pulse starts hoặc PPQ. Secondary sixteenth-beam convention trong 6/8 và 9/8 chưa chốt; không tự suy ra implementation.
-- **Trạng thái:** **PROPOSED**.
+| Phạm vi | Quyết định đã chốt |
+|---|---|
+| `3/8` | Mỗi móc đơn/eighth là một nốt **riêng có flag**, không beam ba nốt với nhau; giữ rõ 3 phách đơn độc lập. Không còn bar-wide beam hoặc optional beam proposal active. |
+| `6/8` | Beam theo group `3+3`, không beam xuyên ranh giới phách phức. |
+| `9/8` | Beam theo group `3+3+3`, không beam xuyên ranh giới các phách phức. |
+| Sixteenths/rests/mixed-duration | Theo notation rules phù hợp, giữ ranh giới phách/phách phức. Các secondary-beam case chưa quy định là pending kỹ thuật, không reopen approved eighth rule. |
 
-### PROPOSED 2 — Cách đếm bằng tiếng Việt
+### P-02 — Counting presentation
 
-- **Đề xuất ngắn:** dùng phương án Việt rõ nghĩa, không chỉ dùng chuỗi “la-li” hoặc số tiếng Anh. Simple meter có thể nói `1–2–3`; compound có thể thử `Một-và-a / Hai-và-a / Ba-và-a` hoặc nhãn `phách 1, phần 1/2/3` tùy mục tiêu bài.
-- **Lý do:** cần phân biệt `simple 1-2-3` với một phách phức được chia thành ba phách đơn; người học phải nghe và nói được tầng phách đang đếm.
-- **Guardrail:** các syllable tiếng Việt cụ thể chưa được duyệt; không đưa vào audio/count-in/runtime, không gọi một phách compound là ba phách ngang hàng. Giữ đúng distinction giữa phách đơn và phách phức.
-- **Trạng thái:** **PROPOSED**.
+| Phương thức | Quyết định đã chốt |
+|---|---|
+| **App Voice Counting** | Tự đọc số tiếng Anh mặc định: `One, Two, Three...`; không có yêu cầu Vietnamese-first voice. |
+| **Visual Counting** | Hiện con số tương ứng tại vị trí đếm; người học tự đếm bằng ngôn ngữ họ muốn, không ép tiếng Anh. Numeric display không đồng nhất với ngôn ngữ voice. |
+| **Metronome TICK** | Âm tick, tick, tick... theo contract metronome hiện có; không cần số hoặc syllable, không thay technical pulse/subdivision. |
 
-### PROPOSED 3 — Cách thể hiện trọng âm trên UI
+Đây là ba phương thức trình bày, không phải ba exercise/session modes. Không tự chốt syllable `Một-và-a`, `la-li`, detailed compound spoken mapping, speech scheduling hoặc giọng bổ sung ngoài request.
 
-- **Đề xuất ngắn:** hiển thị 3 mức bằng text label, font/weight và boundary/grouping rõ ràng: `Mạnh`, `Vừa`, `Nhẹ`; thể hiện bar boundary và compound-beat boundary trực tiếp.
-- **Lý do:** learner cần thấy hierarchy `Mạnh > Vừa > Nhẹ` và ranh giới phách, kể cả khi không nghe audio hoặc có hạn chế về màu sắc.
-- **Guardrail:** không dùng màu đơn độc; text labels, font và boundaries phải accessible. Đây là structural accent presentation, không phải explicit note articulation và không thay schema `segment.accent` binary.
-- **Trạng thái:** **PROPOSED**.
+### P-03 — Accent presentation
+
+| Hình thức | Quyết định đã chốt |
+|---|---|
+| **Text-based** | `Mạnh–Vừa–Nhẹ` hoặc `Mạnh–Nhẹ–Nhẹ` tùy meter; có thể dùng font weight/độ đậm và group boundary. |
+| **Symbol-based** | Có thể dùng gạch nối, gạch dưới hoặc đồ họa; được phép dùng màu để phân biệt. |
+| Accessibility | Không bắt buộc kết hợp chữ + ký hiệu + màu. Nếu dùng màu, phải đủ contrast và khả năng nhận biết; không áp dụng blanket rule “không color-only”. |
+| Structural boundary | Strong = Mạnh, Medium = Vừa, Weak = Nhẹ; hierarchy Mạnh > Vừa > Nhẹ và exact `3/8 Sww`, `6/8 Sww\|Mww`, `9/8 Sww\|Mww\|Mww` giữ nguyên. |
+
+Structural accent không phải explicit note articulation, không tự đặt gain/velocity schema và không đổi binary `segment.accent`.
 
 ## 6. Các quyết định nội dung vẫn đang pending xác nhận chi tiết
 
-Các mục dưới đây **không làm thay đổi thứ tự hoặc placement đã approved**. Chúng chỉ là chi tiết nội dung/pilot cần xác nhận trước khi biến curriculum thành runtime behavior.
+Các mục dưới đây **không làm thay đổi thứ tự, placement hoặc ba presentation decision đã APPROVED**. Chúng chỉ là chi tiết kỹ thuật/curriculum/pilot cần xác nhận trước khi biến curriculum thành runtime behavior.
 
 | Hạng mục pending | Câu hỏi cần xác nhận | Ranh giới tạm thời trong tài liệu này |
 |---|---|---|
-| Chi tiết beam/secondary-beam | Chọn presentation convention nào trong các phương án ở mục 5? | Chỉ là PROPOSED; không thay đổi pulse coordinates, duration, onset hoặc meter identity. |
-| Chi tiết spoken Vietnamese labels/counting | Chọn syllable/label tiếng Việt nào sau content review? | Vietnamese-first là yêu cầu; syllable cụ thể vẫn PROPOSED và chưa dùng cho audio/count-in. |
+| Secondary-beam cases | Sixteenths và các tổ hợp mixed-duration cần secondary beam chi tiết ra sao trong từng meter? | Giữ nguyên eighth rule đã APPROVED: 3/8 từng nốt flag riêng, 6/8 là 3+3, 9/8 là 3+3+3; không beam xuyên ranh giới phách phức. |
+| Rest/mixed-duration notation detail | Các tổ hợp rests, dots, ties và mixed duration cụ thể được đặt trong group/pulse thế nào? | Giữ duration, onset, rest silence, tie và ranh giới phách/phách phức; chưa tự mở rộng case chưa review. |
 | Tempo ranges và pilot | Khoảng BPM nào phù hợp từng pulse unit và learner cohort? | Chỉ dùng meter-labeled tempo hypotheses trong content review; chưa coi là validated standard hoặc hard gate. |
-| Lesson/Practice/Assessment density | Mỗi level/Bonus cần bao nhiêu bài, pattern diversity và mức interaction? | Mỗi mục phải có đủ ba cấu phần; quotas/density/thresholds chờ pilot và content confirmation. |
+| Lesson/Practice/Assessment quotas và density | Mỗi level/Bonus cần bao nhiêu bài, pattern diversity, mật độ và mức interaction? | Mỗi mục phải có đủ ba cấu phần; quotas/density/thresholds chờ pilot và content confirmation. |
 | Dotted eighth | Đưa dotted eighth vào thời điểm nào sau khi sixteenth grid đã được dạy? | Không có dotted eighth trong Level 4; giữ deferred-until-Level-5 policy. |
 | Relative difficulty của Level 5 consolidation | Bao nhiêu nội dung cũ L7/L8 được ôn mà không tạo level mới? | Chỉ consolidation có kiểm soát, cấu hình bằng difficulty budget; không công bố L7/L8 mới. |
-| Optional Bonus progression | Có hiện Bonus trong learner path mặc định hay chỉ sau khi hoàn thành điều kiện nội dung? | Bonus là optional; placement không chuyển thành Level 4 và không thay thế Level 6. |
+| Optional Bonus display (không mở lại placement đã chốt) | Hiện Bonus trong learner path mặc định hay sau điều kiện nội dung nào? | Bonus là optional; placement 2/2 không chuyển thành Level 4 và không thay thế Level 6. |
 
-Không có expert approval, teacher signoff, pilot result hoặc job-status completion claim nào được đưa ra trong tài liệu này.
+Không có expert approval, teacher signoff, pilot result, test pass hoặc job-status completion claim nào được đưa ra trong tài liệu này. Các mục pending trên là báo cáo trạng thái thực tế, không phải kết quả thử nghiệm.
 
 ## 7. Phạm vi ảnh hưởng đến đặc tả và những gì được giữ nguyên
 
@@ -153,7 +164,7 @@ Không có expert approval, teacher signoff, pilot result hoặc job-status comp
 | Assessment structure | Mỗi Level/Bonus có Assessment; Level 6 combined assessment cả 3/8, 6/8, 9/8 |
 | Meter registry | Review đủ 6 core + Bonus 2/2 với pulseTicks và starts chính xác |
 | Rhythm generator | Sau này phải chọn meter-aware vocabulary và difficulty budget theo curriculum; không fallback/coerce 3/8 thành 6/8 |
-| Notation renderer | Beam là presentation decision pending; không được làm mất pulse identity |
+| Notation renderer | Phải giữ ba presentation decision đã APPROVED; secondary-beam cases vẫn cần chi tiết kỹ thuật riêng |
 | Test coverage requirements | Chỉ là test proposals/future acceptance requirements; chưa có test mới được chạy hoặc pass claim |
 | Release acceptance criteria | Content approval và runtime/release approval là hai cổng riêng, xem mục 8 |
 
@@ -171,23 +182,16 @@ Code hiện tại vẫn ở trạng thái **8 legacy levels** và **4 meters tro
 
 ### Content approval
 
-Content approval chỉ xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage và pending content decisions đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **thứ tự, placement và quy ước nhạc lý/trọng âm Level6 đã được chủ sản phẩm xác nhận**. Không hỏi lại3/8=3 phách đơn hoặc hierarchy Mạnh/Vừa/Nhẹ. Chỉ ba đề xuất presentation trong mục5 và các chi tiết pilot không liên quan trong mục6 còn mở.
+Content approval xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage và ba presentation decision P-01/P-02/P-03 đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **cả ba presentation decision đã được chủ sản phẩm xác nhận và không hỏi lại**: P-01 beam eighth/grouping, P-02 ba counting presentation methods và P-03 hai hình thức accent presentation. Không hỏi lại 3/8 = 3 phách đơn hoặc hierarchy Mạnh/Vừa/Nhẹ. Chỉ các chi tiết secondary beam, rests/mixed-duration, tempo/pilot, quotas/density và Bonus display (không mở lại placement đã chốt) không liên quan còn mở.
 
 ### Runtime/implementation approval
 
 Runtime approval là cổng riêng, chưa được cấp bởi tài liệu này. Trước runtime approval, không được sửa source/test hoặc bật module. Nếu sau này được phê duyệt implementation, cần review/acceptance riêng cho canonical model, generator, notation, audio, exercise lifecycle, timing fairness, accessibility, browser/device behavior và release gate. Các test/acceptance đề xuất trong tài liệu này không phải test đã chạy và không phải pass claim.
 
-Release gate tương lai phải kiểm tra đủ **7 V1-supported meters** theo đúng semantics, cùng curriculum coverage của 6 Level + Bonus. Không được dùng bằng chứng “4 legacy meters” để kết luận curriculum mới đã được hỗ trợ. Kết quả lịch sử **436/436 tests trên 40 files** chỉ là historical context từ tài liệu trước, không phải fresh run và không phải bằng chứng hỗ trợ 3/8, 9/8 hoặc 2/2.
+Release gate tương lai phải kiểm tra đủ **7 V1-supported meters** theo đúng semantics, cùng curriculum coverage của 6 Level + Bonus. Không được dùng bằng chứng “4 legacy meters” để kết luận curriculum mới đã được hỗ trợ.
 
 ## 9. Kết luận review
 
 Bản scope này thay thế cách diễn đạt cũ về tám level và phạm vi meter cũ bằng curriculum đã duyệt: Level 1 quarter rest only trong vocabulary cơ bản; Level 2 eighth/binary subdivision; Level 3 simple meters 2/4–3/4–4/4; Level 4 dots/ties với dotted eighth deferred; Level 5 sixteenths và advanced combinations có consolidation kiểm soát; Level 6 là một learning group Grouping in Threes gồm 3/8, 6/8, 9/8; Bonus 2/2 optional nhưng V1-supported.
 
-Các quyết định pending còn lại chỉ là detail confirmation về beam/secondary convention, spoken Vietnamese labels, tempo pilot, lesson/assessment density và các quota/pilot không liên quan. Ba cách trình bày beam, đếm tiếng Việt và trọng âm UI chỉ ở trạng thái **PROPOSED**, chưa chốt và chưa triển khai. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, Phase 3, deploy, database hoặc shared architecture được thực hiện.
-
-**Các path đã viết:**
-
-1. `/home/ubuntu/six-meter-review/Music-Education-Review-Scope.md`
-2. `/home/ubuntu/notnhac/client/src/modules/rhythm-training/docs/Music-Education-Review-Scope.md`
-
-**Open questions:** các mục trong bảng pending ở mục 6 và ba đề xuất PROPOSED ở mục 5. “3/8 phách chính 1” và accent hierarchy trước đây chỉ là lịch sử đã bị thay thế, không còn là câu hỏi semantic. Trạng thái GitHub bàn giao được ghi riêng sau push của parent; review này không tự nhận teacher signoff, test pass hoặc runtime approval.
+P-01 beam, P-02 counting và P-03 accent presentation đều đã **APPROVED OWNER DECISION**: 3/8 từng móc đơn flag riêng; 6/8 là 3+3; 9/8 là 3+3+3; counting gồm App Voice Counting, Visual Counting và Metronome TICK; accent có text-based hoặc symbol-based presentation với điều kiện màu phải accessible nếu dùng. Không có quyết định nào trong ba mục này cấp runtime approval. Pending chỉ còn chi tiết kỹ thuật secondary beam/rest/mixed-duration và quota, tempo, pilot, density, Bonus display (không mở lại placement đã chốt) không liên quan. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, database hoặc shared architecture được thực hiện.

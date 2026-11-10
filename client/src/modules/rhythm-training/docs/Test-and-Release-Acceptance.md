@@ -1,12 +1,32 @@
 # Rhythm Training V1 — Test và Release Acceptance
 
-> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, lời đếm tiếng Việt và UI presentation là ba đề xuất riêng chưa chốt; xem [Decision Review](./Decision-Review.md). Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
+## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
+
+Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
+
+**Beam notation — APPROVED.** Quy tắc này áp dụng cho grouping **eighth notes**:3/8 mỗi móc đơn hiển thị riêng bằng **flag**, không beam ba móc đơn, thể hiện3 phách đơn độc lập.6/8 beam từng nhóm 3 theo **3+3**, không qua ranh giới hai phách phức.9/8 beam từng nhóm 3 theo **3+3+3**, không qua ranh giới ba phách phức. Sixteenth notes, rests và mixed-duration patterns theo notation rules phù hợp nhưng không được làm mất ranh giới phách/phách phức; không tự suy rộng rule ba móc đơn thành rule ba sounding attacks bỏ qua rest. Những ví dụ secondary-beam/rest/mixed chi tiết chưa quy định được ghi riêng, không hỏi lại grouping eighth đã chốt.
+
+**Counting — APPROVED.** Đây là ba phương thức presentation/reference, không phải ba exercise kinds hay shared-session modes mới.
+
+| Phương thức | Quyết định đã chốt |
+|---|---|
+| App Voice Counting | App tự đọc **số bằng tiếng Anh mặc định**, ví dụ **One, Two, Three...**; không dùng Vietnamese-first voice hoặc một syllable tiếng Việt bắt buộc làm default |
+| Visual Counting | Hiện **con số tương ứng vị trí đếm**; người học tự đếm bằng ngôn ngữ muốn, **không bắt buộc tiếng Anh** |
+| Metronome | Âm **tick, tick, tick...**, **không cần đọc số hoặc syllable** |
+
+Không đồng nhất ngôn ngữ hiển thị số với ngôn ngữ phát âm tự động. English-default app voice không ép ngôn ngữ tự đếm hoặc đổi Vietnamese-first UI copy. Vị trí phách/subdivision vẫn từ canonical data; không suy đổi technical pulse hoặc tự tạo chuỗi phonetic subdivision chưa được quy định.
+
+**Accent presentation — APPROVED.** Được dùng **Text-based** (Mạnh–Vừa–Nhẹ hoặc Mạnh–Nhẹ–Nhẹ tùy meter; có thể phân biệt font weight, độ đậm, ranh giới nhóm) hoặc **Symbol-based** (gạch nối, gạch dưới hoặc ký hiệu đồ họa; được phép dùng màu phân biệt cấp trọng âm). **Không bắt buộc phối hợp chữ + ký hiệu + màu**. **Nếu dùng màu**, phải đảm bảo **độ tương phản và khả năng nhận biết**; không tự thêm blanket rule bắt buộc chữ hoặc cấm màu-only trái quyết định. Strong=Mạnh, Medium=Vừa, Weak=Nhẹ; giữ hierarchy Mạnh>Vừa>Nhẹ và các vector3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`.
+
+Giữ nguyên curriculum placement, meter semantics, technical pulse, subdivision, PPQ480 và **existing `segment.accent` schema**. Không sửa VexFlow, source/test, audio engine, UI/catalog/route activation, database, shared architecture, dependencies/infra, Note Reading hoặc WordPress; không deploy. APPROVED tài liệu không phải implementation/test-pass/teacher signoff. Xem [Decision Review](./Decision-Review.md).
+
+> **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có 2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có 3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm 3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, ba phương thức counting và accent presentation đã APPROVED theo quyết định03:04:52 +07:00; xem [Decision Review](./Decision-Review.md). Không hỏi lại hoặc khôi phục ba đề xuất cũ. Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
 
 **Trạng thái:** đề xuất nghiệm thu cho curriculum đã duyệt; chưa triển khai và chưa phải kết quả test.
 
 **Phạm vi tài liệu:** tài liệu này chỉ ghi các test ID, expected value, tiêu chí migration và release gate cho Rhythm Training V1. Chỉ các Markdown được liệt kê trong change record được chỉnh; không có source code, test source, UI, audio, database, infrastructure, dependency, Note Reading, MIDI, microphone, Phase 3/4/5 hoặc deploy nào được thay đổi. Không chạy test hiện có trong nhiệm vụ documentation-only này.
 
-**Repository context được bảo toàn:** `/home/ubuntu/notnhac`, repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`, baseline hash `8348e1366be87febd58de90752fc1a5d847d397c`. Hash này chỉ được ghi nhận để đối chiếu; không có Git operation trong nhiệm vụ này.
+**Repository context được bảo toàn:** `/home/ubuntu/notnhac`, repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`. Các hash/436-test results trong hồ sơ cũ chỉ là lịch sử; nhiệm vụ này chỉ commit/push Markdown sau consistency/hash checks, không triển khai runtime hoặc dùng kết quả lịch sử như fresh pass.
 
 ## 1. Quy ước đọc acceptance
 
@@ -26,7 +46,7 @@ Tất cả expected tick values dưới đây dùng `PPQ = 480`. Bar capacity, p
 | `3/4` | Simple triple | `1440` | `480` / quarter | `[0, 480, 960]` | `Sww` | Ba phách chính, không phải grouping compound |
 | `4/4` | Simple quadruple | `1920` | `480` / quarter | `[0, 480, 960, 1440]` | `SwMw` hoặc tối thiểu `Swww` | Bốn phách quarter; medium accent nếu renderer có biểu diễn |
 | `3/8` | **Simple triple**, một teaching group gồm ba eighth pulses | `720` | `240` / eighth | `[0, 240, 480]` | `Sww` | Ba pulse kỹ thuật độc lập; không được biến thành một pulse `720` và không được gán compound |
-| `6/8` | Compound duple, hai dotted-quarter pulses | `1440` | `720` / dotted quarter | `[0, 720]` | `Sww\|Mww` | Hai phách phức, mỗi phách gồm3 phách đơn; grouping toàn ô là3+3 |
+| `6/8` | Compound duple, hai dotted-quarter pulses | `1440` | `720` / dotted quarter | `[0, 720]` | `Sww\|Mww` | Hai phách phức, mỗi phách gồm 3 phách đơn; grouping toàn ô là3+3 |
 | `9/8` | Compound triple, ba dotted-quarter pulses | `2160` | `720` / dotted quarter | `[0, 720, 1440]` | `Sww\|Mww\|Mww` | Ba pulse chính, nhóm `3+3+3` eighths |
 | `2/2` Bonus | Alla breve, two half-note pulses | `1920` | `960` / half | `[0, 960]` | `Sw` | Hai phách chính theo half-note pulse, không đồng nhất ngữ nghĩa với `4/4` |
 
@@ -62,7 +82,7 @@ Expected acceptance cho `3/8` phải ghi đồng thời hai lớp thông tin:
 1. **Teaching grouping:** một group gồm `3` eighths, giữ chuỗi hiển thị/trọng âm dạy học `Sww`.
 2. **Relative metrical identity:** `3/8` là simple triple với `3` eighth pulses độc lập, mỗi pulse `240` ticks; không được xoá identity bằng cách gọi group count `1` là một technical pulse `720` ticks.
 
-Nhãn nguồn cũ “3/8 phách chính1” là lịch sử bị thay thế. Acceptance hiện hành đòi3 phách đơn móc đơn độc lập, không một phách phức720. Compound beats6/8 là Mạnh–Vừa,9/8 Mạnh–Vừa–Vừa; subdivisions còn lại Nhẹ. Đây là yêu cầu chủ sản phẩm đã xác nhận, không gửi lại để hỏi educator về semantics; chỉ beam/count/UI presentation còn riêng pending.
+Nhãn nguồn cũ “3/8 phách chính1” là lịch sử bị thay thế.3/8 có 3 phách đơn;6/8 Mạnh–Vừa và9/8 Mạnh–Vừa–Vừa ở cấp phách phức. Semantics và ba quyết định presentation mới đều APPROVED; acceptance phải áp dụng đúng flag riêng3/8, beam compound boundaries, ba counting methods và hai accent forms, không hỏi lại approval.
 
 ## 3. Tick, duration, BPM và coordinate acceptance
 
@@ -160,11 +180,32 @@ Owner-confirmed convention:3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`; compound-b
 | `AT-DST-003` | Audio equivalence | For Listen & Identify, reject distractors that are audibly indistinguishable under the intended duration-aware route; duration/tie/rest differences must not be erased by click-only audio. |
 | `AT-DST-004` | No cross-meter filler | Choice generation must not use another meter as an equivalent filler solely to reach a choice count. Meter label and canonical signature remain distinct. |
 | `AT-NOT-001` | Derived timeline parity | Notation event positions equal canonical derived starts/ends; strict voice/tick checks are secondary assertions, not the authority over canonical duration arithmetic. |
-| `AT-NOT-002` | 3/8 beam semantics | Any optional bar-wide beam for three eighths must preserve `pulseIndex=[0,1,2]`, `pulseTicks=240`, `Sww`, tempo and Count the Beat coordinates. Beam convention requires teacher confirmation; no beam choice may redefine meter. |
-| `AT-NOT-003` | Compound grouping | `6/8` notation primary grouping is `3+3`; `9/8` is `3+3+3`; grouping is separate from derived pulse coordinates but must be visible/consistent in the approved teaching overlay. |
+| `AT-NOT-002` | 3/8 eighth flags APPROVED | Ba móc đơn liên tục có 3 flag riêng và không có beam nối ba nốt; giữ pulseIndex `[0,1,2]`, pulseTicks240, Sww, tempo và Count the Beat coordinates. Không optional bar-wide beam/teacher reconfirmation. |
+| `AT-NOT-003` | Compound eighth beams APPROVED |6/8 nhóm 3+3 không qua boundary720;9/8 nhóm 3+3+3 không qua720/1440; không nối across compound beats. Pulse metadata/canonical durations không đổi. |
 | `AT-NOT-004` | 2/2 notation | `2/2` displays half-pulse semantics; eighth beams may use `4+4` within the two half pulses. It must not be rendered as an unlabeled `4/4` equivalent. |
-| `AT-NOT-005` | Rests and ties in notation | Rests remain rests and consume exact duration; tie continuation has no new attack marker; notation, canonical data and any future audio projection agree. |
-| `AT-NOT-006` | Semantic accent separation | Structural meter accents and explicit segment accents are separate fields. A structural downbeat does not silently mutate an explicit segment accent. |
+| `AT-NOT-005` | Rests, ties và mixed notation | Rests giữduration/khôngonset, tie continuation khôngattack; sixteenth/rest/mixed-duration notation phù hợp và không mất ranh giới phách/phách phức; không tự áp rule group3 cho mọi sounding event. Canonical/notation/audio projection tương lai phải parity. |
+| `AT-NOT-006` | Structural accent / presentation / schema separation | Strong=Mạnh, Medium=Vừa, Weak=Nhẹ; approved text hoặc symbol forms không tự đổi segment.accent binary, technical pulse/subdivision/hierarchy hoặc explicit note articulation. |
+
+## 6a. Presentation acceptance — APPROVED requirements, chưa thực thi
+
+Đây là acceptance criteria đã đồng bộ theo chủ sản phẩm, không phải code/test cases đã triển khai hoặc kết quả chạy. Những test dưới đây phải được thực thi sau approval implementation riêng.
+
+| Test ID | Phạm vi | Expected / rejection condition |
+|---|---|---|
+| `AT-PRES-BEAM-001` | 3/8 — flag móc đơn riêng | Ba móc đơn liên tục có 3 flag riêng, không beam nối ba nốt. Ba phách đơn 240 ticks tại 0/240/480 giữ nguyên. |
+| `AT-PRES-BEAM-002` | 6/8 — compound grouping | Sáu móc đơn liên tục có hai beam groups 3+3; không beam qua ranh giới 720 ticks. Hai phách phức 720 ticks giữ nguyên. |
+| `AT-PRES-BEAM-003` | 9/8 — compound grouping | Chín móc đơn liên tục có ba beam groups 3+3+3; không beam qua ranh giới 720/1440 ticks. Ba phách phức 720 ticks giữ nguyên. |
+| `AT-PRES-BEAM-004` | Sixteenth/rest/mixed patterns | Notation rules phù hợp phải giữ ranh giới phách/phách phức; rest và tie continuation không tạo attack. Không tự chốt secondary-beam cases chưa quy định hoặc biến 3/8 thành compound. |
+| `AT-PRES-COUNT-001` | App Voice Counting | App đọc số bằng tiếng Anh mặc định: One, Two, Three...; không đặt Vietnamese-first voice hoặc syllable tiếng Việt bắt buộc làm default. Đây là yêu cầu tương lai, không phải audio test pass. |
+| `AT-PRES-COUNT-002` | Visual Counting | Hiển thị con số tương ứng canonical counting positions. Người học tự đếm bằng ngôn ngữ muốn, không bắt buộc tiếng Anh; không lấy voice locale làm ràng buộc ngôn ngữ tự đếm. |
+| `AT-PRES-COUNT-003` | Metronome | Âm tick, tick, tick... theo contract metronome hiện có; không cần đọc số/syllable. Không tự gộp metronome với voice counting hoặc thay technical pulse/subdivision. |
+| `AT-PRES-COUNT-004` | Tách ngôn ngữ và phương thức | Numeric display không đồng nhất với automatic pronunciation. English-default app voice không ép người học đếm tiếng Anh hoặc đổi Vietnamese-first UI. Ba presentation methods không tạo exercise/shared-session modes mới. |
+| `AT-PRES-ACC-001` | Text-based dùng độc lập | Dùng Mạnh–Vừa–Nhẹ hoặc Mạnh–Nhẹ–Nhẹ tùy meter; font weight/độ đậm/group boundary là tùy chọn. Không reject text-based vì thiếu ký hiệu hoặc màu. |
+| `AT-PRES-ACC-002` | Symbol-based dùng độc lập | Được dùng gạch nối, gạch dưới hoặc đồ họa; được dùng màu để phân biệt cấp trọng âm. Không reject symbol-based vì không có chữ trọng âm hoặc không dùng màu. |
+| `AT-PRES-ACC-003` | Không bắt buộc phối hợp | Không bắt buộc chữ + ký hiệu + màu đồng thời; không áp blanket ban color-only trái quyết định. Điều kiện tương phản/khả năng nhận biết vẫn áp dụng nếu dùng màu. |
+| `AT-PRES-ACC-004` | Điều kiện nếu sử dụng màu | Nếu dùng màu, cần đủ độ tương phản và khả năng nhận biết cấp trọng âm. Đánh giá cấu hình màu thực tế sau implementation approval; không tự nhận device pass hoặc đặt numeric threshold chưa được quy định. |
+| `AT-PRES-ACC-005` | Hierarchy/schema giữ nguyên | Strong=Mạnh, Medium=Vừa, Weak=Nhẹ. Các vector 3/8 Sww, 6/8 Sww\|Mww, 9/8 Sww\|Mww\|Mww giữ nguyên; không đổi segment.accent, technical pulse, subdivision hoặc curriculum placement. |
+| `AT-PRES-BOUNDARY-001` | Approval tài liệu không phải runtime | APPROVED presentation không kích hoạt UI hoặc cho phép sửa VexFlow/audio/source/test/shared architecture/database. Các acceptance ID mới chưa triển khai, chưa chạy, chưa pass. |
 
 ## 7. Exercise-kind and scoring acceptance boundary
 
@@ -187,11 +228,12 @@ These are retained technical contracts, not claims that UI or audio currently wo
 - Level 6 is one unified `Grouping in Threes` group with the six-step progression and all three signatures.
 - The seven-meter registry table, pulse BPM labels, `3/8` simple-triple distinction, and `2/2` Bonus contract are present.
 - Record the closed owner decision:3/8 has3 simple eighth beats, not1 compound beat;6/8/9/8 use medium secondary compound-beat accents. No repeated teacher confirmation for these semantics.
+- Record the three APPROVED presentation decisions;no fresh runtime pass is implied.
 - No source/test implementation or active UI route is implied by this document.
 
 ### Gate B — Future canonical model, generator và notation implementation
 
-After separate implementation approval, `AT-MTR-*`, `AT-TIM-*`, `AT-COORD-*`, `AT-BAR-*`, `AT-REST-*`, `AT-TIE-*`, `AT-CUR-*`, `AT-GEN-*`, `AT-DST-*` and `AT-NOT-*` must be run as applicable. Acceptance requires exact values, valid/invalid bars, level policy, migration of brittle legacy assertions, semantic distractor filtering and notation parity.
+After separate implementation approval, `AT-MTR-*`, `AT-TIM-*`, `AT-COORD-*`, `AT-BAR-*`, `AT-REST-*`, `AT-TIE-*`, `AT-CUR-*`, `AT-GEN-*`, `AT-DST-*`, `AT-NOT-*` and applicable `AT-PRES-*` notation/schema criteria must be run as applicable; counting/audio/UI criteria belong to their separately approved future phases. Acceptance requires exact values, valid/invalid bars, level policy, migration of brittle legacy assertions, semantic distractor filtering and notation parity.
 
 The existing duration/PPQ/tie/whole-exercise scoring rules, `+10/+0`, onset-only tap semantics, current-time and confidence handling, matching windows, four local exercise kinds, Free/Challenge wrappers and boundary behavior remain unchanged unless a separately approved contract says otherwise.
 
@@ -211,19 +253,16 @@ Only after approved implementation and all prior gates may the project checks be
 
 Only after Gate D may the normal catalog/static-manifest activation be considered. Until then Rhythm Training remains Coming Soon/inert. No deploy, WordPress change, database change, source activation, audio activation, microphone, MIDI or production release is part of this update.
 
-## 9. Open questions requiring explicit confirmation
+## 9. Quyết định đã đóng và chi tiết thực sự còn pending
 
-1. **3/8 notation beam:** Should the renderer use pulse-first breaks or an optional bar-wide beam for three eighths? Either choice must preserve simple-triple pulse coordinates; teacher approval is required before implementation.
-2. **Quy ước đã đóng:**3/8=3 phách đơn; phách phức chỉ áp dụng6/8/9/8 với Mạnh đầu ô và Vừa ở các phách phức sau. Không còn open question về “phách chính1” hoặc accent hierarchy.
-3. **UI presentation — đề xuất riêng:** nhãn chữ/marker/boundary/độ nổi bật phải phân biệt Mạnh/Vừa/Nhẹ, không chỉ màu; không thay semantics đã xác nhận, không tự biến thành runtime/gain defaults.
-4. **Counting language:** Confirm the final Vietnamese spoken counting convention before any future audio/count-in implementation.
-5. **Pilot thresholds:** Confirm timing-confidence, tap matching and readiness thresholds during a later product/device pilot; they are not acceptance evidence in this documentation-only task.
-6. **Bonus progression display:** Confirm how optional `2/2` appears to learners while keeping core completion independent of Bonus and retaining V1 support.
+Beam eighth3/8 riêngflag/compound3+3 và3+3+3;ba counting methods;hai accent forms/optionalcolor đều APPROVED. Không hỏi lại beam eighth, Vietnamese-first voice hoặc mandatory text/symbol/color combination.
+
+Còn pending: ví dụ secondary sixteenth/rest/mixed-duration notation cụ thể chưa quy định (giữ boundaries); lựa chọn voice assets/chi tiết đọc subdivision chưa mô tả (English-default và visual tựđếm giữ nguyên); pilot/confidence/matching/readiness parameters, tempo/density/quota; cách hiển thị optional Bonus2/2 và legacy seed/version policy. Các chi tiết này không cấp runtime approval hoặc thay placement, hierarchy, pulse/schema.
 
 ## 10. Exact written path and change record
 
 **Written path:** `/home/ubuntu/notnhac/client/src/modules/rhythm-training/docs/Test-and-Release-Acceptance.md`
 
-**Changes in this documentation-only update:** created this acceptance document with proposed IDs and expected values for seven-meter schema/registry, meter type, pulse BPM, tick/seconds conversion, coordinates, bar capacity, rests, ties, generator level policy, distractors, notation, curriculum structure, legacy-test migration, release gates and future-phase boundaries. Recorded the baseline hash for preservation without performing Git operations.
+**Changes in this documentation-only update:** created this acceptance document with proposed IDs and expected values for seven-meter schema/registry, meter type, pulse BPM, tick/seconds conversion, coordinates, bar capacity, rests, ties, generator level policy, distractors, notation, curriculum structure, legacy-test migration, release gates and future-phase boundaries. Historical change record retained;this update modifies Markdown acceptance only and may commit/push after consistency/hash verification, without runtime implementation.
 
 **Not changed:** no source/test/TS/TSX/JS/CSS/JSON/DB/infrastructure/dependency/shared architecture/Note Reading files; no UI/catalog/audio/metronome/MIDI/microphone/Phase 3/4/5/deploy; no parent-owned TODO/README/plan. The assigned Markdown documents are the intended documentation changes. No existing tests were run because this task is documentation-only.
