@@ -421,22 +421,22 @@ export default function Home() {
             </button>
             {guideOpen && (
               <div className="guide-content">
-                <p className="guide-intro">Đọc từ <strong>dòng dưới cùng</strong> đi lên — mỗi nấc là một nốt kế tiếp.</p>
+                <p className="guide-intro">Bắt đầu từ <strong>dòng kẻ dưới cùng</strong> rồi đọc dần lên — mỗi nấc là một nốt kế tiếp.</p>
                 <div className="guide-clef-block">
                   <div className="guide-clef-title"><span className="guide-clef-symbol">𝄞</span><span>Khóa Sol</span><span className="guide-clef-range"></span></div>
-                  <div className="note-ladder"><span className="ladder-label">Dòng kẻ</span><strong>Mi</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Si</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Fa</strong></div>
-                  <div className="note-ladder spaces"><span className="ladder-label">Kẽ</span><strong>Mi</strong><span>·</span><strong>Đô</strong><span>·</span><strong>La</strong><span>·</span><strong>Fa</strong></div>
+                  <div className="note-ladder"><span className="ladder-label">Dòng kẻ</span><strong>Mi</strong><span>·</span><strong>Sol</strong><span>·</span><strong>Si</strong><span>·</span><strong>Rê</strong><span>·</span><strong>Fa</strong></div>
+                  <div className="note-ladder spaces"><span className="ladder-label">Khe</span><strong>Fa</strong><span>·</span><strong>La</strong><span>·</span><strong>Đô</strong><span>·</span><strong>Mi</strong></div>
                 </div>
                 <div className="guide-clef-block bass-guide">
                   <div className="guide-clef-title"><span className="guide-clef-symbol bass-symbol">𝄢</span><span>Khóa Fa</span><span className="guide-clef-range">NỐT TRẦM</span></div>
-                  <div className="note-ladder"><span className="ladder-label">Dòng</span><strong>La</strong><span>·</span><strong>Fa</strong><span>·</span><strong>Rê</strong><span>·</span><strong>Si</strong><span>·</span><strong>Sol</strong></div>
-                  <div className="note-ladder spaces"><span className="ladder-label">Kẽ</span><strong>Sol</strong><span>·</span><strong>Mi</strong><span>·</span><strong>Đô</strong><span>·</span><strong>La</strong></div>
+                  <div className="note-ladder"><span className="ladder-label">Dòng kẻ</span><strong>Sol</strong><span>·</span><strong>Si</strong><span>·</span><strong>Rê</strong><span>·</span><strong>Fa</strong><span>·</span><strong>La</strong></div>
+                  <div className="note-ladder spaces"><span className="ladder-label">Khe</span><strong>La</strong><span>·</span><strong>Đô</strong><span>·</span><strong>Mi</strong><span>·</span><strong>Sol</strong></div>
                 </div>
                 <div className="guide-tip"><Sparkles size={15} /><p><strong>Mẹo nhỏ</strong><br />Hãy đọc theo thứ tự Đô – Rê – Mi – Fa – Sol – La – Si. Nốt lên một bậc, tên cũng tiến một bước.</p></div>
                 <div className="keyboard-tip"><span>{responseMode === "piano" ? "Bấm phím piano để nghe nốt." : <><span className="keycap">1</span><span className="keycap">–</span><span className="keycap">7</span> trên bàn phím để trả lời nhanh</>}</span></div>
               </div>
             )}
-            {!guideOpen && <p className="guide-collapsed-note">Mở phần hướng dẫn để xem tên nốt trên các dòng và khe.</p>}
+            {!guideOpen && <p className="guide-collapsed-note">Mở phần hướng dẫn để xem tên nốt trên các dòng kẻ và khe.</p>}
           </aside>
         </section>
         <footer className="page-footer"><span>nốt nhạc <span className="footer-separator">·</span> Luyện một chút mỗi ngày.</span><span>Nghe bằng mắt, ghi nhớ bằng thực hành.</span></footer>
