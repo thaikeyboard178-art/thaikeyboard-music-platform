@@ -1,0 +1,51 @@
+
+> notnhac@1.0.0 test /home/ubuntu/notnhac
+> vitest run
+
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/modules/note-reading/services/audio.test.ts (3 tests) 13ms
+ ✓ client/src/features/training/progress.test.ts (8 tests) 16ms
+ ✓ client/src/modules/note-reading/services/preferences.test.ts (7 tests) 13ms
+ ✓ client/src/features/training/ResultSummary.test.tsx (3 tests) 65ms
+ ✓ client/src/modules/note-reading/pages/NoteReadingPage.test.tsx (3 tests) 1027ms
+   ✓ Note Reading browser interactions > lets a learner configure the bass clef, extended range, and timed speed mode 519ms
+ ✓ client/src/app/TrainingShell.test.tsx (4 tests) 249ms
+ ✓ client/src/modules/note-reading/components/VirtualPiano.test.tsx (2 tests) 276ms
+ ✓ client/src/modules/note-reading/pages/qaRegressions.test.tsx (8 tests) 2368ms
+   ✓ QA session UI regressions > keeps the daily session date fixed across local midnight 465ms
+   ✓ QA session UI regressions > completes daily only after ten answers, stores aggregate progress and resets on retry 637ms
+ ✓ client/src/features/training/session.test.ts (7 tests) 10ms
+ ✓ client/src/modules/note-reading/notation/VexFlowStaff.test.tsx (3 tests) 347ms
+ ✓ client/src/modules/note-reading/services/ledgerRange.test.ts (6 tests) 220ms
+ ✓ client/src/modules/note-reading/services/exercises.test.ts (5 tests) 46ms
+ ✓ client/src/app/moduleRegistry.test.ts (8 tests) 9ms
+ ✓ client/src/modules/note-reading/notation/musicTheory.test.ts (6 tests) 11ms
+ ✓ client/src/pages/Home.test.tsx (1 test) 75ms
+ ✓ client/src/modules/note-reading/notation/qaFixtures.test.ts (53 tests) 210ms
+ ✓ server/auth.logout.test.ts (1 test) 6ms
+ ✓ client/src/modules/note-reading/configuration.test.ts (2 tests) 8ms
+ ✓ client/src/modules/note-reading/module.test.ts (3 tests) 4ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL: https://api.manus.ai
+
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 21ms
+ ✓ client/src/modules/note-reading/pages/uxImprovements.test.tsx (27 tests) 7098ms
+   ✓ auto-advance flow > multiple-choice ON: immediate score/feedback then exactly one transition at 900ms (true) 562ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=true 513ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=false 548ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=true 444ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=false 388ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=true 434ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=false 472ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=true 400ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=false 534ms
+
+ Test Files  21 passed (21)
+      Tests  165 passed (165)
+   Start at  16:45:25
+   Duration  9.19s (transform 903ms, setup 0ms, collect 6.56s, tests 12.09s, environment 8.77s, prepare 1.84s)

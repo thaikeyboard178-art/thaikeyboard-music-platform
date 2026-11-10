@@ -1,0 +1,3 @@
+
+> notnhac@1.0.0 check /home/ubuntu/notnhac
+> tsc --noEmit

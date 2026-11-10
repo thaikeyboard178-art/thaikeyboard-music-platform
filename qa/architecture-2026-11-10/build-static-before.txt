@@ -1,0 +1,21 @@
+
+> notnhac@1.0.0 build:static /home/ubuntu/notnhac
+> vite build
+
+vite v7.3.7 building client environment for production...
+<script src="/api/platform/config.js"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+✓ 1888 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/api/platform/config.js                  0.17 kB
+../dist/public/index.html                              0.76 kB │ gzip:   0.47 kB
+../dist/public/assets/index-CYk3bXm7.css             123.05 kB │ gzip:  22.19 kB
+../dist/public/assets/index-ClezocKc.js              422.38 kB │ gzip: 130.13 kB
+../dist/public/assets/NoteReadingPage-C6bmoReg.js  1,221.35 kB │ gzip: 715.35 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.67s

@@ -1,0 +1,55 @@
+
+> notnhac@1.0.0 test /home/ubuntu/notnhac
+> vitest run
+
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/modules/note-reading/services/audio.test.ts (3 tests) 10ms
+ ✓ client/src/features/training/progress.test.ts (9 tests) 38ms
+ ✓ client/src/modules/note-reading/services/preferences.test.ts (7 tests) 13ms
+ ✓ client/src/app/TrainingShell.test.tsx (5 tests) 289ms
+ ✓ client/src/modules/note-reading/pages/NoteReadingPage.test.tsx (3 tests) 1078ms
+   ✓ Note Reading browser interactions > lets a learner configure the bass clef, extended range, and timed speed mode 568ms
+ ✓ client/src/pages/Home.test.tsx (4 tests) 317ms
+ ✓ client/src/features/training/ResultSummary.test.tsx (3 tests) 49ms
+ ✓ client/src/modules/note-reading/pages/qaRegressions.test.tsx (8 tests) 2475ms
+   ✓ QA session UI regressions > keeps the daily session date fixed across local midnight 533ms
+   ✓ QA session UI regressions > does not bypass piano pitch and octave selection with multiple-choice number shortcuts 318ms
+   ✓ QA session UI regressions > completes daily only after ten answers, stores aggregate progress and resets on retry 658ms
+ ✓ client/src/modules/note-reading/services/ledgerRange.test.ts (6 tests) 269ms
+ ✓ client/src/features/training/session.test.ts (7 tests) 18ms
+ ✓ client/src/app/TrainingRouter.test.tsx (2 tests) 1047ms
+   ✓ catalog-driven router integration > opens the existing lazy module through its landing action 860ms
+ ✓ client/src/modules/note-reading/components/VirtualPiano.test.tsx (2 tests) 294ms
+ ✓ client/src/app/moduleRegistry.test.ts (8 tests) 10ms
+ ✓ client/src/modules/note-reading/notation/VexFlowStaff.test.tsx (3 tests) 479ms
+ ✓ client/src/modules/note-reading/services/exercises.test.ts (5 tests) 46ms
+ ✓ client/src/modules/note-reading/notation/musicTheory.test.ts (6 tests) 11ms
+ ✓ client/src/modules/note-reading/notation/qaFixtures.test.ts (53 tests) 181ms
+ ✓ server/auth.logout.test.ts (1 test) 6ms
+ ✓ client/src/modules/note-reading/configuration.test.ts (2 tests) 6ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL: https://api.manus.ai
+
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 21ms
+ ✓ client/src/modules/note-reading/module.test.ts (3 tests) 5ms
+ ✓ client/src/modules/note-reading/pages/uxImprovements.test.tsx (27 tests) 7875ms
+   ✓ auto-advance flow > multiple-choice ON: immediate score/feedback then exactly one transition at 900ms (true) 578ms
+   ✓ auto-advance flow > ending a free session cancels a pending auto timer 322ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=true 678ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=false 601ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=true 472ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=false 424ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=true 426ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=false 503ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=true 378ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=false 500ms
+
+ Test Files  22 passed (22)
+      Tests  172 passed (172)
+   Start at  16:48:14
+   Duration  9.95s (transform 995ms, setup 0ms, collect 7.37s, tests 14.54s, environment 9.81s, prepare 2.04s)

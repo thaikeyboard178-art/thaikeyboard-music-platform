@@ -1,0 +1,47 @@
+
+> notnhac@1.0.0 test /home/ubuntu/notnhac
+> vitest run
+
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/modules/note-reading/services/audio.test.ts (3 tests) 13ms
+ ✓ client/src/modules/note-reading/services/preferences.test.ts (7 tests) 14ms
+ ✓ client/src/modules/note-reading/components/VirtualPiano.test.tsx (2 tests) 301ms
+ ✓ client/src/modules/note-reading/pages/NoteReadingPage.test.tsx (3 tests) 1042ms
+   ✓ Note Reading browser interactions > lets a learner configure the bass clef, extended range, and timed speed mode 530ms
+ ✓ client/src/modules/note-reading/notation/VexFlowStaff.test.tsx (3 tests) 426ms
+ ✓ client/src/features/training/session.test.ts (6 tests) 12ms
+ ✓ client/src/modules/note-reading/services/ledgerRange.test.ts (6 tests) 250ms
+ ✓ client/src/modules/note-reading/services/exercises.test.ts (5 tests) 49ms
+ ✓ client/src/modules/note-reading/pages/qaRegressions.test.tsx (8 tests) 2415ms
+   ✓ QA session UI regressions > keeps the daily session date fixed across local midnight 518ms
+   ✓ QA session UI regressions > completes daily only after ten answers, stores aggregate progress and resets on retry 689ms
+ ✓ client/src/pages/Home.test.tsx (1 test) 57ms
+ ✓ client/src/modules/note-reading/notation/musicTheory.test.ts (6 tests) 10ms
+ ✓ client/src/modules/note-reading/notation/qaFixtures.test.ts (53 tests) 184ms
+ ✓ client/src/modules/note-reading/configuration.test.ts (2 tests) 7ms
+ ✓ server/auth.logout.test.ts (1 test) 5ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL: https://api.manus.ai
+
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 29ms
+ ✓ client/src/modules/note-reading/module.test.ts (3 tests) 5ms
+ ✓ client/src/modules/note-reading/pages/uxImprovements.test.tsx (27 tests) 7115ms
+   ✓ auto-advance flow > multiple-choice ON: immediate score/feedback then exactly one transition at 900ms (true) 485ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=true 466ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=false 444ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=true 400ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=false 397ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=true 455ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=false 554ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=true 440ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=false 605ms
+
+ Test Files  17 passed (17)
+      Tests  141 passed (141)
+   Start at  16:36:01
+   Duration  9.33s (transform 795ms, setup 0ms, collect 5.59s, tests 11.93s, environment 7.15s, prepare 1.49s)
