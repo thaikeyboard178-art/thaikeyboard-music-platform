@@ -1,0 +1,7 @@
+# Independent read-only Phase2 review
+
+The reviewer inspected the generator, distractor identities and VexFlow projection, and ran the targeted suites without modifying source or performing deployment. It identified one concrete blocker: `assertLevelConstraints` checked that cross-bar ties had two complete measures but did not apply `allowCrossBarTies:false` for Level5. A canonical two-bar4/4 fixture was therefore improperly accepted in Level5 ties focus. Level4/Level8 correctly allowed the fixture.
+
+The parent added `generation/tiePolicy.test.ts`. The new regression failed before the fix (`expected function to throw`), establishing that it detected the actual defect. The parent then added a policy guard at the cross-measure tie boundary. The regression checks rejection at Level5 and continued acceptance at Level4 andLevel8. All four required final checks are rerun after this last production change; their saved logs are the final authority.
+
+The review otherwise found coverage of canonical validation, meter-aware6/8 beams, dotted-eighth/sixteenth beams, rest beam breaks, flag suppression, partial row-break ties, actual VexFlow fraction/position parity, seeded curriculum budgets, equivalent-choice rejection and finite-vocabulary failure. No forbidden UI/audio/Note Reading/activation/infrastructure imports were found. It did not test device hearing/perception or claim audio playback correctness.

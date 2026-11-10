@@ -23,3 +23,41 @@ export {
   onsetSignature,
   soundingSignature,
 } from "./rhythm/signatures";
+export {
+  generateRhythmPattern,
+  assertLevelConstraints,
+  patternMetrics,
+} from "./generation/generator";
+export type { RhythmGenerationConfig } from "./generation/generator";
+export { LEVEL_POLICIES } from "./generation/levels";
+export type {
+  RhythmLevel,
+  RhythmFocus,
+  LevelPolicy,
+} from "./generation/levels";
+export {
+  answerSignatures,
+  choiceRejectionReason,
+} from "./generation/answerSignatures";
+export type {
+  RhythmAnswerSignatures,
+  RhythmDiscrimination,
+  ChoiceRejection,
+} from "./generation/answerSignatures";
+export {
+  generateRhythmChoices,
+  selectRhythmChoices,
+  InsufficientDistinctChoicesError,
+} from "./generation/choices";
+export type { RhythmChoice, RhythmChoiceSet } from "./generation/choices";
+export { projectRhythmNotation } from "./notation/projection";
+export type { ImmutableRhythmNotationProjection } from "./notation/projection";
+export {
+  renderRhythmNotation,
+  RhythmNotationRenderError,
+} from "./notation/VexFlowRhythm";
+export type {
+  RhythmNotationRenderResult,
+  RhythmNotationRenderOptions,
+  RhythmNotationParityReport,
+} from "./notation/VexFlowRhythm";

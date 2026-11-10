@@ -1,0 +1,4288 @@
+[
+  {
+    "id": "four-four",
+    "title": "4/4 dots, beams, rests, and tie",
+    "svg": "four-four.svg",
+    "png": "four-four.png",
+    "rendered": {
+      "svg": {},
+      "projection": {
+        "canonicalPattern": {
+          "id": "four-four-notation",
+          "meter": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "four-four-notation-bar-1",
+              "segments": [
+                {
+                  "id": "four-dot-eighth",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 1
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "four-sixteenth",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 16,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "four-tie"
+                }
+              ]
+            },
+            {
+              "id": "four-four-notation-bar-2",
+              "segments": [
+                {
+                  "id": "four-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "four-tie"
+                },
+                {
+                  "id": "four-note-after-tie",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-final-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pattern": {
+          "id": "four-four-notation",
+          "meter": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "four-four-notation-bar-1",
+              "segments": [
+                {
+                  "id": "four-dot-eighth",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 1
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "four-sixteenth",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 16,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "four-tie"
+                }
+              ]
+            },
+            {
+              "id": "four-four-notation-bar-2",
+              "segments": [
+                {
+                  "id": "four-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "four-tie"
+                },
+                {
+                  "id": "four-note-after-tie",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-beam-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "four-final-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "timeline": {
+          "pattern": {
+            "id": "four-four-notation",
+            "meter": {
+              "numerator": 4,
+              "denominator": 4
+            },
+            "tempo": {
+              "pulseBpm": 80
+            },
+            "measures": [
+              {
+                "id": "four-four-notation-bar-1",
+                "segments": [
+                  {
+                    "id": "four-dot-eighth",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 1
+                    },
+                    "accent": "strong"
+                  },
+                  {
+                    "id": "four-sixteenth",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 16,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-beam-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-beam-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-tie-start",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    },
+                    "tieGroupId": "four-tie"
+                  }
+                ]
+              },
+              {
+                "id": "four-four-notation-bar-2",
+                "segments": [
+                  {
+                    "id": "four-tie-end",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    },
+                    "tieGroupId": "four-tie"
+                  },
+                  {
+                    "id": "four-note-after-tie",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-beam-c",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-beam-d",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "four-final-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "meter": {
+            "meter": {
+              "numerator": 4,
+              "denominator": 4
+            },
+            "measureTicks": 1920,
+            "pulseTicks": 480,
+            "pulseCount": 4,
+            "pulseStarts": [
+              0,
+              480,
+              960,
+              1440
+            ],
+            "groups": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "pulseUnit": {
+              "denominator": 4,
+              "dots": 0
+            }
+          },
+          "totalTicks": 3840,
+          "segments": [
+            {
+              "segmentId": "four-dot-eighth",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 360,
+              "absoluteStartTicks": 0,
+              "absoluteEndTicks": 360,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "strong"
+            },
+            {
+              "segmentId": "four-sixteenth",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 120,
+              "absoluteStartTicks": 360,
+              "absoluteEndTicks": 480,
+              "measureOffsetTicks": 360,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 360,
+              "subdivisionIndex": 3,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-beam-a",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 480,
+              "absoluteEndTicks": 720,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-beam-b",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 3,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 720,
+              "absoluteEndTicks": 960,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-rest",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 4,
+              "kind": "rest",
+              "durationTicks": 480,
+              "absoluteStartTicks": 960,
+              "absoluteEndTicks": 1440,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-tie-start",
+              "measureId": "four-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 5,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 1440,
+              "absoluteEndTicks": 1920,
+              "measureOffsetTicks": 1440,
+              "pulseIndex": 3,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "start",
+              "tieGroupId": "four-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-tie-end",
+              "measureId": "four-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 1920,
+              "absoluteEndTicks": 2400,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "end",
+              "tieGroupId": "four-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-note-after-tie",
+              "measureId": "four-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 2400,
+              "absoluteEndTicks": 2880,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-beam-c",
+              "measureId": "four-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2880,
+              "absoluteEndTicks": 3120,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-beam-d",
+              "measureId": "four-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 3,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 3120,
+              "absoluteEndTicks": 3360,
+              "measureOffsetTicks": 1200,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "four-final-rest",
+              "measureId": "four-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 4,
+              "kind": "rest",
+              "durationTicks": 480,
+              "absoluteStartTicks": 3360,
+              "absoluteEndTicks": 3840,
+              "measureOffsetTicks": 1440,
+              "pulseIndex": 3,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            }
+          ],
+          "onsets": [
+            0,
+            360,
+            480,
+            720,
+            1440,
+            2400,
+            2880,
+            3120
+          ],
+          "soundingSpans": [
+            {
+              "startTicks": 0,
+              "endTicks": 360,
+              "segmentIds": [
+                "four-dot-eighth"
+              ],
+              "accent": "strong"
+            },
+            {
+              "startTicks": 360,
+              "endTicks": 480,
+              "segmentIds": [
+                "four-sixteenth"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 480,
+              "endTicks": 720,
+              "segmentIds": [
+                "four-beam-a"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 720,
+              "endTicks": 960,
+              "segmentIds": [
+                "four-beam-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 1440,
+              "endTicks": 2400,
+              "segmentIds": [
+                "four-tie-start",
+                "four-tie-end"
+              ],
+              "tieGroupId": "four-tie",
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2400,
+              "endTicks": 2880,
+              "segmentIds": [
+                "four-note-after-tie"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2880,
+              "endTicks": 3120,
+              "segmentIds": [
+                "four-beam-c"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 3120,
+              "endTicks": 3360,
+              "segmentIds": [
+                "four-beam-d"
+              ],
+              "accent": "normal"
+            }
+          ]
+        },
+        "segments": [
+          {
+            "segmentId": "four-dot-eighth",
+            "segmentID": "four-dot-eighth",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 1,
+            "canonicalDurationTicks": 360,
+            "startTicks": 0,
+            "endTicks": 360,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 360,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "strong"
+          },
+          {
+            "segmentId": "four-sixteenth",
+            "segmentID": "four-sixteenth",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "16",
+            "durationString": "16",
+            "dotCount": 0,
+            "canonicalDurationTicks": 120,
+            "startTicks": 360,
+            "endTicks": 480,
+            "absoluteStartTicks": 360,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-beam-a",
+            "segmentID": "four-beam-a",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-beam-b",
+            "segmentID": "four-beam-b",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-rest",
+            "segmentID": "four-rest",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 960,
+            "endTicks": 1440,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1440,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-tie-start",
+            "segmentID": "four-tie-start",
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 1440,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "start",
+            "tieGroupId": "four-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-tie-end",
+            "segmentID": "four-tie-end",
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 1920,
+            "endTicks": 2400,
+            "absoluteStartTicks": 1920,
+            "absoluteEndTicks": 2400,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "end",
+            "tieGroupId": "four-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-note-after-tie",
+            "segmentID": "four-note-after-tie",
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 2400,
+            "endTicks": 2880,
+            "absoluteStartTicks": 2400,
+            "absoluteEndTicks": 2880,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-beam-c",
+            "segmentID": "four-beam-c",
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2880,
+            "endTicks": 3120,
+            "absoluteStartTicks": 2880,
+            "absoluteEndTicks": 3120,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-beam-d",
+            "segmentID": "four-beam-d",
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 3120,
+            "endTicks": 3360,
+            "absoluteStartTicks": 3120,
+            "absoluteEndTicks": 3360,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "four-final-rest",
+            "segmentID": "four-final-rest",
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 4,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 3360,
+            "endTicks": 3840,
+            "absoluteStartTicks": 3360,
+            "absoluteEndTicks": 3840,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          }
+        ],
+        "beamGroups": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "four-dot-eighth",
+              "four-sixteenth"
+            ],
+            "segmentIDs": [
+              "four-dot-eighth",
+              "four-sixteenth"
+            ],
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 480
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "four-beam-a",
+              "four-beam-b"
+            ],
+            "segmentIDs": [
+              "four-beam-a",
+              "four-beam-b"
+            ],
+            "measureId": "four-four-notation-bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 480,
+            "endTicks": 960
+          },
+          {
+            "id": "beam-3",
+            "segmentIds": [
+              "four-beam-c",
+              "four-beam-d"
+            ],
+            "segmentIDs": [
+              "four-beam-c",
+              "four-beam-d"
+            ],
+            "measureId": "four-four-notation-bar-2",
+            "measureIndex": 1,
+            "pulseIndex": 2,
+            "startTicks": 2880,
+            "endTicks": 3360
+          }
+        ],
+        "tieEdges": [
+          {
+            "id": "tie-1",
+            "fromSegmentId": "four-tie-start",
+            "toSegmentId": "four-tie-end",
+            "fromSegmentID": "four-tie-start",
+            "toSegmentID": "four-tie-end",
+            "tieGroupId": "four-tie",
+            "crossesBarline": true
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "four-four-notation-bar-1",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          },
+          {
+            "measureId": "four-four-notation-bar-2",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "four-dot-eighth",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 360,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "3072/1",
+            "actualVexFlowDurationTicks": "3072/1",
+            "actualX": 76.95996856689453,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-sixteenth",
+            "canonicalStartTicks": 360,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "3072/1",
+            "actualVexFlowStartTicks": "3072/1",
+            "expectedVexFlowDurationTicks": "1024/1",
+            "actualVexFlowDurationTicks": "1024/1",
+            "actualX": 153.58065667074516,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-beam-a",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 211.03806699489093,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-beam-b",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 277.3888493241245,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-rest",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 343.7396316533581,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-tie-start",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 432.2198219301947,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-tie-end",
+            "canonicalStartTicks": 1920,
+            "canonicalEndTicks": 2400,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 563.5,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-note-after-tie",
+            "canonicalStartTicks": 2400,
+            "canonicalEndTicks": 2880,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 661.6601735705796,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-beam-c",
+            "canonicalStartTicks": 2880,
+            "canonicalEndTicks": 3120,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 759.8203471411591,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-beam-d",
+            "canonicalStartTicks": 3120,
+            "canonicalEndTicks": 3360,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 833.4300928888053,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "four-final-rest",
+            "canonicalStartTicks": 3360,
+            "canonicalEndTicks": 3840,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 907.0398386364518,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "three-four",
+    "title": "3/4 dotted rest and eighth pair",
+    "svg": "three-four.svg",
+    "png": "three-four.png",
+    "rendered": {
+      "svg": {},
+      "projection": {
+        "canonicalPattern": {
+          "id": "three-four-notation",
+          "meter": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "three-four-notation-bar-1",
+              "segments": [
+                {
+                  "id": "three-dotted-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 1
+                  }
+                },
+                {
+                  "id": "three-eighth-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "three-eighth-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-final-eighth-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": "three-four-notation-bar-2",
+              "segments": [
+                {
+                  "id": "three-quarter",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "three-beam-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-beam-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-quarter-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pattern": {
+          "id": "three-four-notation",
+          "meter": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "three-four-notation-bar-1",
+              "segments": [
+                {
+                  "id": "three-dotted-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 1
+                  }
+                },
+                {
+                  "id": "three-eighth-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "three-eighth-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-final-eighth-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            },
+            {
+              "id": "three-four-notation-bar-2",
+              "segments": [
+                {
+                  "id": "three-quarter",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "three-beam-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-beam-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "three-quarter-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "timeline": {
+          "pattern": {
+            "id": "three-four-notation",
+            "meter": {
+              "numerator": 3,
+              "denominator": 4
+            },
+            "tempo": {
+              "pulseBpm": 80
+            },
+            "measures": [
+              {
+                "id": "three-four-notation-bar-1",
+                "segments": [
+                  {
+                    "id": "three-dotted-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 1
+                    }
+                  },
+                  {
+                    "id": "three-eighth-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    },
+                    "accent": "strong"
+                  },
+                  {
+                    "id": "three-eighth-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "three-final-eighth-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "three-four-notation-bar-2",
+                "segments": [
+                  {
+                    "id": "three-quarter",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    },
+                    "accent": "strong"
+                  },
+                  {
+                    "id": "three-beam-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "three-beam-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "three-quarter-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "meter": {
+            "meter": {
+              "numerator": 3,
+              "denominator": 4
+            },
+            "measureTicks": 1440,
+            "pulseTicks": 480,
+            "pulseCount": 3,
+            "pulseStarts": [
+              0,
+              480,
+              960
+            ],
+            "groups": [
+              1,
+              1,
+              1
+            ],
+            "pulseUnit": {
+              "denominator": 4,
+              "dots": 0
+            }
+          },
+          "totalTicks": 2880,
+          "segments": [
+            {
+              "segmentId": "three-dotted-rest",
+              "measureId": "three-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 0,
+              "kind": "rest",
+              "durationTicks": 720,
+              "absoluteStartTicks": 0,
+              "absoluteEndTicks": 720,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "three-eighth-a",
+              "measureId": "three-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 720,
+              "absoluteEndTicks": 960,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "strong"
+            },
+            {
+              "segmentId": "three-eighth-b",
+              "measureId": "three-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 960,
+              "absoluteEndTicks": 1200,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "three-final-eighth-rest",
+              "measureId": "three-four-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 3,
+              "kind": "rest",
+              "durationTicks": 240,
+              "absoluteStartTicks": 1200,
+              "absoluteEndTicks": 1440,
+              "measureOffsetTicks": 1200,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "three-quarter",
+              "measureId": "three-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 1440,
+              "absoluteEndTicks": 1920,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "strong"
+            },
+            {
+              "segmentId": "three-beam-a",
+              "measureId": "three-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 1920,
+              "absoluteEndTicks": 2160,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "three-beam-b",
+              "measureId": "three-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2160,
+              "absoluteEndTicks": 2400,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "three-quarter-rest",
+              "measureId": "three-four-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 3,
+              "kind": "rest",
+              "durationTicks": 480,
+              "absoluteStartTicks": 2400,
+              "absoluteEndTicks": 2880,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            }
+          ],
+          "onsets": [
+            720,
+            960,
+            1440,
+            1920,
+            2160
+          ],
+          "soundingSpans": [
+            {
+              "startTicks": 720,
+              "endTicks": 960,
+              "segmentIds": [
+                "three-eighth-a"
+              ],
+              "accent": "strong"
+            },
+            {
+              "startTicks": 960,
+              "endTicks": 1200,
+              "segmentIds": [
+                "three-eighth-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 1440,
+              "endTicks": 1920,
+              "segmentIds": [
+                "three-quarter"
+              ],
+              "accent": "strong"
+            },
+            {
+              "startTicks": 1920,
+              "endTicks": 2160,
+              "segmentIds": [
+                "three-beam-a"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2160,
+              "endTicks": 2400,
+              "segmentIds": [
+                "three-beam-b"
+              ],
+              "accent": "normal"
+            }
+          ]
+        },
+        "segments": [
+          {
+            "segmentId": "three-dotted-rest",
+            "segmentID": "three-dotted-rest",
+            "measureId": "three-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 1,
+            "canonicalDurationTicks": 720,
+            "startTicks": 0,
+            "endTicks": 720,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 720,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "three-eighth-a",
+            "segmentID": "three-eighth-a",
+            "measureId": "three-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "strong"
+          },
+          {
+            "segmentId": "three-eighth-b",
+            "segmentID": "three-eighth-b",
+            "measureId": "three-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "three-final-eighth-rest",
+            "segmentID": "three-final-eighth-rest",
+            "measureId": "three-four-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "rest",
+            "duration": "8r",
+            "durationString": "8r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "three-quarter",
+            "segmentID": "three-quarter",
+            "measureId": "three-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 1440,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "strong"
+          },
+          {
+            "segmentId": "three-beam-a",
+            "segmentID": "three-beam-a",
+            "measureId": "three-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1920,
+            "endTicks": 2160,
+            "absoluteStartTicks": 1920,
+            "absoluteEndTicks": 2160,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "three-beam-b",
+            "segmentID": "three-beam-b",
+            "measureId": "three-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2160,
+            "endTicks": 2400,
+            "absoluteStartTicks": 2160,
+            "absoluteEndTicks": 2400,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "three-quarter-rest",
+            "segmentID": "three-quarter-rest",
+            "measureId": "three-four-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 3,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 2400,
+            "endTicks": 2880,
+            "absoluteStartTicks": 2400,
+            "absoluteEndTicks": 2880,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          }
+        ],
+        "beamGroups": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "three-beam-a",
+              "three-beam-b"
+            ],
+            "segmentIDs": [
+              "three-beam-a",
+              "three-beam-b"
+            ],
+            "measureId": "three-four-notation-bar-2",
+            "measureIndex": 1,
+            "pulseIndex": 1,
+            "startTicks": 1920,
+            "endTicks": 2400
+          }
+        ],
+        "tieEdges": []
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "three-four-notation-bar-1",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          },
+          {
+            "measureId": "three-four-notation-bar-2",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "three-dotted-rest",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "6144/1",
+            "actualVexFlowDurationTicks": "6144/1",
+            "actualX": 76.07997131347656,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-eighth-a",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 262.04627695316685,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-eighth-b",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 348.3641897217076,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-final-eighth-rest",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 434.6821024902483,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-quarter",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 562.879997253418,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-beam-a",
+            "canonicalStartTicks": 1920,
+            "canonicalEndTicks": 2160,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 694.4216916127591,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-beam-b",
+            "canonicalStartTicks": 2160,
+            "canonicalEndTicks": 2400,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 784.0400047302246,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "three-quarter-rest",
+            "canonicalStartTicks": 2400,
+            "canonicalEndTicks": 2880,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 873.6583178476901,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "six-eight",
+    "title": "6/8 compound 3+3 beams and tie",
+    "svg": "six-eight.svg",
+    "png": "six-eight.png",
+    "rendered": {
+      "svg": {},
+      "projection": {
+        "canonicalPattern": {
+          "id": "six-eight-notation",
+          "meter": {
+            "numerator": 6,
+            "denominator": 8
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "six-eight-notation-bar-1",
+              "segments": [
+                {
+                  "id": "six-first-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "six-first-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-first-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-dotted-quarter-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "six-eight-notation-bar-2",
+              "segments": [
+                {
+                  "id": "six-second-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "six-second-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-e",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "tieGroupId": "six-tie"
+                }
+              ]
+            },
+            {
+              "id": "six-eight-notation-bar-3",
+              "segments": [
+                {
+                  "id": "six-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "tieGroupId": "six-tie"
+                },
+                {
+                  "id": "six-third-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-e",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-f",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pattern": {
+          "id": "six-eight-notation",
+          "meter": {
+            "numerator": 6,
+            "denominator": 8
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "six-eight-notation-bar-1",
+              "segments": [
+                {
+                  "id": "six-first-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "six-first-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-first-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-dotted-quarter-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "six-eight-notation-bar-2",
+              "segments": [
+                {
+                  "id": "six-second-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "accent": "strong"
+                },
+                {
+                  "id": "six-second-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-second-e",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "tieGroupId": "six-tie"
+                }
+              ]
+            },
+            {
+              "id": "six-eight-notation-bar-3",
+              "segments": [
+                {
+                  "id": "six-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  },
+                  "tieGroupId": "six-tie"
+                },
+                {
+                  "id": "six-third-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-e",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "six-third-f",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "timeline": {
+          "pattern": {
+            "id": "six-eight-notation",
+            "meter": {
+              "numerator": 6,
+              "denominator": 8
+            },
+            "tempo": {
+              "pulseBpm": 60
+            },
+            "measures": [
+              {
+                "id": "six-eight-notation-bar-1",
+                "segments": [
+                  {
+                    "id": "six-first-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    },
+                    "accent": "strong"
+                  },
+                  {
+                    "id": "six-first-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-first-c",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-dotted-quarter-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 1
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "six-eight-notation-bar-2",
+                "segments": [
+                  {
+                    "id": "six-second-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    },
+                    "accent": "strong"
+                  },
+                  {
+                    "id": "six-second-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-second-c",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-second-d",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-second-e",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-tie-start",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    },
+                    "tieGroupId": "six-tie"
+                  }
+                ]
+              },
+              {
+                "id": "six-eight-notation-bar-3",
+                "segments": [
+                  {
+                    "id": "six-tie-end",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    },
+                    "tieGroupId": "six-tie"
+                  },
+                  {
+                    "id": "six-third-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-third-c",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-third-d",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-third-e",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "six-third-f",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 8,
+                      "dots": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "meter": {
+            "meter": {
+              "numerator": 6,
+              "denominator": 8
+            },
+            "measureTicks": 1440,
+            "pulseTicks": 720,
+            "pulseCount": 2,
+            "pulseStarts": [
+              0,
+              720
+            ],
+            "groups": [
+              3,
+              3
+            ],
+            "pulseUnit": {
+              "denominator": 4,
+              "dots": 1
+            }
+          },
+          "totalTicks": 4320,
+          "segments": [
+            {
+              "segmentId": "six-first-a",
+              "measureId": "six-eight-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 0,
+              "absoluteEndTicks": 240,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "strong"
+            },
+            {
+              "segmentId": "six-first-b",
+              "measureId": "six-eight-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 240,
+              "absoluteEndTicks": 480,
+              "measureOffsetTicks": 240,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-first-c",
+              "measureId": "six-eight-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 480,
+              "absoluteEndTicks": 720,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 480,
+              "subdivisionIndex": 4,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-dotted-quarter-rest",
+              "measureId": "six-eight-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 3,
+              "kind": "rest",
+              "durationTicks": 720,
+              "absoluteStartTicks": 720,
+              "absoluteEndTicks": 1440,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-second-a",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 1440,
+              "absoluteEndTicks": 1680,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "strong"
+            },
+            {
+              "segmentId": "six-second-b",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 1680,
+              "absoluteEndTicks": 1920,
+              "measureOffsetTicks": 240,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-second-c",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 1920,
+              "absoluteEndTicks": 2160,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 480,
+              "subdivisionIndex": 4,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-second-d",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 3,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2160,
+              "absoluteEndTicks": 2400,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-second-e",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 4,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2400,
+              "absoluteEndTicks": 2640,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-tie-start",
+              "measureId": "six-eight-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 5,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2640,
+              "absoluteEndTicks": 2880,
+              "measureOffsetTicks": 1200,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 480,
+              "subdivisionIndex": 4,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "start",
+              "tieGroupId": "six-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-tie-end",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 2880,
+              "absoluteEndTicks": 3120,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "end",
+              "tieGroupId": "six-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-third-b",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 3120,
+              "absoluteEndTicks": 3360,
+              "measureOffsetTicks": 240,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-third-c",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 3360,
+              "absoluteEndTicks": 3600,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 480,
+              "subdivisionIndex": 4,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-third-d",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 3,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 3600,
+              "absoluteEndTicks": 3840,
+              "measureOffsetTicks": 720,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-third-e",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 4,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 3840,
+              "absoluteEndTicks": 4080,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 240,
+              "subdivisionIndex": 2,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "six-third-f",
+              "measureId": "six-eight-notation-bar-3",
+              "measureIndex": 2,
+              "segmentIndex": 5,
+              "kind": "note",
+              "durationTicks": 240,
+              "absoluteStartTicks": 4080,
+              "absoluteEndTicks": 4320,
+              "measureOffsetTicks": 1200,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 480,
+              "subdivisionIndex": 4,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            }
+          ],
+          "onsets": [
+            0,
+            240,
+            480,
+            1440,
+            1680,
+            1920,
+            2160,
+            2400,
+            2640,
+            3120,
+            3360,
+            3600,
+            3840,
+            4080
+          ],
+          "soundingSpans": [
+            {
+              "startTicks": 0,
+              "endTicks": 240,
+              "segmentIds": [
+                "six-first-a"
+              ],
+              "accent": "strong"
+            },
+            {
+              "startTicks": 240,
+              "endTicks": 480,
+              "segmentIds": [
+                "six-first-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 480,
+              "endTicks": 720,
+              "segmentIds": [
+                "six-first-c"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 1440,
+              "endTicks": 1680,
+              "segmentIds": [
+                "six-second-a"
+              ],
+              "accent": "strong"
+            },
+            {
+              "startTicks": 1680,
+              "endTicks": 1920,
+              "segmentIds": [
+                "six-second-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 1920,
+              "endTicks": 2160,
+              "segmentIds": [
+                "six-second-c"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2160,
+              "endTicks": 2400,
+              "segmentIds": [
+                "six-second-d"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2400,
+              "endTicks": 2640,
+              "segmentIds": [
+                "six-second-e"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2640,
+              "endTicks": 3120,
+              "segmentIds": [
+                "six-tie-start",
+                "six-tie-end"
+              ],
+              "tieGroupId": "six-tie",
+              "accent": "normal"
+            },
+            {
+              "startTicks": 3120,
+              "endTicks": 3360,
+              "segmentIds": [
+                "six-third-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 3360,
+              "endTicks": 3600,
+              "segmentIds": [
+                "six-third-c"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 3600,
+              "endTicks": 3840,
+              "segmentIds": [
+                "six-third-d"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 3840,
+              "endTicks": 4080,
+              "segmentIds": [
+                "six-third-e"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 4080,
+              "endTicks": 4320,
+              "segmentIds": [
+                "six-third-f"
+              ],
+              "accent": "normal"
+            }
+          ]
+        },
+        "segments": [
+          {
+            "segmentId": "six-first-a",
+            "segmentID": "six-first-a",
+            "measureId": "six-eight-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "strong"
+          },
+          {
+            "segmentId": "six-first-b",
+            "segmentID": "six-first-b",
+            "measureId": "six-eight-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-first-c",
+            "segmentID": "six-first-c",
+            "measureId": "six-eight-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-dotted-quarter-rest",
+            "segmentID": "six-dotted-quarter-rest",
+            "measureId": "six-eight-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 1,
+            "canonicalDurationTicks": 720,
+            "startTicks": 720,
+            "endTicks": 1440,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 1440,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-second-a",
+            "segmentID": "six-second-a",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1440,
+            "endTicks": 1680,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1680,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "strong"
+          },
+          {
+            "segmentId": "six-second-b",
+            "segmentID": "six-second-b",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1680,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1680,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-second-c",
+            "segmentID": "six-second-c",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1920,
+            "endTicks": 2160,
+            "absoluteStartTicks": 1920,
+            "absoluteEndTicks": 2160,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-second-d",
+            "segmentID": "six-second-d",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2160,
+            "endTicks": 2400,
+            "absoluteStartTicks": 2160,
+            "absoluteEndTicks": 2400,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-second-e",
+            "segmentID": "six-second-e",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2400,
+            "endTicks": 2640,
+            "absoluteStartTicks": 2400,
+            "absoluteEndTicks": 2640,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-tie-start",
+            "segmentID": "six-tie-start",
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2640,
+            "endTicks": 2880,
+            "absoluteStartTicks": 2640,
+            "absoluteEndTicks": 2880,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "start",
+            "tieGroupId": "six-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-tie-end",
+            "segmentID": "six-tie-end",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 2880,
+            "endTicks": 3120,
+            "absoluteStartTicks": 2880,
+            "absoluteEndTicks": 3120,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "end",
+            "tieGroupId": "six-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-third-b",
+            "segmentID": "six-third-b",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 3120,
+            "endTicks": 3360,
+            "absoluteStartTicks": 3120,
+            "absoluteEndTicks": 3360,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-third-c",
+            "segmentID": "six-third-c",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 3360,
+            "endTicks": 3600,
+            "absoluteStartTicks": 3360,
+            "absoluteEndTicks": 3600,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-third-d",
+            "segmentID": "six-third-d",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 3600,
+            "endTicks": 3840,
+            "absoluteStartTicks": 3600,
+            "absoluteEndTicks": 3840,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-third-e",
+            "segmentID": "six-third-e",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 3840,
+            "endTicks": 4080,
+            "absoluteStartTicks": 3840,
+            "absoluteEndTicks": 4080,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "six-third-f",
+            "segmentID": "six-third-f",
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 4080,
+            "endTicks": 4320,
+            "absoluteStartTicks": 4080,
+            "absoluteEndTicks": 4320,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          }
+        ],
+        "beamGroups": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "six-first-a",
+              "six-first-b",
+              "six-first-c"
+            ],
+            "segmentIDs": [
+              "six-first-a",
+              "six-first-b",
+              "six-first-c"
+            ],
+            "measureId": "six-eight-notation-bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 720
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "six-second-a",
+              "six-second-b",
+              "six-second-c"
+            ],
+            "segmentIDs": [
+              "six-second-a",
+              "six-second-b",
+              "six-second-c"
+            ],
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "pulseIndex": 0,
+            "startTicks": 1440,
+            "endTicks": 2160
+          },
+          {
+            "id": "beam-3",
+            "segmentIds": [
+              "six-second-d",
+              "six-second-e",
+              "six-tie-start"
+            ],
+            "segmentIDs": [
+              "six-second-d",
+              "six-second-e",
+              "six-tie-start"
+            ],
+            "measureId": "six-eight-notation-bar-2",
+            "measureIndex": 1,
+            "pulseIndex": 1,
+            "startTicks": 2160,
+            "endTicks": 2880
+          },
+          {
+            "id": "beam-4",
+            "segmentIds": [
+              "six-tie-end",
+              "six-third-b",
+              "six-third-c"
+            ],
+            "segmentIDs": [
+              "six-tie-end",
+              "six-third-b",
+              "six-third-c"
+            ],
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "pulseIndex": 0,
+            "startTicks": 2880,
+            "endTicks": 3600
+          },
+          {
+            "id": "beam-5",
+            "segmentIds": [
+              "six-third-d",
+              "six-third-e",
+              "six-third-f"
+            ],
+            "segmentIDs": [
+              "six-third-d",
+              "six-third-e",
+              "six-third-f"
+            ],
+            "measureId": "six-eight-notation-bar-3",
+            "measureIndex": 2,
+            "pulseIndex": 1,
+            "startTicks": 3600,
+            "endTicks": 4320
+          }
+        ],
+        "tieEdges": [
+          {
+            "id": "tie-1",
+            "fromSegmentId": "six-tie-start",
+            "toSegmentId": "six-tie-end",
+            "fromSegmentID": "six-tie-start",
+            "toSegmentID": "six-tie-end",
+            "tieGroupId": "six-tie",
+            "crossesBarline": true
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "six-eight-notation-bar-1",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          },
+          {
+            "measureId": "six-eight-notation-bar-2",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          },
+          {
+            "measureId": "six-eight-notation-bar-3",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "six-first-a",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 75.59996795654297,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-first-b",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 160.6917521436029,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-first-c",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 245.78353633066288,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-dotted-quarter-rest",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "6144/1",
+            "actualVexFlowDurationTicks": "6144/1",
+            "actualX": 330.87532051772286,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-second-a",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1680,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 559.879997253418,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-second-b",
+            "canonicalStartTicks": 1680,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 639.0666643778483,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-second-c",
+            "canonicalStartTicks": 1920,
+            "canonicalEndTicks": 2160,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 718.2533315022786,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-second-d",
+            "canonicalStartTicks": 2160,
+            "canonicalEndTicks": 2400,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 797.439998626709,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-second-e",
+            "canonicalStartTicks": 2400,
+            "canonicalEndTicks": 2640,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 876.6266657511393,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-tie-start",
+            "canonicalStartTicks": 2640,
+            "canonicalEndTicks": 2880,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 955.8133328755696,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-tie-end",
+            "canonicalStartTicks": 2880,
+            "canonicalEndTicks": 3120,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 74.719970703125,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-third-b",
+            "canonicalStartTicks": 3120,
+            "canonicalEndTicks": 3360,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 227.6666463216146,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-third-c",
+            "canonicalStartTicks": 3360,
+            "canonicalEndTicks": 3600,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 380.6133219401042,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-third-d",
+            "canonicalStartTicks": 3600,
+            "canonicalEndTicks": 3840,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 533.5599975585938,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-third-e",
+            "canonicalStartTicks": 3840,
+            "canonicalEndTicks": 4080,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 686.5066731770834,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "six-third-f",
+            "canonicalStartTicks": 4080,
+            "canonicalEndTicks": 4320,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 839.453348795573,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "cross-bar",
+    "title": "Cross-bar tie with rests",
+    "svg": "cross-bar.svg",
+    "png": "cross-bar.png",
+    "rendered": {
+      "svg": {},
+      "projection": {
+        "canonicalPattern": {
+          "id": "cross-bar-notation",
+          "meter": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "cross-bar-notation-bar-1",
+              "segments": [
+                {
+                  "id": "cross-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "cross-tie"
+                }
+              ]
+            },
+            {
+              "id": "cross-bar-notation-bar-2",
+              "segments": [
+                {
+                  "id": "cross-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "cross-tie"
+                },
+                {
+                  "id": "cross-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-rest-end",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pattern": {
+          "id": "cross-bar-notation",
+          "meter": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 80
+          },
+          "measures": [
+            {
+              "id": "cross-bar-notation-bar-1",
+              "segments": [
+                {
+                  "id": "cross-a",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-b",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-rest",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-tie-start",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "cross-tie"
+                }
+              ]
+            },
+            {
+              "id": "cross-bar-notation-bar-2",
+              "segments": [
+                {
+                  "id": "cross-tie-end",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  },
+                  "tieGroupId": "cross-tie"
+                },
+                {
+                  "id": "cross-c",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-d",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "cross-rest-end",
+                  "kind": "rest",
+                  "duration": {
+                    "denominator": 4,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "timeline": {
+          "pattern": {
+            "id": "cross-bar-notation",
+            "meter": {
+              "numerator": 4,
+              "denominator": 4
+            },
+            "tempo": {
+              "pulseBpm": 80
+            },
+            "measures": [
+              {
+                "id": "cross-bar-notation-bar-1",
+                "segments": [
+                  {
+                    "id": "cross-a",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "cross-b",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "cross-rest",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "cross-tie-start",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    },
+                    "tieGroupId": "cross-tie"
+                  }
+                ]
+              },
+              {
+                "id": "cross-bar-notation-bar-2",
+                "segments": [
+                  {
+                    "id": "cross-tie-end",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    },
+                    "tieGroupId": "cross-tie"
+                  },
+                  {
+                    "id": "cross-c",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "cross-d",
+                    "kind": "note",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  },
+                  {
+                    "id": "cross-rest-end",
+                    "kind": "rest",
+                    "duration": {
+                      "denominator": 4,
+                      "dots": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "meter": {
+            "meter": {
+              "numerator": 4,
+              "denominator": 4
+            },
+            "measureTicks": 1920,
+            "pulseTicks": 480,
+            "pulseCount": 4,
+            "pulseStarts": [
+              0,
+              480,
+              960,
+              1440
+            ],
+            "groups": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "pulseUnit": {
+              "denominator": 4,
+              "dots": 0
+            }
+          },
+          "totalTicks": 3840,
+          "segments": [
+            {
+              "segmentId": "cross-a",
+              "measureId": "cross-bar-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 0,
+              "absoluteEndTicks": 480,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-b",
+              "measureId": "cross-bar-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 480,
+              "absoluteEndTicks": 960,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-rest",
+              "measureId": "cross-bar-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 2,
+              "kind": "rest",
+              "durationTicks": 480,
+              "absoluteStartTicks": 960,
+              "absoluteEndTicks": 1440,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-tie-start",
+              "measureId": "cross-bar-notation-bar-1",
+              "measureIndex": 0,
+              "segmentIndex": 3,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 1440,
+              "absoluteEndTicks": 1920,
+              "measureOffsetTicks": 1440,
+              "pulseIndex": 3,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "start",
+              "tieGroupId": "cross-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-tie-end",
+              "measureId": "cross-bar-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 0,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 1920,
+              "absoluteEndTicks": 2400,
+              "measureOffsetTicks": 0,
+              "pulseIndex": 0,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "end",
+              "tieGroupId": "cross-tie",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-c",
+              "measureId": "cross-bar-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 1,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 2400,
+              "absoluteEndTicks": 2880,
+              "measureOffsetTicks": 480,
+              "pulseIndex": 1,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-d",
+              "measureId": "cross-bar-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 2,
+              "kind": "note",
+              "durationTicks": 480,
+              "absoluteStartTicks": 2880,
+              "absoluteEndTicks": 3360,
+              "measureOffsetTicks": 960,
+              "pulseIndex": 2,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": true,
+              "tieRole": "none",
+              "accent": "normal"
+            },
+            {
+              "segmentId": "cross-rest-end",
+              "measureId": "cross-bar-notation-bar-2",
+              "measureIndex": 1,
+              "segmentIndex": 3,
+              "kind": "rest",
+              "durationTicks": 480,
+              "absoluteStartTicks": 3360,
+              "absoluteEndTicks": 3840,
+              "measureOffsetTicks": 1440,
+              "pulseIndex": 3,
+              "pulseOffsetTicks": 0,
+              "subdivisionIndex": 0,
+              "subdivisionTicks": 120,
+              "isOnset": false,
+              "tieRole": "none",
+              "accent": "normal"
+            }
+          ],
+          "onsets": [
+            0,
+            480,
+            1440,
+            2400,
+            2880
+          ],
+          "soundingSpans": [
+            {
+              "startTicks": 0,
+              "endTicks": 480,
+              "segmentIds": [
+                "cross-a"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 480,
+              "endTicks": 960,
+              "segmentIds": [
+                "cross-b"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 1440,
+              "endTicks": 2400,
+              "segmentIds": [
+                "cross-tie-start",
+                "cross-tie-end"
+              ],
+              "tieGroupId": "cross-tie",
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2400,
+              "endTicks": 2880,
+              "segmentIds": [
+                "cross-c"
+              ],
+              "accent": "normal"
+            },
+            {
+              "startTicks": 2880,
+              "endTicks": 3360,
+              "segmentIds": [
+                "cross-d"
+              ],
+              "accent": "normal"
+            }
+          ]
+        },
+        "segments": [
+          {
+            "segmentId": "cross-a",
+            "segmentID": "cross-a",
+            "measureId": "cross-bar-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 0,
+            "endTicks": 480,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-b",
+            "segmentID": "cross-b",
+            "measureId": "cross-bar-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 480,
+            "endTicks": 960,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-rest",
+            "segmentID": "cross-rest",
+            "measureId": "cross-bar-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 960,
+            "endTicks": 1440,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1440,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-tie-start",
+            "segmentID": "cross-tie-start",
+            "measureId": "cross-bar-notation-bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 1440,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "start",
+            "tieGroupId": "cross-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-tie-end",
+            "segmentID": "cross-tie-end",
+            "measureId": "cross-bar-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 1920,
+            "endTicks": 2400,
+            "absoluteStartTicks": 1920,
+            "absoluteEndTicks": 2400,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "end",
+            "tieGroupId": "cross-tie",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-c",
+            "segmentID": "cross-c",
+            "measureId": "cross-bar-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 2400,
+            "endTicks": 2880,
+            "absoluteStartTicks": 2400,
+            "absoluteEndTicks": 2880,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-d",
+            "segmentID": "cross-d",
+            "measureId": "cross-bar-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "4",
+            "durationString": "4",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 2880,
+            "endTicks": 3360,
+            "absoluteStartTicks": 2880,
+            "absoluteEndTicks": 3360,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal"
+          },
+          {
+            "segmentId": "cross-rest-end",
+            "segmentID": "cross-rest-end",
+            "measureId": "cross-bar-notation-bar-2",
+            "measureIndex": 1,
+            "segmentIndex": 3,
+            "kind": "rest",
+            "duration": "4r",
+            "durationString": "4r",
+            "dotCount": 0,
+            "canonicalDurationTicks": 480,
+            "startTicks": 3360,
+            "endTicks": 3840,
+            "absoluteStartTicks": 3360,
+            "absoluteEndTicks": 3840,
+            "onset": false,
+            "isOnset": false,
+            "tieRole": "none",
+            "accent": "normal"
+          }
+        ],
+        "beamGroups": [],
+        "tieEdges": [
+          {
+            "id": "tie-1",
+            "fromSegmentId": "cross-tie-start",
+            "toSegmentId": "cross-tie-end",
+            "fromSegmentID": "cross-tie-start",
+            "toSegmentID": "cross-tie-end",
+            "tieGroupId": "cross-tie",
+            "crossesBarline": true
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "cross-bar-notation-bar-1",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          },
+          {
+            "measureId": "cross-bar-notation-bar-2",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "cross-a",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 76.07997131347656,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-b",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 186.85998153686523,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-rest",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 297.6399917602539,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-tie-start",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 408.4200019836426,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-tie-end",
+            "canonicalStartTicks": 1920,
+            "canonicalEndTicks": 2400,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 562,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-c",
+            "canonicalStartTicks": 2400,
+            "canonicalEndTicks": 2880,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 672.8000030517578,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-d",
+            "canonicalStartTicks": 2880,
+            "canonicalEndTicks": 3360,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 783.6000061035156,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "cross-rest-end",
+            "canonicalStartTicks": 3360,
+            "canonicalEndTicks": 3840,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "4096/1",
+            "actualVexFlowDurationTicks": "4096/1",
+            "actualX": 894.4000091552734,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    }
+  }
+]

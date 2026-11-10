@@ -1,0 +1,74 @@
+{
+  "rows": [
+    {
+      "level": 1,
+      "seeds": 40,
+      "uniquePatterns": 21,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 12
+    },
+    {
+      "level": 2,
+      "seeds": 40,
+      "uniquePatterns": 30,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 14
+    },
+    {
+      "level": 3,
+      "seeds": 40,
+      "uniquePatterns": 34,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 7
+    },
+    {
+      "level": 4,
+      "seeds": 40,
+      "uniquePatterns": 25,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 4
+    },
+    {
+      "level": 5,
+      "seeds": 40,
+      "uniquePatterns": 39,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 5
+    },
+    {
+      "level": 6,
+      "seeds": 40,
+      "uniquePatterns": 31,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 7
+    },
+    {
+      "level": 7,
+      "seeds": 40,
+      "uniquePatterns": 29,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 16
+    },
+    {
+      "level": 8,
+      "seeds": 40,
+      "uniquePatterns": 39,
+      "choiceSets": 40,
+      "pairwiseChecks": 240,
+      "maxCandidateAttempts": 4
+    }
+  ],
+  "totals": {
+    "generatedSeeds": 320,
+    "choiceSets": 320,
+    "pairwiseChecks": 1920
+  },
+  "scope": "Pure intended-data verification; no playback/perceptual-device claim"
+}

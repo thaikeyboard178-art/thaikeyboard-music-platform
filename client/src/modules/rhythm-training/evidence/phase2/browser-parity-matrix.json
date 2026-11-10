@@ -1,0 +1,975 @@
+[
+  {
+    "id": "four-four",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 3,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "four-four",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 3,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "four-four",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 3,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "three-four",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "three-four",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "three-four",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "six-eight",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 16,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "six-eight",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 16,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "six-eight",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 16,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "cross-bar",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "cross-bar",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "cross-bar",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-1-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-1-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-1-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-1-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-1-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-1-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-1-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-1-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-1-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-2-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-2-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-2-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-2-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-2-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-2-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-2-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-2-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-2-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-3-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-3-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-3-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-3-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-3-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-3-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-3-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-3-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-3-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-4-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-4-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-4-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-4-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-4-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-4-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-4-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-4-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-4-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-5-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 17,
+    "glyphsWithinViewBox": true,
+    "beams": 2,
+    "ties": [],
+    "viewBoxWidth": 370
+  },
+  {
+    "id": "level-5-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 17,
+    "glyphsWithinViewBox": true,
+    "beams": 2,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-5-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 17,
+    "glyphsWithinViewBox": true,
+    "beams": 2,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-5-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-5-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-5-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 11,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-5-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 10,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-5-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 10,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-5-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 10,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-6-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-6-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-6-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-6-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-6-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-6-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 1,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-6-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-6-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-6-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-7-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 7,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-7-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 7,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-7-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 7,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-7-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-7-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-7-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 4,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-7-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-7-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-7-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 6,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-8-0",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-8-0",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-8-0",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 5,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-8-1",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "start",
+        "height": 6
+      },
+      {
+        "part": "end",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 320
+  },
+  {
+    "id": "level-8-1",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 768
+  },
+  {
+    "id": "level-8-1",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 8,
+    "glyphsWithinViewBox": true,
+    "beams": 0,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  },
+  {
+    "id": "level-8-2",
+    "width": 320,
+    "parity": true,
+    "glyphCount": 24,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 428
+  },
+  {
+    "id": "level-8-2",
+    "width": 768,
+    "parity": true,
+    "glyphCount": 24,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 783
+  },
+  {
+    "id": "level-8-2",
+    "width": 1040,
+    "parity": true,
+    "glyphCount": 24,
+    "glyphsWithinViewBox": true,
+    "beams": 5,
+    "ties": [
+      {
+        "part": "full",
+        "height": 6
+      }
+    ],
+    "viewBoxWidth": 1040
+  }
+]

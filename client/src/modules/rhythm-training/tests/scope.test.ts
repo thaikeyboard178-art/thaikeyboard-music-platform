@@ -30,6 +30,7 @@ describe("Phase1 scope boundaries", () => {
         else
           expect(
             specifier === "zod" ||
+              specifier === "vexflow" ||
               specifier === "vitest" ||
               specifier.startsWith("node:")
           ).toBe(true);
