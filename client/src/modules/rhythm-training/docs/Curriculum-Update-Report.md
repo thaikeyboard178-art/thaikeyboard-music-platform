@@ -105,7 +105,7 @@ Ba mục P-01/P-02/P-03 chuyển PROPOSED sang APPROVED: 3/8 móc đơn flag ri�
 
 Còn pending: secondary-sixteenth/rest/mixed notation examples chi tiết (giữ boundaries); voice assets/chi tiết đọc subdivision chưa quy định; tempo/assessment quota/density/matching/readiness/pilot; Bonus display và legacy seed/version policy. Không hỏi lại presentation, không đổi curriculum/hierarchy/pulse/schema hoặc triển khai runtime.
 
-## GitHub — cập nhật tài liệu đã lưu
+## GitHub — lịch sử cập nhật curriculum trước presentation
 
 Commit documentation-only `636524c4a741b35bb5491a80e7deccd627974ec9` đã push thành công vào `thaikeyboard178-art/thaikeyboard-music-platform`, nhánh `main`; khi push hoàn tất, `HEAD == origin/main` và worktree sạch. Commit chứa đúng13 Markdown (7 tài liệu mới,6 Markdown metadata/historical-reference sửa), không có source/test/config/schema/asset thay đổi. Auto-publish tắt; không deploy hay rewrite/force-push history. Bản ghi handoff/TODO hoàn tất và lời làm rõ guardrails trong generator requirements được lưu tiếp bằng một documentation-only commit, không đổi runtime.
 
@@ -144,3 +144,7 @@ Các tài liệu nghiên cứu/review cũ dưới đây có nhãn lịch sử/su
 Đã đối chiếu SHA-256 với snapshot trước chỉnh sửa: **251 file tracked được bảo vệ giữ nguyên byte**, ngoài sáu Markdown được phép chỉnh. Các file mới trong repository đều là bảy Markdown nói trên. Không tạo/đổi source hoặc test, không gọi DB/WordPress, không chỉnh cấu hình Manus/infra, không activate UI/catalog, không triển khai Audio Scheduler/MIDI/microphone hay production. Git commit tài liệu không đồng nghĩa với deployment; auto-publish được xác nhận tắt.
 
 Đây là nhiệm vụ tài liệu: không chạy pnpm test/check/build, không dùng 436/436 lịch sử như presentation pass. Semantics và ba presentation policies đã APPROVED; runtime implementation chưa được phép. Xem [Music Education Review](./Music-Education-Review-Scope.md) và [Decision Review](./Decision-Review.md).
+
+## Presentation APPROVED — bàn giao documentation-only mới
+
+Theo quyết định chủ sản phẩm03:04:52 +07:00, P-01/P-02/P-03 đã chuyển sang APPROVED. Tám Markdown trong docs cùng root TODO đã được đồng bộ và push thành công bằng presentation commit `1e849d7bf57de4cb1582b327440f7e6ee3c0d5b2` trên GitHub main hiện hữu. Kiểm tra tám tài liệu,14 acceptance IDs mới, table/local-link integrity và SHA-256 xác nhận256 tracked files được bảo vệ giữ nguyên. Các bản ghi commit/count/hash phía trên là lịch sử; không phải fresh runtime tests. Không sửa renderer/audio/source/UI/schema hoặc deploy. Chỉ các case notation/voice chưa quy định và pilot/quota/density/Bonus display/legacy-version details còn pending, không mở lại ba presentation decisions hoặc placement.
