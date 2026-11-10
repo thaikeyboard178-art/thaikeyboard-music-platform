@@ -136,9 +136,9 @@ Danh sách đầy đủ từng file, phân biệt CREATED/MODIFIED, nằm trong 
 
 ## 10. GitHub synchronization
 
-**Trạng thái trước push:** mọi source check đã passing; chỉ còn bước commit/sync được người dùng cho phép. Destination vẫn private `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`. Auto-publish đã kiểm tra là `false`. Không force-push, không đổi branch/repo/history.
+**Đã commit và push thành công:** source commit `196ae2564611dd31a56dc76950f362d6d860d824` trên private repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`. Git push trả về `main -> main`; ngay sau push, local HEAD và tracking `origin/main` cùng đúng SHA này, worktree sạch. Commit gồm46 file trong phạm vi module:41 created và5 modified; full manifest đã lưu. Auto-publish được kiểm tra là `false` trước push. Không force-push, không đổi branch/repo/history, không deploy.
 
-Báo cáo sẽ ghi source commit và kết quả sync chỉ sau khi Git push thực sự được xác nhận. Tài liệu cập nhật sau source handoff không thay đổi source đã test.
+Sau source handoff, báo cáo/TODO được cập nhật bằng kết quả xác nhận trong một documentation-only commit. Nó không sửa source đã test. Bản bàn giao cuối ghi latest documentation tip sau khi push tài liệu thành công; không dùng source SHA để tự nhận một platform publication hoặc deployment.
 
 ## 11. Remaining limitations và điểm dừng
 
