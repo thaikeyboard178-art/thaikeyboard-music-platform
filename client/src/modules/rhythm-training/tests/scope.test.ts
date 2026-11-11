@@ -38,14 +38,20 @@ describe("Phase1 scope boundaries", () => {
       }
     }
   });
-  it("contains no UI or playback runtime implementation", () => {
+  it("contains no UI and confines authorized playback runtime to audio/", () => {
     const production = sourceFiles(moduleRoot).filter(
       path => !path.endsWith(".test.ts")
     );
     expect(production.some(path => path.endsWith(".tsx"))).toBe(false);
-    for (const path of production)
+    for (const path of production.filter(path => !path.startsWith(`${moduleRoot}/audio/`)))
       expect(readFileSync(path, "utf8")).not.toMatch(
         /\bAudioContext\b|\bsetTimeout\s*\(|\bsetInterval\s*\(|\brequestAnimationFrame\s*\(/
+      );
+  });
+  it("keeps audio independent of shared scoring, frontend and Note Reading", () => {
+    for (const path of sourceFiles(resolve(moduleRoot, "audio")).filter(path => !path.endsWith(".test.ts")))
+      expect(readFileSync(path, "utf8")).not.toMatch(
+        /features\/training|note-reading|submitSessionAnswer|submitRhythmExerciseAnswer|navigator\.mediaDevices|speechSynthesis/
       );
   });
   it("retains metadata-only Coming Soon and no Rhythm page binding", () => {

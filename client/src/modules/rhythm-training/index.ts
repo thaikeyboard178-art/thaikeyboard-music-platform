@@ -116,3 +116,23 @@ export type {
   RhythmNotationRenderOptions,
   RhythmNotationParityReport,
 } from "./notation/VexFlowRhythm";
+export {
+  createRhythmAudioPlan,
+  createListenPlaybackPlan,
+} from "./audio/plan";
+export type {
+  AudioLane,
+  RhythmAudioEvent,
+  RhythmAudioPlan,
+} from "./audio/plan";
+export { scheduleRhythmVoice, validateVoiceSettings } from "./audio/voices";
+export type { RhythmVoiceSettings, RhythmVoiceHandle } from "./audio/voices";
+export { RhythmAudioTransport } from "./audio/transport";
+export type {
+  RhythmPlaybackState,
+  RhythmAudioAbortReason,
+  RhythmScheduledEvent,
+  RhythmReferenceTiming,
+  RhythmTransportOptions,
+} from "./audio/transport";
+export type { RhythmVisualCount } from "./audio/plan";
