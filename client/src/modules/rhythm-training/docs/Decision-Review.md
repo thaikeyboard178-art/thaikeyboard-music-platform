@@ -24,6 +24,7 @@ Không sử dụng phương án accent hierarchy Manus/ChatGPT trước đây. T
 | D-04 | Tách rõ **subdivision/phách đơn**, **compound beat/phách phức** và accent ở cấp ô nhịp. Trong compound, mỗi eighth là một phách đơn/subdivision; trong `3/8`, mỗi eighth là một phách đơn độc lập. | **APPROVED OWNER DECISION** | Cấu trúc teaching grouping không được làm đổi meter identity hoặc pulse semantics. |
 | D-05 | Hierarchy là **Mạnh > Vừa > Nhẹ**. `S` = Mạnh, `M` = Vừa, `w` = Nhẹ. `S` là bar-level accent ở đầu ô; `M` là secondary beat accent ở đầu các phách phức sau; không coi mọi đầu nhóm ngang Mạnh. | **APPROVED OWNER DECISION** | Accent structural tách khỏi explicit note articulation. Không tự suy diễn gain/velocity/numerical runtime. |
 | D-06 | Chuỗi chính xác: `3/8 = Sww`; `6/8 = Sww\|Mww`; `9/8 = Sww\|Mww\|Mww`. Pulse-level: `6/8 = S-M`; `9/8 = S-M-M`. | **APPROVED OWNER DECISION** | Các chuỗi này là shorthand structural accent, không phải yêu cầu sửa binary `segment.accent`. |
+| D-07 | Multiple Choice tiếp tục là exercise kind cốt lõi cho notation, note/rest values và theory, nhưng không đủ cho practical rhythm training; Tap Rhythm bắt đầu từ Level 3 theo progression đã duyệt. | **APPROVED OWNER DECISION** | Không tạo kind thứ năm; xem §2.2 để biết placement, Tap matching contract và pending parameters. |
 
 ### 2.1. Bảng semantics và timing contract
 
@@ -34,6 +35,28 @@ Không sử dụng phương án accent hierarchy Manus/ChatGPT trước đây. T
 | `9/8` | Compound Triple | `2160` ticks | dotted-quarter/phách phức = `720` ticks | `3` phách phức, mỗi phách gồm `3` phách đơn; `Sww\|Mww\|Mww` | compound `[0, 720, 1440]` |
 
 PPQ giữ nguyên là `480`; eighth giữ nguyên là `240`; dotted-quarter giữ nguyên là `720`. Các quyết định này không thay đổi duration, attack, tie, rest, onset-only matching hoặc scoring `+10/+0`.
+
+### 2.2. D-07 — progression của Multiple Choice và Tap Rhythm
+
+**Nguồn quyết định:** latest owner **Curriculum Decision Update**, received **2026-11-11 14:14 +07**. Đây là quyết định nội dung đã được duyệt; không cấp runtime/implementation approval.
+
+Multiple Choice giữ vai trò cốt lõi để học rhythmic notation, nhận diện note/rest values, hiểu rhythmic structures và củng cố theory, nhưng một mình không đủ cho practical rhythm training. Tap Rhythm là một trong **bốn exercise kinds hiện có** — Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat — không phải kind thứ năm. Giữ nguyên sáu Level chính + Bonus optional và cấu trúc Lessons, Practice, Assessment.
+
+| Mục | Curriculum content | Exercise direction đã duyệt |
+|---|---|---|
+| Level 1 | Basic notes: quarter note, half note, whole note; quarter rest | Multiple Choice + Listen & Identify |
+| Level 2 | Eighth notes, eighth rests, binary subdivision | Multiple Choice + Listen & Identify |
+| Level 3 | 2/4, 3/4, 4/4 | Lần đầu đưa vào practical Tap Rhythm |
+| Level 4 | Dotted notes và ties | Tap Rhythm + Multiple Choice |
+| Level 5 | Sixteenth notes và advanced rhythmic combinations | Advanced Tap Rhythm |
+| Level 6 | Một learning unit gồm 3/8, 6/8, 9/8 | Tap Rhythm theo simple và compound pulse structures; không tách Level 6 thành ba khóa |
+| Bonus | 2/2 Alla Breve | Optional Tap Rhythm progression |
+
+Không có Tap exercises, Tap worked examples hoặc Tap assessments trước Level 3. Counting có thể xuất hiện như conceptual activity ở Level 1/2, nhưng không tạo thêm compulsory exercise kind. Không tạo level mới hoặc làm thay đổi cấu trúc Lessons/Practice/Assessment đã có. D-07 không thay đổi bảy meter đã duyệt, PPQ 480, duration/pulse semantics, accent hierarchy, beam rules, English-default app voice counting, visual counting hoặc metronome tick semantics.
+
+Tap Rhythm là practical performance exercise: người học xem rhythmic pattern, theo metronome/reference timing của exercise và tap tại intended rhythmic onsets. Đánh giá phải dùng **actual tap timestamps** so với **expected onset timestamps**, nhận biết early/late taps, matched/missing/extra taps và thực hiện **ordered one-to-one tap-to-onset matching**. Tap Rhythm không phải multiple-choice question; số tap bằng số onset dự kiến không đủ để kết luận đúng.
+
+Tap cần **Timing Accuracy (%)** riêng biệt với **Exercise Points**. Exercise Points giữ contract hiện có: correct exercise completion `+10`, incorrect `+0`; không thay đổi shared scoring, shared accuracy hoặc average-response handling. Công thức phần trăm cuối, giá trị matching windows/tolerances và performance grades đều **PENDING TECHNICAL DETAIL**; các matching-window/calibration hypotheses hiện có không phải công thức hoặc ngưỡng đã duyệt. Cũng pending: metronome có tiếp tục phát trong toàn bộ mọi Tap exercise hay không; việc bỏ continuous metronome guidance ở advanced exercises; giới hạn count-in/replay; có separate reference performance trong từng exercise hay không; device-latency compensation và calibration policy. Các chi tiết pending này không chặn curriculum placement đã duyệt.
 
 ## 3. Lịch sử bị thay thế
 
@@ -89,8 +112,9 @@ Các nhãn vẫn giữ nguyên: `Strong = Mạnh`, `Medium = Vừa`, `Weak = Nh�
 | Secondary beam cases | **PENDING TECHNICAL DETAIL** cho sixteenths và các tổ hợp phức tạp; không mở lại quy tắc eighth đã APPROVED. |
 | Spoken counting mở rộng | Chưa quy định detailed compound mapping, speech scheduling hoặc các voice bổ sung ngoài request; không biến thành yêu cầu Vietnamese-first. |
 | Tempo, quota, lesson/practice/assessment density và pilot | Vẫn pending; chưa có validated standard, quota cuối hoặc pilot result được báo cáo trong tài liệu này. |
+| Tap Rhythm timing và device details | **PENDING TECHNICAL DETAIL**: exact Timing Accuracy (%) formula, matching windows/tolerances, performance grades, continuous metronome coverage/removal for advanced exercises, count-in/replay limits, separate reference performance, latency compensation và calibration. Approved matching contract là ordered one-to-one timestamp-to-onset matching; các tham số chưa được chốt không làm chặn placement. |
 | Curriculum placement | 6 core Levels + Bonus 2/2 và placement đã giữ nguyên; không mở lại placement. |
-| Runtime/implementation | Chưa được cấp. Code hiện tại vẫn là **8 legacy levels**; library hiện có **4 meters ở trạng thái inert/ComingSoon**; curriculum mới chưa được triển khai hoặc UI approved runtime. |
+| Runtime/implementation | Chưa được cấp. Baseline hiện tại vẫn có **8 legacy levels** và generator với **four-meter policies**; **seven-meter canonical-to-SVG gate** đã được implement và tested previously, nhưng điều đó không chứng minh generator/curriculum/Tap/audio/UI đã được triển khai. Tap, audio và UI chưa active. Không có test mới hoặc test-pass claim trong review này. |
 
 Không có claim về teacher expert signoff, educator signoff, pilot completion, test pass hoặc runtime approval. Không sửa code, test, runtime, UI activation, audio, metronome, MIDI, microphone, database, shared architecture, Note Reading hoặc production/deploy trong review này.
 
@@ -98,7 +122,7 @@ Không có claim về teacher expert signoff, educator signoff, pilot completion
 
 Structural accent trong review này mô tả quan hệ nhạc lý và cách dạy: Mạnh, Vừa, Nhẹ; nó không phải explicit note articulation. Không thay schema `segment.accent` binary, không đặt numerical gain, velocity, amplitude hoặc runtime threshold, và không yêu cầu sửa code trong tài liệu này.
 
-Các contract kỹ thuật không liên quan vẫn giữ nguyên: duration arithmetic với PPQ 480; rest tiêu thụ duration nhưng không tạo onset; tie continuation không tạo attack mới; tap matching là onset-only; whole-exercise scoring `+10/+0`; cùng các timing, clock, replay, abort/ungraded và technical-interruption policies đã có.
+Các contract kỹ thuật không liên quan vẫn giữ nguyên: duration arithmetic với PPQ 480; rest tiêu thụ duration nhưng không tạo onset; tie continuation không tạo attack mới; Tap matching là onset-only và theo ordered one-to-one matching; whole-exercise scoring `+10/+0`; shared accuracy/average-response handling hiện có; cùng các timing, `currentTime`/clock mapping, abort/ungraded và technical-interruption policies đã có. Matching-window parameters, Tap count-in/replay limits và latency-calibration hypotheses không phải approved final parameters.
 
 ## 7. Kết luận
 

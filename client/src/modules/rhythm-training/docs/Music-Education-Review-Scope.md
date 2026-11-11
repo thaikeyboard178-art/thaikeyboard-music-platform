@@ -4,6 +4,8 @@
 
 > **Nguồn quyết định đã chốt:** đính chính trực tiếp của chủ sản phẩm ngày 2026-11-11. Xem [Decision Review](./Decision-Review.md). Không sử dụng phương án accent hierarchy trước đây của Manus/ChatGPT. Đây là quyết định nội dung, không phải giáo viên signoff do Manus tự nhận hoặc quyền triển khai code.
 
+> **D-07 APPROVED OWNER DECISION:** latest owner Curriculum Decision Update received **2026-11-11 14:14 +07**; xem [Decision Review §2.2](./Decision-Review.md). Multiple Choice remains core for notation/values/theory but is insufficient alone for practical rhythm training; Tap Rhythm starts at Level 3. Chưa có runtime/implementation approval.
+
 **Trạng thái tài liệu:** cập nhật phạm vi nội dung đã được duyệt; chỉ là tài liệu review, chưa triển khai.
 
 **Phạm vi được ghi nhận:** curriculum V1 gồm **6 Level chính + 1 Bonus**, tương ứng **7 meter V1 được hỗ trợ về mặt nội dung**: 2/4, 3/4, 4/4, 3/8, 6/8, 9/8 và Bonus 2/2. Tài liệu này không coi 7 meter là “6 meter”, không giữ cấu trúc tám level cũ, và không coi bốn meter hiện có trong code là phạm vi curriculum đã hoàn tất.
@@ -37,6 +39,26 @@ Thứ tự dưới đây là thứ tự curriculum đã được duyệt và ph�
 | Level 5 | Sixteenth grid, các tổ hợp quarter/eighth/sixteenth/rest/dot/tie; tiết tấu nâng cao; ôn có kiểm soát các khó khăn cũ của L7/L8 | Tăng dần mật độ và interaction budget; consolidation của syncopation/advanced combinations chỉ trong phạm vi được cấu hình, không ngầm tạo hai level mới | Bài tổng hợp cũ-mới trên sixteenth grid, dots, ties, rests và advanced combinations; độ khó phải minh bạch và không được gọi là L7/L8 mới |
 | Level 6 | Dạy một progression thống nhất từ một nhóm ba móc đơn đến cả ba signatures; luôn giữ khác biệt simple/compound | Luyện 3/8, 6/8, 9/8 theo cùng một nhóm khái niệm nhưng với pulse và accent đúng meter; có notes, rests, dots, ties ở bước phù hợp | Một assessment tổng hợp cả 3/8, 6/8, 9/8; kiểm tra group count, pulse meaning, accent và pattern analysis, không tách thành ba khóa độc lập |
 | Bonus 2/2 | Half-note pulse, hai phách chính, phân biệt 2/2 với 4/4; placement là optional learner progression | Đếm theo hai half pulses, so sánh cảm nhận tempo và bar capacity, thực hành mẫu hợp lệ | Kiểm tra nhận diện 2/2, half-pulse và phân biệt với 4/4; kết quả không bắt buộc để đi qua progression chính |
+
+### D-07 — exercise progression và Tap Rhythm contract (APPROVED OWNER DECISION)
+
+Theo latest owner Curriculum Decision Update received **2026-11-11 14:14 +07**, Multiple Choice là core để dạy rhythmic notation, nhận diện note/rest values, hiểu rhythmic structures và củng cố theory, nhưng không đủ một mình cho practical rhythm training. Tap Rhythm là một trong **bốn exercise kinds hiện có** (Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat); không thêm exercise kind thứ năm. Giữ nguyên sáu Level chính + Bonus optional và cấu trúc Lessons, Practice, Assessment. D-07 không thay đổi bảy meter đã duyệt, PPQ 480, duration/pulse semantics, accent hierarchy, beam rules, English-default app voice counting, visual counting hoặc metronome tick semantics.
+
+| Mục | Curriculum content | Exercise direction đã duyệt |
+|---|---|---|
+| Level 1 | Basic notes: quarter note, half note, whole note; quarter rest | Multiple Choice + Listen & Identify |
+| Level 2 | Eighth notes, eighth rests, binary subdivision | Multiple Choice + Listen & Identify |
+| Level 3 | 2/4, 3/4, 4/4 | Giới thiệu practical Tap Rhythm lần đầu |
+| Level 4 | Dotted notes và ties | Tap Rhythm + Multiple Choice |
+| Level 5 | Sixteenth notes và advanced rhythmic combinations | Advanced Tap Rhythm |
+| Level 6 | Một unit gồm 3/8, 6/8, 9/8 | Tap Rhythm với simple và compound pulse structures; không chia Level 6 thành course riêng |
+| Bonus | 2/2 Alla Breve | Optional Tap Rhythm progression |
+
+Không có Tap exercise, Tap worked example hoặc Tap assessment trước Level 3. Counting có thể giữ vai trò conceptual activity tại Level 1/2, nhưng không thêm compulsory exercise kind ở đó. Quyết định này không làm thay đổi Lessons/Practice/Assessment hoặc các cấu phần curriculum đã duyệt.
+
+Tap Rhythm là bài thực hành performance: người học xem rhythmic pattern, theo metronome/reference timing của exercise và tap tại intended rhythmic onsets. Evaluator dùng actual tap timestamps so với expected onset timestamps, ghi nhận early/late taps, matched/missing/extra taps và áp dụng **ordered one-to-one tap-to-onset matching**. Không coi Tap Rhythm là multiple-choice question; số tap bằng số onset không tự nó chứng minh kết quả đúng.
+
+Hiển thị **Timing Accuracy (%)** riêng với **Exercise Points**; shared scoring vẫn là correct completion `+10`, incorrect `+0`, và shared accuracy/average-response handling hiện có không đổi. Exact accuracy formula, matching windows/tolerances và performance grades là **PENDING TECHNICAL DETAIL**. Cũng để **PENDING**: continuous metronome trong mọi Tap exercise hay không; bỏ continuous guidance ở advanced exercises hay không; count-in/replay limits; separate reference performance cho mỗi exercise; device latency compensation/calibration. Matching-window và calibration hypotheses hiện có không phải final approved formula/parameters. Các mục này không chặn placement D-07 đã APPROVED.
 
 ## 2. Level 6 — một nhóm kiến thức thống nhất “Grouping in Threes”
 
@@ -148,6 +170,9 @@ Các mục dưới đây **không làm thay đổi thứ tự, placement hoặc 
 | Dotted eighth | Đưa dotted eighth vào thời điểm nào sau khi sixteenth grid đã được dạy? | Không có dotted eighth trong Level 4; giữ deferred-until-Level-5 policy. |
 | Relative difficulty của Level 5 consolidation | Bao nhiêu nội dung cũ L7/L8 được ôn mà không tạo level mới? | Chỉ consolidation có kiểm soát, cấu hình bằng difficulty budget; không công bố L7/L8 mới. |
 | Optional Bonus display (không mở lại placement đã chốt) | Hiện Bonus trong learner path mặc định hay sau điều kiện nội dung nào? | Bonus là optional; placement 2/2 không chuyển thành Level 4 và không thay thế Level 6. |
+| Tap Rhythm timing accuracy và matching parameters | Accuracy formula, numerical matching windows/tolerances và performance grades thế nào? | **PENDING TECHNICAL DETAIL**. Giữ ordered one-to-one matching theo thứ tự giữa actual tap timestamps và expected onset timestamps; không dùng count-only correctness. Không dùng matching-window hypotheses như ngưỡng đã approved. Shared accuracy/average-response handling không đổi. |
+| Metronome, count-in, replay và reference performance cho Tap | Metronome có phát xuyên suốt mọi exercise không; advanced exercises có bỏ guidance không; count-in/replay limits là gì; có separate reference performance không? | **PENDING TECHNICAL DETAIL**; không tự quyết định trong curriculum review. |
+| Tap device timing fairness | Latency compensation và calibration policy thế nào? | **PENDING TECHNICAL DETAIL**; calibration hypotheses chưa phải policy đã duyệt. |
 
 Không có expert approval, teacher signoff, pilot result, test pass hoặc job-status completion claim nào được đưa ra trong tài liệu này. Các mục pending trên là báo cáo trạng thái thực tế, không phải kết quả thử nghiệm.
 
@@ -170,19 +195,19 @@ Không có expert approval, teacher signoff, pilot result, test pass hoặc job-
 
 ### Các contract không bị thay đổi bởi review này
 
-Giữ nguyên các quyết định kỹ thuật đã được ghi nhận trong tài liệu trước: exact duration arithmetic với PPQ 480; rests tiêu thụ đủ duration nhưng không tạo onset; tie continuation không tạo attack mới; whole-exercise scoring `+10/+0`; tap matching là onset-only và không đo hold duration; `currentTime`/clock mapping và matching windows hiện có; bốn local exercise kinds Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat; hai shared wrappers Free và Challenge; boundaries của Free Challenge; và các policy về audio confidence, abort/ungraded attempt, replay và technical interruption.
+Giữ nguyên các quyết định kỹ thuật đã được ghi nhận: exact duration arithmetic với PPQ 480; rests tiêu thụ đủ duration nhưng không tạo onset; tie continuation không tạo attack mới; whole-exercise scoring `+10/+0`; existing shared accuracy/average-response handling; Tap matching là onset-only, không đo hold duration và phải theo ordered one-to-one matching; `currentTime`/clock mapping hiện có; bốn local exercise kinds Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat; hai shared wrappers Free và Challenge; boundaries của Free Challenge; và các policy về audio confidence, abort/ungraded attempt, replay và technical interruption. Không coi bất kỳ matching-window hypothesis nào là approved parameter: windows, accuracy formula, Tap replay/count-in limits và latency calibration vẫn pending theo D-07.
 
 Các thay đổi curriculum này không cho phép sửa Note Reading, shared architecture, Audio Scheduler, database, WordPress, UI activation, MIDI, microphone, production deployment hay shared progress schema. Mọi điều chỉnh runtime tương lai phải được phê duyệt riêng sau content review.
 
 ### Trạng thái code hiện tại
 
-Code hiện tại vẫn ở trạng thái **8 legacy levels** và **4 meters trong library ở trạng thái inert/ComingSoon**. **7 V1-supported meters và current curriculum chưa được triển khai**; tài liệu này không claim runtime support, không mở module và không thay đổi schema.
+Baseline hiện tại vẫn có **8 legacy levels** và generator với **four-meter policies**. Riêng **seven-meter canonical-to-SVG gate đã được implement và tested previously**; điều đó không chứng minh generator đã chuyển khỏi 8 legacy levels/four-meter policies, hoặc curriculum/Tap/audio/UI đã active. Tap, audio và UI hiện chưa active. Đây là trạng thái baseline có trước review, không phải test mới hoặc test-pass claim phát sinh từ tài liệu này; tài liệu không cấp runtime support/approval, không mở module và không đổi schema.
 
 ## 8. Release content approval tách biệt với runtime approval
 
 ### Content approval
 
-Content approval xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage và ba presentation decision P-01/P-02/P-03 đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **cả ba presentation decision đã được chủ sản phẩm xác nhận và không hỏi lại**: P-01 beam eighth/grouping, P-02 ba counting presentation methods và P-03 hai hình thức accent presentation. Không hỏi lại 3/8 = 3 phách đơn hoặc hierarchy Mạnh/Vừa/Nhẹ. Chỉ các chi tiết secondary beam, rests/mixed-duration, tempo/pilot, quotas/density và Bonus display (không mở lại placement đã chốt) không liên quan còn mở.
+Content approval xác nhận rằng thứ tự, placement, learning group, terminology, meter semantics, lesson/practice/assessment coverage, D-07 exercise direction và ba presentation decision P-01/P-02/P-03 đã đủ rõ để đưa vào implementation planning. Trong phạm vi tài liệu này, **cả ba presentation decision đã được chủ sản phẩm xác nhận và không hỏi lại**: P-01 beam eighth/grouping, P-02 ba counting presentation methods và P-03 hai hình thức accent presentation. Không hỏi lại 3/8 = 3 phách đơn hoặc hierarchy Mạnh/Vừa/Nhẹ. Các chi tiết secondary beam, rests/mixed-duration, tempo/pilot, quotas/density, Bonus display (không mở lại placement đã chốt), và D-07 Tap accuracy formula/windows/grades, metronome guidance, count-in/replay, reference performance, latency/calibration vẫn pending; các mục Tap này không chặn placement đã duyệt.
 
 ### Runtime/implementation approval
 
@@ -194,4 +219,4 @@ Release gate tương lai phải kiểm tra đủ **7 V1-supported meters** theo 
 
 Bản scope này thay thế cách diễn đạt cũ về tám level và phạm vi meter cũ bằng curriculum đã duyệt: Level 1 quarter rest only trong vocabulary cơ bản; Level 2 eighth/binary subdivision; Level 3 simple meters 2/4–3/4–4/4; Level 4 dots/ties với dotted eighth deferred; Level 5 sixteenths và advanced combinations có consolidation kiểm soát; Level 6 là một learning group Grouping in Threes gồm 3/8, 6/8, 9/8; Bonus 2/2 optional nhưng V1-supported.
 
-P-01 beam, P-02 counting và P-03 accent presentation đều đã **APPROVED OWNER DECISION**: 3/8 từng móc đơn flag riêng; 6/8 là 3+3; 9/8 là 3+3+3; counting gồm App Voice Counting, Visual Counting và Metronome TICK; accent có text-based hoặc symbol-based presentation với điều kiện màu phải accessible nếu dùng. Không có quyết định nào trong ba mục này cấp runtime approval. Pending chỉ còn chi tiết kỹ thuật secondary beam/rest/mixed-duration và quota, tempo, pilot, density, Bonus display (không mở lại placement đã chốt) không liên quan. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, database hoặc shared architecture được thực hiện.
+P-01 beam, P-02 counting và P-03 accent presentation đều đã **APPROVED OWNER DECISION**: 3/8 từng móc đơn flag riêng; 6/8 là 3+3; 9/8 là 3+3+3; counting gồm App Voice Counting, Visual Counting và Metronome TICK; accent có text-based hoặc symbol-based presentation với điều kiện màu phải accessible nếu dùng. Không có quyết định nào trong ba mục này cấp runtime approval. D-07 cũng là **APPROVED OWNER DECISION**: Level 1/2 Multiple Choice + Listen & Identify; Level 3 là điểm bắt đầu Tap thực hành; Level 4 Tap + Multiple Choice; Level 5 Advanced Tap; Level 6 là một unit Tap cho 3/8, 6/8, 9/8 với simple/compound pulse structures; Bonus 2/2 optional Tap. Timing Accuracy formula/windows/grades, metronome continuity hoặc bỏ guidance ở advanced, count-in/replay limits, separate reference performance, latency compensation/calibration vẫn **PENDING TECHNICAL DETAIL** và không chặn placement. Không có thay đổi code, test, UI, catalog, audio, metronome, MIDI, microphone, database hoặc shared architecture được thực hiện.

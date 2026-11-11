@@ -6,7 +6,7 @@ Vietnamese-first, responsive music-practice application. The initial public modu
 
 [Curriculum V1](client/src/modules/rhythm-training/docs/Curriculum-V1.md) xác định khung chính thức **6 Level + Bonus**: Level3 gồm2/4,3/4,4/4; Level6 là một nhóm kiến thức chung3/8,6/8,9/8;2/2 là Bonus, không bắt buộc trong progression chính. [Đặc tả đầy đủ](client/src/modules/rhythm-training/docs/Rhythm-Training-V1-Specification.md) và [báo cáo cập nhật](client/src/modules/rhythm-training/docs/Curriculum-Update-Report.md) ghi các yêu cầu generator/notation/test tương lai và các điểm chờ giáo viên xác nhận.
 
-Đây là cập nhật tài liệu, **không phải code migration**. Library Rhythm Phase1/Phase2 hiện vẫn có tám level policy cũ và bốn meter; không có UI/audio hoặc route Rhythm hoạt động. Những phần triển khai đã có, Note Reading, shared architecture và infrastructure giữ nguyên; không deploy.
+Đây là cập nhật tài liệu, **không phải code migration**. Canonical-to-SVG Rhythm hiện có seven-meter runtime gate; generator vẫn dùng tám level policy và bốn-meter curriculum legacy. Không có Tap Rhythm, UI/audio hoặc route Rhythm hoạt động. [Decision Review D-07](client/src/modules/rhythm-training/docs/Decision-Review.md) giữ Multiple Choice là core; Level 1–2 dùng Multiple Choice/Listen & Identify, Tap Rhythm bắt đầu Level 3 và tăng độ khó. Timing Accuracy (%) của Tap tách khỏi Exercise Points +10/+0; công thức, tolerance, grades và reference/latency policies cần technical approval riêng. Note Reading, shared architecture và infrastructure giữ nguyên; không deploy.
 
 ## Stack and architecture
 

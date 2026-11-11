@@ -28,6 +28,12 @@ Giữ nguyên curriculum placement, meter semantics, technical pulse, subdivisio
 
 ## A. Mục tiêu và nguyên tắc chung
 
+**D-07 — APPROVED OWNER DECISION, 2026-11-11 lúc 14:14 +07:00.** Nguồn: *Rhythm Training V1 — Curriculum Decision Update* của chủ sản phẩm; xem [Decision Review](./Decision-Review.md). Multiple Choice vẫn là exercise kind cốt lõi để học ký âm, nhận diện giá trị nốt/dấu lặng, hiểu cấu trúc và củng cố lý thuyết. Multiple Choice một mình không đủ cho kỹ năng thực hành. **Tap Rhythm bắt đầu từ Level 3**, tăng dần độ khó; đây là một trong bốn kind hiện có, không phải kind thứ năm. Level 1–2 dùng **Multiple Choice và Listen & Identify**, không có bài Tap Rhythm, Tap assessment hoặc Tap worked example. Hoạt động đếm để hiểu khái niệm vẫn có thể thuộc lesson, không đồng nghĩa với đưa một bài Tap vào Level 1–2.
+
+Tap Rhythm là bài thực hành: người học nhìn pattern, theo metronome/reference timing của bài, tap màn hình tại các onset dự định, rồi nhận feedback. Đánh giá đối chiếu **actual tap timestamps** với **expected onset timestamps**, matching một-một và phân loại matched, early, late, missing, extra. Không chấm bằng chọn đáp án hoặc chỉ bằng số lần tap; dấu lặng và tie continuation không tạo target. **Timing Accuracy (%)** là chỉ số thực hành riêng, không thay **Exercise Points (+10/+0)**, shared accuracy hoặc shared response time. Công thức phần trăm, tolerance windows và grades chưa chốt, cần technical specification và approval riêng.
+
+Những chính sách vẫn mở: metronome có liên tục trong mọi bài hay không; bài advanced có bỏ continuous guidance hay không; count-in/replay limits; separate reference performance; device-latency compensation/calibration. Việc chúng còn mở không trì hoãn ghi nhận placement đã APPROVED. Các con số matching/calibration từng đề xuất không trở thành ngưỡng chính thức qua D-07.
+
 Curriculum đưa người học từ cảm nhận phách đen và các trường độ cơ bản, qua chia đôi phách, nhận diện nhịp đơn, dấu chấm dôi/nối trường độ, lưới móc kép và cuối cùng là một nhóm kiến thức thống nhất về nhóm ba móc đơn. Mục tiêu là người học có thể đọc, nghe, đếm và tái tạo **vị trí onset** của tiết tấu, đồng thời hiểu **trường độ** của nốt và dấu lặng.
 
 Hai năng lực này phải được theo dõi riêng:
@@ -41,7 +47,7 @@ Mọi bài phải giữ đúng tổng trường độ của ô nhịp. Dấu l�
 
 - Giữ PPQ = 480 và số tick hiện có: quarter = 480, half = 960, whole = 1920, eighth = 240, sixteenth = 120; dotted quarter = 720.
 - Giữ duration-authority, exact bar fill, tie group, rest duration, whole-exercise scoring `+10` đúng / `+0` sai, và một kết quả dùng chung cho mỗi bài hoàn thành.
-- Giữ Tap Rhythm là onset-only; giữ mốc thời gian thực `currentTime`, confidence, matching windows và quy trình chuẩn hóa/matching đã được phê duyệt trước đó.
+- Giữ Tap Rhythm là onset-only và quy trình đối chiếu timestamp thực/expected onset, one-to-one matching, technical confidence và abort/no-penalty. Các tolerance windows, latency compensation/calibration và công thức Timing Accuracy là quyết định kỹ thuật còn mở, không phải threshold đã được D-07 phê duyệt.
 - Giữ bốn exercise kind cục bộ: Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat; Free và Challenge vẫn là hai shared session wrapper duy nhất.
 - Giữ ranh giới: không sửa Note Reading, shared architecture, database, WordPress, Audio Scheduler, MIDI, microphone, deployment hoặc route sản phẩm trong tài liệu này.
 - Chuẩn bị test/acceptance trong tài liệu chỉ là đề xuất chờ phê duyệt; không được diễn giải là test đã chạy. Con số lịch sử `436/436` không phải kết quả chạy mới và không xác nhận các meter mới.
@@ -50,33 +56,33 @@ Mọi bài phải giữ đúng tổng trường độ của ô nhịp. Dấu l�
 
 Bảng curriculum chính thức phải được đọc đúng như sau, không tự ý đổi thứ tự hoặc phân bổ nội dung:
 
-| Cấp độ | Nội dung dự kiến |
-|---|---|
-| Level 1 | Nốt đen, nốt trắng, nốt tròn, dấu lặng đen |
-| Level 2 | Nốt móc đơn, dấu lặng đơn, chia đôi phách |
-| Level 3 | Nhịp đơn: 2/4, 3/4, 4/4 |
-| Level 4 | Dấu chấm dôi, nối trường độ |
-| Level 5 | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao |
-| Level 6 | Nhóm nhịp theo cấu trúc 3 móc đơn: 3/8, 6/8, 9/8 |
-| Bonus | Nhịp 2/2 (Alla Breve): hai phách chính, mỗi phách tương ứng một nốt trắng |
+| Cấp độ | Nội dung dự kiến | Exercise direction — D-07 APPROVED |
+|---|---|---|
+| Level 1 | Nốt đen, nốt trắng, nốt tròn, dấu lặng đen | Multiple Choice, Listen & Identify; chưa Tap Rhythm |
+| Level 2 | Nốt móc đơn, dấu lặng đơn, chia đôi phách | Multiple Choice, Listen & Identify; chưa Tap Rhythm |
+| Level 3 | Nhịp đơn: 2/4, 3/4, 4/4 | Giới thiệu Tap Rhythm; Multiple Choice vẫn là kind cốt lõi |
+| Level 4 | Dấu chấm dôi, nối trường độ | Tap Rhythm + Multiple Choice |
+| Level 5 | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao | Advanced Tap Rhythm |
+| Level 6 | Nhóm nhịp theo cấu trúc 3 móc đơn: 3/8, 6/8, 9/8 | Tap Rhythm theo simple/compound pulses trong một unit chung |
+| Bonus | Nhịp 2/2 (Alla Breve): hai phách chính, mỗi phách tương ứng một nốt trắng | Optional Tap Rhythm progression |
 
 Mỗi mục trên đều có đủ **Lessons**, **Practice** và **Assessment**. Mỗi mục cũng có phần mở đầu, phần giới thiệu khái niệm, phần củng cố và một chính sách coaching. “Assessment” là đánh giá trong curriculum, không phải tuyên bố về test kỹ thuật hay chuẩn giáo dục đã được kiểm chứng.
 
 Cấu trúc một bài học thống nhất:
 
-1. **Mở đầu:** nghe/nhìn một pulse rõ ràng, nêu mục tiêu bằng tiếng Việt, cho một ví dụ mẫu có đánh dấu phách và nói rõ người học cần tap onset hay chỉ tiếp tục đếm.
+1. **Mở đầu:** nghe/nhìn một pulse rõ ràng, nêu mục tiêu bằng tiếng Việt và cho ví dụ có đánh dấu phách. Level 1–2 nhận diện/nghe theo D-07; từ Level 3 mới hướng dẫn tap onset khi kind là Tap Rhythm. Counting là hoạt động khái niệm, không tự biến thành bài Tap.
 2. **Lessons:** giới thiệu từng khái niệm từ đơn giản đến hoàn chỉnh: ký hiệu riêng lẻ, ô nhịp ngắn, rồi mẫu đầy đủ. Giáo viên có thể giữ beat marker và count-in ở giai đoạn đầu.
 3. **Practice:** lặp lại có scaffold, sau đó giảm dần beat marker; trộn note/rest có kiểm soát; cho phép replay và retry không chấm lại điểm dùng chung.
-4. **Assessment:** bộ bài ngắn cân bằng bốn exercise kind, đánh giá cả nhận diện/trường độ và onset khi phù hợp. Mỗi câu chỉ tạo một kết quả bài tập dùng chung.
+4. **Assessment:** bộ bài ngắn phân bổ các kind phù hợp placement D-07, không bắt buộc đủ bốn kind tại mọi Level. Level 1–2 dùng Multiple Choice/Listen & Identify; từ Level 3 có Tap Rhythm. Mỗi câu chỉ tạo một kết quả bài tập dùng chung; Timing Accuracy (%) của Tap là chỉ số riêng chưa chốt công thức.
 5. **Củng cố:** phân loại lỗi theo onset, duration, rest, meter, tie hoặc accent; đề xuất bài ôn tương ứng thay vì khóa level.
 
 ## C. Curriculum chi tiết
 
 ### Level 1 — Nốt đen, nốt trắng, nốt tròn, dấu lặng đen
 
-**Mục tiêu.** Người học cảm nhận pulse quarter ổn định, nhận diện quarter/half/whole note và hiểu một quarter rest là một phách im lặng. Người học đếm được ô 4/4 cơ bản, phân biệt số onset với trường độ kéo dài, và không tap trong thời gian dấu lặng.
+**Mục tiêu.** Người học cảm nhận pulse quarter ổn định, nhận diện quarter/half/whole note và hiểu một quarter rest là một phách im lặng. Người học đếm được ô 4/4 cơ bản, phân biệt số onset với trường độ kéo dài, và hiểu dấu lặng không tạo onset. Level 1 chưa yêu cầu biểu diễn bằng Tap Rhythm.
 
-**Điều kiện đầu vào.** Không có prerequisite âm nhạc bắt buộc. Có thể có một calibration không chấm điểm để nghe pulse và thử một onset mỗi phách.
+**Điều kiện đầu vào.** Không có prerequisite âm nhạc bắt buộc. Dùng nghe/nhận diện pulse và ký hiệu; chưa thêm Tap Rhythm hoặc calibration exercise vào Level 1. Chính sách calibration cho Tap vẫn cần technical approval riêng.
 
 **Giới hạn ký hiệu và dấu lặng.** Chỉ dùng nốt đen, nốt trắng, nốt tròn và **dấu lặng đen (quarter rest) duy nhất** trong phần scored core. Không đưa dấu lặng trắng, dấu lặng tròn, móc đơn, móc kép, dấu chấm dôi, nối trường độ hoặc syncopation vào Level 1. Whole-measure rest không phải mục tiêu của level này.
 
@@ -87,16 +93,15 @@ Cấu trúc một bài học thống nhất:
 - Lesson 3: quarter rest = một pulse im lặng nhưng vẫn phải đếm; so sánh `note–note` với `note–rest`.
 - Mỗi khái niệm xuất hiện trước ở dạng một ký hiệu, sau đó trong một ô 4/4 hoàn chỉnh. Ví dụ chuẩn gồm một whole note lấp đầy ô và các tổ hợp half/quarter đúng 4 quarter.
 
-**Practice.** Bắt đầu bằng nhận diện biểu tượng và đếm trường độ; tiếp theo là hoàn thành ô 4/4 với quarter, half, whole hoặc quarter rest. Tap chỉ đặt tại các onset trên quarter grid; whole/half note chỉ yêu cầu một onset rồi giữ im lặng theo trường độ, không yêu cầu giữ phím. Một ô không nên có quá nhiều khoảng im lặng liên tiếp ở lần đầu.
+**Practice.** Multiple Choice dùng nhận diện biểu tượng, giá trị và hoàn thành ô 4/4 với quarter, half, whole hoặc quarter rest; Listen & Identify đối chiếu âm thanh với ký âm. Giải thích whole/half note có một onset và phần duration tiếp theo, nhưng không yêu cầu tap/giữ phím. Một ô không nên có quá nhiều khoảng im lặng liên tiếp ở lần đầu.
 
 **Assessment.**
 
 - Multiple Choice: chọn giá trị phách của quarter/half/whole hoặc chọn vị trí quarter rest.
-- Count the Beat: chỉ ra phách có onset và phách có silence trong 4/4.
 - Listen & Identify: phân biệt một onset kéo dài với nhiều onset ngắn.
-- Tap Rhythm: một ô 4/4 có onset trên quarter grid; dấu lặng không có target.
+**Placement:** chưa có Tap Rhythm tại Level 1. Đếm phách trong lesson là hỗ trợ khái niệm, không phải bài Tap hoặc một kind bắt buộc bổ sung.
 
-**Củng cố và coaching.** Gợi ý “ôn pulse” nếu onset không ổn định; gợi ý “ôn trường độ” nếu người học tap đúng onset nhưng gọi half/whole note là nhiều lần tap. Có thể khuyến nghị khoảng 80% nhận diện/đếm và khoảng 80% onset trong hai set ngắn, nhưng đây không phải khóa chuyển level.
+**Củng cố và coaching.** Gợi ý ôn pulse/trường độ khi người học nhầm một half/whole note với nhiều onset ngắn trong bài nhận diện/nghe. Chưa dùng Tap performance hoặc Timing Accuracy để đánh giá Level 1; mức sẵn sàng là coaching, không phải khóa chuyển Level.
 
 ### Level 2 — Móc đơn, dấu lặng đơn, chia đôi phách
 
@@ -112,16 +117,15 @@ Cấu trúc một bài học thống nhất:
 - Lesson 2: ghép hai eighth trong một beat; đặt một eighth rest ở vị trí đầu hoặc cuối của cell.
 - Lesson 3: giữ bài học và worked example trong scaffold 4/4; formal 2/4 và 3/4 được deferred đến Level 3 cùng với simple-meter identity, còn trọng tâm Level 2 vẫn là chia đôi quarter.
 
-**Practice.** Dùng cell hai eighth trước, sau đó ghép thành ô hoàn chỉnh. So sánh quarter note với hai eighth; so sánh eighth note với eighth rest. Tap bắt đầu bằng beat-start, rồi thêm off-beat eighth đơn sau khi count-in ổn định. Dấu lặng phải được thể hiện bằng tiếp tục đếm và không tap.
+**Practice.** Multiple Choice và Listen & Identify dùng cell hai eighth trước, sau đó ghép thành ô 4/4 hoàn chỉnh; so sánh quarter với hai eighth và eighth note với eighth rest. Dấu lặng vẫn tiêu thụ duration nhưng không tạo onset. Chưa thu/chấm thao tác Tap Rhythm ở Level 2.
 
 **Assessment.**
 
 - Multiple Choice: chọn pattern có cùng tổng trường độ hoặc chọn vị trí eighth rest.
-- Count the Beat: xác định `1`, `và`, phách cuối hoặc vị trí silence.
 - Listen & Identify: phân biệt một quarter onset với hai eighth onset và khoảng lặng tương ứng.
-- Tap Rhythm: tap các onset trên eighth grid trong scaffold 4/4; 2/4 và 3/4 chỉ được đưa vào sau khi Level 3 giới thiệu formal simple meter; không chấm việc giữ nút.
+**Placement:** chưa có Tap Rhythm tại Level 2. Binary counting vẫn là nội dung khái niệm; formal simple meter và thực hành Tap bắt đầu ở Level 3.
 
-**Củng cố và coaching.** Nếu người học hiểu ký hiệu nhưng dồn hai eighth thành một beat, quay về cell một beat với beat marker. Nếu tap every subdivision thay vì onset, cho bài phân biệt quarter/eighth/rest. Có thể dùng khoảng 75–80% cho onset và nhận diện như tín hiệu “nên luyện tiếp”, không phải hard gate.
+**Củng cố và coaching.** Nếu người học dồn hai eighth thành một beat, quay về cell một beat với beat marker và bài nhận diện/nghe quarter/eighth/rest. Chưa dùng Tap performance để đánh giá Level 2; tín hiệu ôn tập không phải hard gate.
 
 ### Level 3 — Một đơn vị Nhịp đơn: 2/4, 3/4, 4/4
 
@@ -144,7 +148,7 @@ Level 3 là phần **transfer formal** của meter, không phải Level 2 mở r
 - Lesson 3: dựng 4/4, nhận diện bốn quarter pulses và trọng âm giáo học có thể dùng mạnh–nhẹ–vừa–nhẹ.
 - Lesson 4: chuyển cùng một binary subdivision qua ba meter; xác định barline, beat position và onset/rest.
 
-**Practice.** Mỗi bài chọn một trong ba meter, hiển thị tên meter và bar capacity, rồi giảm dần trợ giúp. So sánh hai pattern có cùng tổng trường độ nhưng khác onset; luyện rest mà vẫn giữ count; dùng hai-bar phrase chỉ khi bar thứ hai củng cố bar thứ nhất. Không yêu cầu người học đồng nhất 3/4 với ba nhóm móc đơn của Level 6.
+**Practice.** Đây là Level đầu tiên giới thiệu **Tap Rhythm**: nhìn ký âm, theo metronome/reference timing được cấu hình, tap onset trong 2/4, 3/4 hoặc 4/4 và nhận Timing Accuracy (%) riêng với Exercise Points. Chính sách continuous guidance/reference và ngưỡng đánh giá vẫn cần technical approval. Mỗi bài chọn một trong ba meter, hiển thị tên meter và bar capacity, rồi tăng dần độ khó; So sánh hai pattern có cùng tổng trường độ nhưng khác onset; luyện rest mà vẫn giữ count; dùng hai-bar phrase chỉ khi bar thứ hai củng cố bar thứ nhất. Không yêu cầu người học đồng nhất 3/4 với ba nhóm móc đơn của Level 6.
 
 **Assessment.**
 
@@ -153,7 +157,7 @@ Level 3 là phần **transfer formal** của meter, không phải Level 2 mở r
 - Listen & Identify: nghe pattern trong một meter rồi chọn notation hoặc meter phù hợp.
 - Tap Rhythm: tap onset trên eighth grid trong từng meter; bộ tổng hợp phải có chuyển giữa 2/4, 3/4, 4/4 nhưng mỗi item chỉ một meter.
 
-**Củng cố và coaching.** Phân biệt “sai onset” với “đếm sai bar length”. Nếu người học tap tốt nhưng gọi 3/4 là 3 nhóm compound, quay lại pulse quarter và trọng âm của simple triple. Tín hiệu gợi ý khoảng 80% trên nhận diện/đếm và khoảng 80% onset qua các set ngắn; không khóa Level 4.
+**Củng cố và coaching.** Phân biệt “sai onset” với “đếm sai bar length”. Nếu người học tap tốt nhưng gọi 3/4 là 3 nhóm compound, quay lại pulse quarter và trọng âm của simple triple. Mức sẵn sàng và ngưỡng Timing Accuracy cần pilot/technical approval, không tự áp tỷ lệ phần trăm trong curriculum này và không khóa Level 4.
 
 ### Level 4 — Dấu chấm dôi và nối trường độ
 
@@ -324,14 +328,14 @@ Phách đơn và phách phức không đồng nhất. Các nhóm không có tr�
 
 ## F. Cấu trúc Practice/Assessment và coaching chung
 
-Mỗi level/Bonus dùng bốn exercise kind đã quy định trong đặc tả (chưa triển khai runtime), với tỷ lệ có thể cấu hình nhưng không thêm shared session mode:
+Toàn module giữ bốn exercise kinds trong đặc tả; phân bổ theo D-07, không yêu cầu mỗi Level dùng cả bốn. Level 1–2 dùng Multiple Choice và Listen & Identify; Tap Rhythm bắt đầu Level 3 và tăng độ khó. Count the Beat vẫn là kind hiện có, không bị xóa và không tự thêm vào phạm vi bắt buộc Level 1–2. Không thêm shared session mode:
 
 | Exercise kind | Mục tiêu curriculum | Quy tắc không đổi |
 |---|---|---|
 | Multiple Choice | Nhận diện note/rest, duration, meter, grouping, dot/tie | Chấm đáp án canonical identity; không chấm theo label/pixel |
 | Count the Beat | Đếm pulse, subdivision, rest, tie continuation, group starts | Hiển thị technical pulse đúng meter; không biến teaching group thành pulse mới |
 | Listen & Identify | Nghe duration-aware sound, rest, accent/grouping, simple/compound distinction | Rest là silence; tied continuation không phát attack mới; pattern và metronome tách lane |
-| Tap Rhythm | Tái tạo onset positions | Onset-only; dùng `currentTime`, confidence và matching windows hiện hành; count-in/reference không chấm |
+| Tap Rhythm | Thực hành onset từ Level 3 | Actual timestamps so với expected onsets, one-to-one matched/early/late/missing/extra; Timing Accuracy (%) tách +10/+0; công thức/windows/reference policies còn mở |
 
 Trong Practice có thể replay, giảm tempo, hiện beat marker, tăng scaffold và cho retry. Trong Assessment, một graded exercise hoàn thành chỉ submit một shared answer; kết quả đúng là `+10`, sai là `+0`. Technical abort/skip không âm thầm thành wrong. Local diagnostics có thể báo missing/extra/early/late/duration/meter/tie nhưng không tạo partial shared score.
 
@@ -367,3 +371,16 @@ Còn pending: secondary-sixteenth/rest/mixed notation examples chi tiết chưa 
 ## I. Phạm vi thay đổi của tài liệu này
 
 Bản curriculum này thay thế thân bài tám-level cũ trong tài liệu curriculum active. Nó không tuyên bố triển khai curriculum mới trong code; current code/data-only legacy levels và meter registry hiện hành vẫn là trạng thái riêng cần một approval/implementation task sau này. Trong update này, chỉ các Markdown được liệt kê trong change record được chỉnh; source code, test source, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading/UI/catalog/audio/metronome/MIDI/microphone/Phase3/deploy không bị thay đổi.
+
+### Các quyết định kỹ thuật Tap còn mở — D-07
+
+| Hạng mục | Trạng thái |
+|---|---|
+| Exact Timing Accuracy (%) formula và cách tổng hợp | PENDING TECHNICAL SPECIFICATION AND APPROVAL; không coi điểm +10 hoặc shared accuracy là phần trăm timing |
+| Tolerance windows, pass criteria và grades | PENDING; không áp con số matching/pilot cũ làm ngưỡng chính thức |
+| Continuous metronome và advanced removal of guidance | PENDING; không mặc định luôn có hoặc luôn bỏ |
+| Count-in và replay limits | PENDING; no-rescore/abort boundaries giữ nguyên |
+| Separate reference performance availability | PENDING; không mặc định mọi bài đều có reference riêng |
+| Device latency compensation/calibration policy | PENDING; giữ yêu cầu confidence/no-penalty, không tự chốt phương pháp hoặc tham số |
+
+Placement Multiple Choice/Tap đã APPROVED, không chờ các tham số trên để ghi vào curriculum. Không có Tap, audio hoặc UI nào được triển khai qua tài liệu này.

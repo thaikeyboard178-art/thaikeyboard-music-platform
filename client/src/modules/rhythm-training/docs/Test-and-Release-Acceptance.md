@@ -138,9 +138,9 @@ Curriculum chính thức không được suy ra từ legacy eight-level count. M
 
 | Test ID | Curriculum contract | Expected acceptance |
 |---|---|---|
-| `AT-CUR-001` | Level 1 | Lessons/Practice/Assessment cover black/quarter, half, whole notes and **quarter rests only**. Không thêm eighth vocabulary vào Level 1 acceptance. |
-| `AT-CUR-002` | Level 2 | Lessons/Practice/Assessment cover eighth notes, eighth rests, and binary subdivision of a quarter in a formal 4/4 scaffold; formal 2/4 and 3/4 coverage is deferred to Level 3. |
-| `AT-CUR-003` | Level 3 | Lessons/Practice/Assessment cover one Simple Meter group: `2/4`, `3/4`, `4/4`; identify signature, count beats, understand accent, distinguish bar capacity, analyze/practice patterns. |
+| `AT-CUR-001` | Level 1 | Lessons/Practice/Assessment cover quarter/half/whole notes and **quarter rests only**, using Multiple Choice and Listen & Identify per D-07. Không có Tap exercise/assessment/worked example; không thêm eighth vocabulary. |
+| `AT-CUR-002` | Level 2 | Eighth notes/rests and binary subdivision in 4/4 scaffold use Multiple Choice and Listen & Identify; no Tap exercise/assessment/worked example. Formal 2/4,3/4 and introduction of Tap begin Level 3. |
+| `AT-CUR-003` | Level 3 | One Simple Meter group `2/4`,`3/4`,`4/4` introduces Tap Rhythm practical onset performance; preserve notation/value recognition and MC core, pulse/accent/bar-capacity lessons. |
 | `AT-CUR-004` | Level 4 | Lessons/Practice/Assessment cover dots and ties. Dotted eighth is deferred until Level 5 sixteenth-grid policy; no acceptance fixture may silently advance it into Level 4. |
 | `AT-CUR-005` | Level 5 | Lessons/Practice/Assessment cover sixteenths, combinations, advanced rhythms, and controlled consolidation of retained old Level 7/8 outcomes. This is not permission to create new Level 7/8. |
 | `AT-CUR-006` | Level 6 single group | One unified `Grouping in Threes` knowledge group contains `3/8`, `6/8`, `9/8`; catalog/content must not expose three independent courses. |
@@ -215,7 +215,7 @@ These are retained technical contracts, not claims that UI or audio currently wo
 |---|---|---|
 | `AT-EX-001` | Four local exercise kinds | Keep `Multiple Choice`, `Tap Rhythm`, `Listen & Identify`, `Count the Beat`; they remain local exercise kinds, not new shared session modes. |
 | `AT-EX-002` | Whole-exercise scoring | One completed graded exercise submits exactly one shared answer: `+10` correct or `+0` wrong. No per-tap, per-cell, per-note or partial shared score. |
-| `AT-EX-003` | Tap semantics | Tap validation is onset-only. It does not claim to measure hold duration; rests and tie continuations create no tap target. |
+| `AT-EX-003` | Tap semantics | Practical actual-timestamp vs expected-onset evaluation, one-to-one matched/early/late/missing/extra, from Level 3. Not a choice question or tap-count-only check; no hold-duration claim; rests/tied continuations have no tap target. |
 | `AT-EX-004` | Abort/no penalty | Hidden tab, pointer cancellation/loss, blur, context interruption, output-route change, tempo change during an active attempt, scheduler starvation or insufficient technical confidence aborts/ungrades without wrong score. |
 | `AT-EX-005` | Retry/replay | Replay and unscored retry do not rescore; a technical abort does not submit a wrong answer. |
 | `AT-EX-006` | Audio and notation parity | Future audio gates/attacks, where implemented, derive from the same canonical timeline; rest is silent, tie continuation has no attack, and duration gate ends at exact written/tie-group end. |
@@ -228,14 +228,15 @@ These are retained technical contracts, not claims that UI or audio currently wo
 - Level 6 is one unified `Grouping in Threes` group with the six-step progression and all three signatures.
 - The seven-meter registry table, pulse BPM labels, `3/8` simple-triple distinction, and `2/2` Bonus contract are present.
 - Record the closed owner decision:3/8 has3 simple eighth beats, not1 compound beat;6/8/9/8 use medium secondary compound-beat accents. No repeated teacher confirmation for these semantics.
-- Record the three APPROVED presentation decisions;no fresh runtime pass is implied.
+- Record the three APPROVED presentation decisions; no fresh runtime pass is implied.
+- Record D-07: Multiple Choice core; Tap begins Level 3; separate Timing Accuracy (%) and +10/+0; unresolved technical parameters remain open.
 - No source/test implementation or active UI route is implied by this document.
 
 ### Gate B — Future canonical model, generator và notation implementation
 
 After separate implementation approval, `AT-MTR-*`, `AT-TIM-*`, `AT-COORD-*`, `AT-BAR-*`, `AT-REST-*`, `AT-TIE-*`, `AT-CUR-*`, `AT-GEN-*`, `AT-DST-*`, `AT-NOT-*` and applicable `AT-PRES-*` notation/schema criteria must be run as applicable; counting/audio/UI criteria belong to their separately approved future phases. Acceptance requires exact values, valid/invalid bars, level policy, migration of brittle legacy assertions, semantic distractor filtering and notation parity.
 
-The existing duration/PPQ/tie/whole-exercise scoring rules, `+10/+0`, onset-only tap semantics, current-time and confidence handling, matching windows, four local exercise kinds, Free/Challenge wrappers and boundary behavior remain unchanged unless a separately approved contract says otherwise.
+Duration/PPQ/tie, whole-exercise +10/+0, onset-only one-to-one timestamp matching, technical confidence/no-penalty, four local kinds and Free/Challenge boundaries remain. D-07 records timing windows, percentage formula, grades and latency compensation/calibration as pending technical specification/approval, not approved numeric defaults.
 
 ### Gate C — Future Phase 3/4/5 checks remain unchanged
 
@@ -266,3 +267,26 @@ Còn pending: ví dụ secondary sixteenth/rest/mixed-duration notation cụ th�
 **Changes in this documentation-only update:** created this acceptance document with proposed IDs and expected values for seven-meter schema/registry, meter type, pulse BPM, tick/seconds conversion, coordinates, bar capacity, rests, ties, generator level policy, distractors, notation, curriculum structure, legacy-test migration, release gates and future-phase boundaries. Historical change record retained;this update modifies Markdown acceptance only and may commit/push after consistency/hash verification, without runtime implementation.
 
 **Not changed:** no source/test/TS/TSX/JS/CSS/JSON/DB/infrastructure/dependency/shared architecture/Note Reading files; no UI/catalog/audio/metronome/MIDI/microphone/Phase 3/4/5/deploy; no parent-owned TODO/README/plan. The assigned Markdown documents are the intended documentation changes. No existing tests were run because this task is documentation-only.
+
+## 11. D-07 — Multiple Choice/Tap Rhythm acceptance, chưa triển khai hoặc thực thi
+
+Nguồn: **APPROVED OWNER DECISION** trong *Rhythm Training V1 — Curriculum Decision Update*, nhận ngày 2026-11-11 lúc 14:14 +07:00; [Decision Review](./Decision-Review.md). Đây là written acceptance requirements, không phải test source mới hoặc runtime pass. Các ID cũ giữ nguyên; criteria dưới đây bổ sung D-07 và giữ các contract còn lại.
+
+| Acceptance ID | Contract | Expected acceptance / rejection |
+|---|---|---|
+| `AT-CUR-017` | Multiple Choice core | MC dạy notation, note/rest values, rhythm structure/theory và vẫn được hỗ trợ; không coi MC một mình đủ practical performance hoặc xóa MC khi thêm Tap. |
+| `AT-CUR-018` | No early Tap | Level 1/2 direction là MC + Listen & Identify. Không có Tap exercise, Tap assessment hoặc Tap worked example sớm dưới nhãn ungraded; counting concept không tự thêm kind bắt buộc. |
+| `AT-CUR-019` | Progressive Tap placement | L3 giới thiệu Tap trong2/4,3/4,4/4; L4 dots/ties Tap+MC; L5 Advanced Tap; L6 simple/compound3/8,6/8,9/8 trong một unit; Bonus2/2 optional Tap. Không tạo Level mới hoặc tách L6. |
+| `AT-CUR-020` | Four kinds retained | Giữ MC, Tap Rhythm, Listen & Identify, Count the Beat; Tap không phải kind thứ năm, không đổi shared session modes hoặc lesson structure. |
+| `AT-TAP-001` | Real performance timestamps | Người học nhìn pattern, theo exercise metronome/reference timing, tap màn hình tại onset và nhận feedback. Evaluator dùng actual tap timestamps vs expected onset timestamps, không choice ID/label hoặc audible-click timestamp thay input timestamp. |
+| `AT-TAP-002` | Equal counts insufficient | Hai dãy có cùng số phần tử nhưng timestamps khác vẫn phải qua matcher và timing diagnostics; không tự award correct chỉ vì tap count bằng target count. Không tự đặt tolerance hoặc grade để hoàn thành criterion. |
+| `AT-TAP-003` | One-to-one categories | Một tap không match hai onsets và một onset không match hai taps. Báo matched, early, late, missing targets, extra taps riêng; ordered matching không mất thông tin lỗi. |
+| `AT-TAP-004` | Canonical onset targets | Expected onsets từ canonical timeline; rest và tie continuation không tạo target, onset không đồng nghĩa held duration. Meter/pulse/subdivision/PPQ/accent/beam semantics giữ nguyên. |
+| `AT-TAP-005` | Two distinct measurements | Timing Accuracy (%) biểu thị mức khớp timing là chỉ số riêng với Exercise Points (+10/+0); không thay shared accuracy/averageResponseTimeMs, không coi +10 =100% timing hoặc +0 =0%. |
+| `AT-TAP-006` | Shared completion points | Một completed graded exercise correct +10, incorrect +0, tối đa một award. Không per-tap/partial shared points; replay/retry không rescore và technical abort không learner-wrong. |
+| `AT-TAP-007` | Final formula/windows/grades open | Exact percentage formula, tolerance windows, pass thresholds và Excellent/Good/Needs Improvement grades phải có technical specification/approval riêng. Không âm thầm dùng pilot hypotheses làm defaults đã duyệt. |
+| `AT-TAP-008` | Guidance/reference policies open | Continuous metronome cho mọi bài, advanced removal of guidance, count-in/replay limits và separate reference performance availability còn PENDING; không tự chọn luôn có/luôn bỏ hoặc giới hạn cụ thể. |
+| `AT-TAP-009` | Latency/calibration policy open | Device latency compensation/calibration phải được review/phê duyệt kỹ thuật riêng. Clock fairness và technical confidence/no-penalty boundary giữ nguyên; không tự chốt phương pháp/offset/quota. |
+| `AT-TAP-010` | Documentation boundary | D-07 không triển khai Tap/audio/scheduler/UI/route, không sửa generator behavior, shared scoring/session, Note Reading, test source/WordPress hoặc deploy. Placement đã APPROVED không bị các tham số pending chặn ghi nhận. |
+
+Các acceptance này chỉ được chạy sau approval implementation thích hợp và specification tham số còn mở. Trong nhiệm vụ documentation-only hiện tại không chạy tests/build hoặc tuyên bố các Tap runtime stages đã pass.
