@@ -154,7 +154,7 @@ The executed proof is Vitest/jsdom plus real Chromium at1040/640/320px. Safari/i
 
 ## GitHub synchronization
 
-GitHub handoff is **PENDING** until a normal push is confirmed. The baseline is the existing private repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`. No successful transfer is claimed in advance.
+Source/checkpoint commit: `2bbb26daca856fe28c0b8cf927bfd993c681a235`. It was pushed normally to the existing private repository `thaikeyboard178-art/thaikeyboard-music-platform`, branch `main`, with `HEAD == origin/main` after the successful push. Documentation-only handoff metadata can follow without changing tested source. No force-push/history rewrite or publication was performed.
 
 ## Stop point
 
