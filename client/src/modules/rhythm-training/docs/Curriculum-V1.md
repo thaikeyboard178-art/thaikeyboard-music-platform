@@ -235,7 +235,7 @@ Mô hình nhóm ba chỉ là cách tổ chức dạy học chung; không đượ
 3. **Mở rộng thành ba nhóm:** chuyển sang 9/8, ba nhóm `Sww|Mww|Mww`; dạy ba dotted-quarter pulses bắt đầu ở 0, 720, 1440.
 4. **So sánh số lượng nhóm và vị trí trọng âm:** so sánh một/ba eighth pulses của 3/8 với hai/ba compound pulses của 6/8/9/8. Thể hiện khác nhau giữa “số nhóm ba” và “số technical pulse”.
 5. **Phân tích note, rest, dot, tie:** đặt rest trong từng nhóm, kiểm tra duration; sau đó thêm dot/tie theo vocabulary đã học. Tied continuation không phải onset; rest không phải onset.
-6. **Combined practice và assessment:** một bộ tổng hợp có đủ 3/8, 6/8, 9/8, đủ bốn exercise kind theo quota được phê duyệt, và câu hỏi phân biệt simple/compound.
+6. **Combined practice và assessment:** một bộ tổng hợp phải bao gồm 3/8, 6/8, 9/8 và đủ bốn exercise kinds theo phân bổ sẽ được xác định trong technical specification; quota chưa được phê duyệt. Bao gồm câu hỏi phân biệt simple/compound.
 
 **Quy ước trọng âm đã xác nhận.** Chủ sản phẩm đã chốt 3/8 `Sww`; 6/8 `Sww|Mww`; 9/8 `Sww|Mww|Mww`. Phách đơn là một móc đơn; phách phức của6/8 và9/8 là nốt đen chấm dôi chứa3 phách đơn. Tại cấp phách phức,6/8 có Mạnh–Vừa và9/8 có Mạnh–Vừa–Vừa. Đầu ô là bar-level accent Mạnh; đầu các phách phức tiếp theo là secondary beat accent Vừa; các phách đơn còn lại Nhẹ. Không đồng nhất phách đơn/phách phức và không gán Mạnh ngang nhau cho tất cả nhóm 3. Bỏ phương án hierarchy trước đây; beam eighth/các phương thức counting/hai hình thức accent đã APPROVED; numerical encoding và case chi tiết chưa quy định vẫn cần review riêng, không hỏi lại quy ước nhạc lý.
 
@@ -246,7 +246,7 @@ Mô hình nhóm ba chỉ là cách tổ chức dạy học chung; không đượ
 - Multiple Choice: phân biệt 3/8 simple triple với 6/8 compound duple; phân biệt 6/8 với 9/8 bằng số dotted-quarter pulses và grouping.
 - Count the Beat: chọn pulse positions, subdivision positions, rest và tie continuation; câu 3/8 không được coi một bar là một pulse 720.
 - Listen & Identify: nhận diện nhịp từ pattern được gắn nhãn cùng trọng âm đã chốt; phân biệt trọng âm chính Mạnh đầu ô với trọng âm Vừa đầu các phách phức sau, không dựng hai hierarchy mâu thuẫn.
-- Tap Rhythm: tap onset-only trong từng signature; bộ combined assessment phải chứa cả 3/8, 6/8, 9/8, có note/rest/dot/tie ở mức đã học và giữ matching windows/currentTime policy cũ.
+- Tap Rhythm: tap onset-only trong từng signature; bộ combined assessment phải chứa cả 3/8, 6/8, 9/8, có note/rest/dot/tie ở mức đã học. Đối chiếu actual tap timestamps với expected onsets và giữ chính sách currentTime hiện có; tolerance windows, matching thresholds và tiêu chí đánh giá vẫn pending technical specification and approval.
 
 **Củng cố và coaching.** Nếu người học tap đúng nhưng gọi 3/8 là một pulse, giữ onset credit và route sang simple-triple explanation. Nếu người học hiểu hai dotted-quarter pulses nhưng tap thành sáu primary beats, route sang 6/8 compound practice. Nếu nhầm 9/8 với 6/8, cho bài đếm số compound pulses và vị trí group starts. Level 6 không tạo hard lock; readiness của 3/8, 6/8 và 9/8 có thể báo cáo riêng trong coaching nhưng vẫn thuộc cùng một unit.
 
