@@ -33,6 +33,15 @@ describe("deriveMeter", () => {
       { denominator: 4, dots: 0 },
     ],
     [
+      { numerator: 3, denominator: 8 },
+      720,
+      240,
+      3,
+      [0, 240, 480],
+      [1, 1, 1],
+      { denominator: 8, dots: 0 },
+    ],
+    [
       { numerator: 6, denominator: 8 },
       1440,
       720,
@@ -40,6 +49,24 @@ describe("deriveMeter", () => {
       [0, 720],
       [3, 3],
       { denominator: 4, dots: 1 },
+    ],
+    [
+      { numerator: 9, denominator: 8 },
+      2160,
+      720,
+      3,
+      [0, 720, 1440],
+      [3, 3, 3],
+      { denominator: 4, dots: 1 },
+    ],
+    [
+      { numerator: 2, denominator: 2 },
+      1920,
+      960,
+      2,
+      [0, 960],
+      [1, 1],
+      { denominator: 2, dots: 0 },
     ],
   ] as const)(
     "derives exact metadata for %j",
@@ -99,12 +126,12 @@ describe("deriveMeter", () => {
       (info.groups as number[]).push(99);
     }).toThrow(TypeError);
     expect(() => {
-      (info.pulseUnit as { denominator: 4; dots: 0 | 1 }).dots = 1;
+      (info.pulseUnit as { denominator: 2 | 4 | 8; dots: 0 | 1 }).dots = 1;
     }).toThrow(TypeError);
   });
 
   it.each([
-    { numerator: 3, denominator: 8 },
+    { numerator: 5, denominator: 8 },
     { numerator: 6, denominator: 4 },
     { numerator: 5, denominator: 4 },
     { numerator: "4", denominator: 4 },

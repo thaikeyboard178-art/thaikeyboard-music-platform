@@ -246,7 +246,7 @@ function chooseMeter(
   if (chosen.numerator === 6 && chosen.denominator === 8) {
     return Object.freeze({ numerator: 6, denominator: 8 });
   }
-  return Object.freeze({ numerator: chosen.numerator, denominator: 4 });
+  return Object.freeze({ ...chosen });
 }
 
 function tempoBand(policy: LevelPolicy, meter: RhythmMeter) {

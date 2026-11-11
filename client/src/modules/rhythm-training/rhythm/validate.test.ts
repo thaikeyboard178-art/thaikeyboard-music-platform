@@ -79,7 +79,7 @@ describe("complete canonical rhythm validation", () => {
     ));
   it.each([
     { numerator: 6, denominator: 4 },
-    { numerator: 3, denominator: 8 },
+    { numerator: 5, denominator: 8 },
     { numerator: 5, denominator: 4 },
   ])("rejects unsupported meter %j", meter =>
     expectIssue({ ...FOUR_FOUR, meter }, "SCHEMA_INVALID")

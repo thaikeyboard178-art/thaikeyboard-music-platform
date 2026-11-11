@@ -1,6 +1,11 @@
 export type RhythmMeter =
-  | Readonly<{ numerator: 2 | 3 | 4; denominator: 4 }>
-  | Readonly<{ numerator: 6; denominator: 8 }>;
+  | Readonly<{ numerator: 2; denominator: 4 }>
+  | Readonly<{ numerator: 3; denominator: 4 }>
+  | Readonly<{ numerator: 4; denominator: 4 }>
+  | Readonly<{ numerator: 3; denominator: 8 }>
+  | Readonly<{ numerator: 6; denominator: 8 }>
+  | Readonly<{ numerator: 9; denominator: 8 }>
+  | Readonly<{ numerator: 2; denominator: 2 }>;
 
 export type WrittenDuration = Readonly<{
   denominator: 1 | 2 | 4 | 8 | 16;

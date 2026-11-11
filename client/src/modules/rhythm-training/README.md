@@ -1,8 +1,10 @@
-# Rhythm Training — Phase 1 foundation and Phase 2 generator/notation
+# Rhythm Training — seven-meter canonical runtime and Phase 2 generator/notation
 
 > **Phạm vi tài liệu:** Nội dung Phase1/Phase2 bên dưới là hiện trạng/lịch sử triển khai của code tám level policy và bốn meter, không phải curriculum V1 hiện hành. Khung chính thức đã đổi thành6Level+Bonus; xem [Curriculum V1](docs/Curriculum-V1.md) và [đặc tả hiện hành](docs/Rhythm-Training-V1-Specification.md). Việc sửa tài liệu không triển khai curriculum mới, không bắt đầu Phase3 và không kích hoạt frontend.
 
 This is an inert module library, not an activated frontend training feature. Rhythm Training remains Coming Soon. Phase1 provides canonical music theory; Phase2 adds seeded pattern/choice generation and a Rhythm-owned VexFlow notation adapter. No exercise UI, exercise modes, audio scheduler/playback, tap capture, metronome, microphone or MIDI has been implemented. This phase does not deploy anything.
+
+The mandatory seven-meter canonical-to-SVG runtime gate now has executable coverage in `runtime/sevenMeterRuntime.test.ts`. Canonical validation, pulse/grid/structural accents, timeline, notation projection and real VexFlow rendering support all seven exact meters. The existing eight generator policies still allow their original four-meter curriculum; this update does not migrate generator curricula or activate the frontend. Historical Phase1/Phase2 records describe their earlier four-meter scope, not the new gate.
 
 ## Canonical authority
 
@@ -10,13 +12,15 @@ This is an inert module library, not an activated frontend training feature. Rhy
 
 `validateRhythmPattern(unknown)` returns a structured valid/invalid result. `requireValidRhythmPattern` throws `RhythmValidationError` on invalid input and otherwise returns a copied, deeply frozen canonical pattern. Cached imported `ticks` and `onset` are checked, never authoritative, and stripped. Unknown positions, tuplets, swing and unsupported fields are rejected rather than coerced.
 
-Every measure must be exact:2/4=960,3/4=1440,4/4=1920,6/8=1440 ticks. The6/8 meter has two720-tick dotted-quarter pulses grouped3+3 eighth units, not six quarter beats. `ticksToSeconds` is pure arithmetic, not playback: `(ticks/pulseTicks)*(60/pulseBpm)`. A4/4 bar at quarter60 lasts4s;6/8 at dotted-quarter60 lasts2s.
+Every measure must be exact: 2/4=960, 3/4=1440, 4/4=1920, 3/8=720, 6/8=1440, 9/8=2160, 2/2=1920 ticks. 3/8 has three independent 240-tick eighth pulses, not one compound beat. 6/8 has two and 9/8 three 720-tick dotted-quarter pulses; 2/2 has two 960-tick half-note pulses. `ticksToSeconds` is pure arithmetic, not playback: `(ticks/pulseTicks)*(60/pulseBpm)`. A 4/4 bar at quarter60 lasts4s; 6/8 at dotted-quarter60 and 2/2 at half60 each last2s.
 
 ## Tie and timeline APIs
 
 Tie groups need at least two contiguous note segments. They can cross a barline only when both bars remain complete. Rests, gaps, singleton/reused noncontiguous groups and accented continuation attacks are invalid. `deriveRhythmTimeline` uses only validated patterns. It returns immutable segment positions, onsets and coalesced sounding **tick spans**, not scheduled sound. Tied continuations and rests have no onset.
 
 The default teaching grid is120 ticks (sixteenths). Optional240/480 grids must divide the pulse and represent every boundary exactly. Compound6/8 has three eighth cells or six sixteenth cells per pulse; a480 grid is not a valid compound pulse subdivision. Grid errors do not change canonical durations.
+
+`deriveMeterStructure(meter, subdivisionTicks)` supplies immutable pulse positions, exact requested-grid subdivision positions and structural `strong|medium|weak` points. `deriveRhythmTimeline` carries this structure; `projectRhythmNotation` and SVG note/rest metadata preserve its separate `structuralAccent`. Explicit segment articulation remains `accent: normal|strong` unchanged. Eighth-grid hierarchy is 3/8 S-w-w, 6/8 S-w-w|M-w-w, 9/8 S-w-w|M-w-w|M-w-w; 4/4 has its secondary medium at tick960 and 2/2 its second weak pulse at960. Structural accents never invent attacks on rests or tied continuations. Eighth notation is separate flags in3/8, beam groups3+3 in6/8,3+3+3 in9/8 and4+4 per half pulse in2/2.
 
 ## Signature contracts
 

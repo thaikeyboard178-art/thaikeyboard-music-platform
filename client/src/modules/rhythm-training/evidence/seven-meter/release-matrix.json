@@ -1,0 +1,793 @@
+[
+  {
+    "meter": "2/4",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/4 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "3/4",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/4 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "4/4",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 4/4 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "3/8",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 3/8 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "6/8",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 6/8 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "9/8",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 9/8 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  },
+  {
+    "meter": "2/2",
+    "stages": [
+      {
+        "stage": "S01",
+        "label": "Canonical acceptance",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S01 canonical model acceptance",
+        "productionFunctions": [
+          "rhythmPatternInputSchema.safeParse",
+          "requireValidRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S02",
+        "label": "Duration / pulse",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S02 exact duration and pulse calculations",
+        "productionFunctions": [
+          "durationToTicks",
+          "deriveMeter",
+          "ticksToSeconds"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S03",
+        "label": "Valid full bar",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S03 correctly filled bar validation",
+        "productionFunctions": [
+          "validateRhythmPattern"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S04",
+        "label": "Under + over reject",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S04 underfilled and overfilled rejection",
+        "productionFunctions": [
+          "validateRhythmPattern",
+          "deriveRhythmTimeline",
+          "projectRhythmNotation",
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S05",
+        "label": "Timeline onsets",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S05 timeline onset derivation",
+        "productionFunctions": [
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S06",
+        "label": "Pulse / subdivisions",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S06 structural pulse and subdivision metadata",
+        "productionFunctions": [
+          "deriveMeterStructure",
+          "deriveRhythmTimeline"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S07",
+        "label": "Structural accents",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S07 independent structural accents",
+        "productionFunctions": [
+          "deriveRhythmTimeline",
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S08",
+        "label": "Notation projection",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S08 notation grouping and beam projection",
+        "productionFunctions": [
+          "projectRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S09",
+        "label": "Actual SVG",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S09 actual VexFlow SVG rendering",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      },
+      {
+        "stage": "S10",
+        "label": "SVG beam / flags",
+        "status": "IMPLEMENTED_AND_EXECUTED_SUCCESSFULLY",
+        "testName": "Seven-meter runtime completion gate 7M 2/2 S10 rendered approved beam and flag rules",
+        "productionFunctions": [
+          "renderRhythmNotation"
+        ],
+        "chromiumStagePassed": true
+      }
+    ]
+  }
+]

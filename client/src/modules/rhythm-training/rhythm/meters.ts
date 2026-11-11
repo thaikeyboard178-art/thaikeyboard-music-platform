@@ -8,7 +8,24 @@ export type MeterInfo = Readonly<{
   pulseCount: number;
   pulseStarts: readonly number[];
   groups: readonly number[];
-  pulseUnit: Readonly<{ denominator: 4; dots: 0 | 1 }>;
+  pulseUnit: Readonly<{ denominator: 2 | 4 | 8; dots: 0 | 1 }>;
+}>;
+
+export type StructuralAccent = "strong" | "medium" | "weak";
+
+export type MeterStructure = Readonly<{
+  meter: RhythmMeter;
+  measureTicks: number;
+  pulseTicks: number;
+  pulseStarts: readonly number[];
+  subdivisionTicks: number;
+  subdivisionStarts: readonly number[];
+  accentPositions: readonly Readonly<{
+    tick: number;
+    level: StructuralAccent;
+    pulseIndex: number;
+    subdivisionIndex: number;
+  }>[];
 }>;
 
 type MeterShape = {
@@ -39,7 +56,18 @@ function meterDefinition(meter: RhythmMeter): Omit<MeterInfo, "meter"> {
     };
   }
 
-  if (meter.denominator === 8 && meter.numerator === 6) {
+  if (meter.numerator === 3 && meter.denominator === 8) {
+    return {
+      measureTicks: 3 * (PPQ / 2),
+      pulseTicks: PPQ / 2,
+      pulseCount: 3,
+      pulseStarts: [0, PPQ / 2, PPQ],
+      groups: [1, 1, 1],
+      pulseUnit: { denominator: 8, dots: 0 },
+    };
+  }
+
+  if (meter.numerator === 6 && meter.denominator === 8) {
     return {
       measureTicks: (6 * PPQ) / 2,
       pulseTicks: (3 * PPQ) / 2,
@@ -47,6 +75,28 @@ function meterDefinition(meter: RhythmMeter): Omit<MeterInfo, "meter"> {
       pulseStarts: [0, (3 * PPQ) / 2],
       groups: [3, 3],
       pulseUnit: { denominator: 4, dots: 1 },
+    };
+  }
+
+  if (meter.numerator === 9 && meter.denominator === 8) {
+    return {
+      measureTicks: (9 * PPQ) / 2,
+      pulseTicks: (3 * PPQ) / 2,
+      pulseCount: 3,
+      pulseStarts: [0, (3 * PPQ) / 2, 3 * PPQ],
+      groups: [3, 3, 3],
+      pulseUnit: { denominator: 4, dots: 1 },
+    };
+  }
+
+  if (meter.numerator === 2 && meter.denominator === 2) {
+    return {
+      measureTicks: 2 * PPQ * 2,
+      pulseTicks: PPQ * 2,
+      pulseCount: 2,
+      pulseStarts: [0, PPQ * 2],
+      groups: [1, 1],
+      pulseUnit: { denominator: 2, dots: 0 },
     };
   }
 
@@ -80,7 +130,7 @@ export function deriveMeter(meter: RhythmMeter): MeterInfo {
   const pulseUnit = Object.freeze({
     denominator: definition.pulseUnit.denominator,
     dots: definition.pulseUnit.dots,
-  }) as Readonly<{ denominator: 4; dots: 0 | 1 }>;
+  }) as Readonly<{ denominator: 2 | 4 | 8; dots: 0 | 1 }>;
 
   return Object.freeze({
     meter: copiedMeter,
@@ -90,6 +140,69 @@ export function deriveMeter(meter: RhythmMeter): MeterInfo {
     pulseStarts,
     groups,
     pulseUnit,
+  });
+}
+
+function validateSubdivisionGrid(
+  meter: MeterInfo,
+  subdivisionTicks: number
+): void {
+  if (
+    ![120, 240, 480].includes(subdivisionTicks) ||
+    meter.pulseTicks % subdivisionTicks !== 0
+  ) {
+    throw new RangeError(
+      "The subdivision grid must divide the meter pulse and use supported V1 ticks"
+    );
+  }
+}
+
+function accentLevel(meter: RhythmMeter, tick: number): StructuralAccent {
+  if (tick === 0) return "strong";
+  if (
+    (meter.numerator === 4 && meter.denominator === 4 && tick === 960) ||
+    (meter.numerator === 6 && meter.denominator === 8 && tick === 720) ||
+    (meter.numerator === 9 &&
+      meter.denominator === 8 &&
+      (tick === 720 || tick === 1440))
+  ) {
+    return "medium";
+  }
+  return "weak";
+}
+
+export function deriveMeterStructure(
+  meter: RhythmMeter,
+  subdivisionTicks = 120
+): MeterStructure {
+  const info = deriveMeter(meter);
+  validateSubdivisionGrid(info, subdivisionTicks);
+
+  const subdivisionStarts = Object.freeze(
+    Array.from(
+      { length: info.measureTicks / subdivisionTicks },
+      (_, index) => index * subdivisionTicks
+    )
+  );
+  const accentPositions = Object.freeze(
+    subdivisionStarts.map(tick =>
+      Object.freeze({
+        tick,
+        level: accentLevel(info.meter, tick),
+        pulseIndex: Math.floor(tick / info.pulseTicks),
+        subdivisionIndex: (tick % info.pulseTicks) / subdivisionTicks,
+      })
+    )
+  );
+
+  return Object.freeze({
+    meter: info.meter,
+    measureTicks: info.measureTicks,
+    pulseTicks: info.pulseTicks,
+    pulseStarts: info.pulseStarts,
+    subdivisionTicks,
+    subdivisionStarts,
+    accentPositions,
   });
 }
 

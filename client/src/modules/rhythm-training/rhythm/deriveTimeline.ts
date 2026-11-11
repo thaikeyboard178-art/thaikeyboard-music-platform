@@ -1,12 +1,18 @@
 import type { RhythmPattern, SegmentPosition, SoundingSpan } from "../types";
 import { durationToTicks } from "./durations";
-import { deriveMeter, type MeterInfo } from "./meters";
+import {
+  deriveMeter,
+  deriveMeterStructure,
+  type MeterInfo,
+  type MeterStructure,
+} from "./meters";
 import { deriveTieRoles } from "./ties";
 import { requireValidRhythmPattern } from "./validate";
 
 export type RhythmTimeline = Readonly<{
   pattern: RhythmPattern;
   meter: MeterInfo;
+  structure: MeterStructure;
   totalTicks: number;
   segments: readonly SegmentPosition[];
   onsets: readonly number[];
@@ -18,15 +24,8 @@ export function deriveRhythmTimeline(
   subdivisionTicks = 120
 ): RhythmTimeline {
   const pattern = requireValidRhythmPattern(input);
+  const structure = deriveMeterStructure(pattern.meter, subdivisionTicks);
   const meter = deriveMeter(pattern.meter);
-  if (
-    ![120, 240, 480].includes(subdivisionTicks) ||
-    meter.pulseTicks % subdivisionTicks !== 0
-  ) {
-    throw new RangeError(
-      "The subdivision grid must divide the meter pulse and use supported V1 ticks"
-    );
-  }
   const flatSegments = pattern.measures.flatMap(measure => measure.segments);
   const roles = deriveTieRoles(flatSegments);
   const positions: SegmentPosition[] = [];
@@ -95,6 +94,7 @@ export function deriveRhythmTimeline(
   return Object.freeze({
     pattern,
     meter,
+    structure,
     totalTicks: meter.measureTicks * pattern.measures.length,
     segments: Object.freeze(positions),
     onsets: Object.freeze(

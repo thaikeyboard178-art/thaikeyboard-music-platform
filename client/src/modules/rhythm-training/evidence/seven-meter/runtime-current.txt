@@ -1,0 +1,110 @@
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 2/4 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 2/4 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 3/4 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 3/4 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 4/4 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 4/4 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 3/8 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 3/8 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 6/8 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 6/8 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 9/8 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 9/8 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 2/2 native pulse note values validate project and render
+ ✓ client/src/modules/rhythm-training/runtime/meterValues.test.ts > Seven-meter written values and ties > 7M 2/2 intrabar tie preserves notation and suppresses continuation onset
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S05 timeline onset derivation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S06 structural pulse and subdivision metadata
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S10 rendered approved beam and flag rules
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 supported dots rests and cross-bar ties execute
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":5,"denominator":8}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":7,"denominator":8}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":6,"denominator":4}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":4,"denominator":2}
+
+ Test Files  2 passed (2)
+      Tests  102 passed (102)
+   Start at  06:41:52
+   Duration  2.09s (transform 253ms, setup 0ms, collect 687ms, tests 800ms, environment 1.64s, prepare 160ms)

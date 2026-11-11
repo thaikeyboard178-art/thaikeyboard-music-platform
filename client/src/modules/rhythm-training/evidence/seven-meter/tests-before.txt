@@ -1,0 +1,75 @@
+
+> notnhac@1.0.0 test /home/ubuntu/notnhac
+> vitest run
+
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/features/training/progress.test.ts (9 tests) 16ms
+ ✓ client/src/modules/rhythm-training/notation/VexFlowRhythm.test.ts (6 tests) 291ms
+ ✓ client/src/modules/rhythm-training/notation/regressions.test.ts (37 tests) 903ms
+ ✓ client/src/modules/note-reading/services/audio.test.ts (3 tests) 15ms
+ ✓ client/src/modules/note-reading/pages/NoteReadingPage.test.tsx (3 tests) 1066ms
+   ✓ Note Reading browser interactions > lets a learner configure the bass clef, extended range, and timed speed mode 514ms
+ ✓ client/src/modules/note-reading/services/preferences.test.ts (7 tests) 20ms
+ ✓ client/src/app/TrainingShell.test.tsx (5 tests) 266ms
+ ✓ client/src/modules/note-reading/pages/qaRegressions.test.tsx (8 tests) 2584ms
+   ✓ QA session UI regressions > keeps the daily session date fixed across local midnight 496ms
+   ✓ QA session UI regressions > does not bypass piano pitch and octave selection with multiple-choice number shortcuts 343ms
+   ✓ QA session UI regressions > completes daily only after ten answers, stores aggregate progress and resets on retry 727ms
+ ✓ client/src/pages/Home.test.tsx (4 tests) 252ms
+ ✓ client/src/features/training/ResultSummary.test.tsx (3 tests) 55ms
+ ✓ client/src/modules/note-reading/services/ledgerRange.test.ts (6 tests) 224ms
+ ✓ client/src/modules/note-reading/components/VirtualPiano.test.tsx (2 tests) 242ms
+ ✓ client/src/modules/rhythm-training/rhythm/validate.test.ts (59 tests) 37ms
+ ✓ client/src/modules/note-reading/notation/VexFlowStaff.test.tsx (3 tests) 454ms
+ ✓ client/src/app/TrainingRouter.test.tsx (2 tests) 783ms
+   ✓ catalog-driven router integration > opens the existing lazy module through its landing action 631ms
+ ✓ client/src/modules/rhythm-training/generation/generator.test.ts (9 tests) 664ms
+   ✓ seeded level-constrained rhythm generation > generates exact, canonical, nonempty bars across a broad seed matrix 544ms
+ ✓ client/src/modules/rhythm-training/rhythm/deriveTimeline.test.ts (18 tests) 31ms
+ ✓ client/src/modules/rhythm-training/generation/regressions.test.ts (9 tests) 606ms
+   ✓ Phase2 generator integration regressions > fails closed for four choices in an explicitly fixed2/4 dot vocabulary, but can supply three 369ms
+ ✓ client/src/modules/rhythm-training/rhythm/meters.test.ts (35 tests) 14ms
+ ✓ client/src/modules/rhythm-training/generation/answerSignatures.test.ts (9 tests) 33ms
+ ✓ client/src/features/training/session.test.ts (7 tests) 7ms
+ ✓ client/src/modules/rhythm-training/notation/projection.test.ts (6 tests) 22ms
+ ✓ client/src/modules/rhythm-training/rhythm/signatures.test.ts (9 tests) 27ms
+ ✓ client/src/modules/rhythm-training/generation/choices.test.ts (17 tests) 1479ms
+   ✓ bounded deterministic choice data > generates unique valid deterministic choices at level7 430ms
+ ✓ client/src/app/moduleRegistry.test.ts (8 tests) 15ms
+ ✓ client/src/modules/rhythm-training/tests/compositions.test.ts (4 tests) 151ms
+stdout | server/platform.test.ts
+[OAuth] Initialized with baseURL: https://api.manus.ai
+
+stderr | server/platform.test.ts > current platform integration > binds signed app sessions to this project and accepts an empty display name
+[Auth] Session payload missing required fields
+
+ ✓ server/platform.test.ts (5 tests) 26ms
+ ✓ client/src/modules/rhythm-training/tests/scope.test.ts (3 tests) 12ms
+ ✓ client/src/modules/note-reading/services/exercises.test.ts (5 tests) 48ms
+ ✓ client/src/modules/note-reading/notation/musicTheory.test.ts (6 tests) 12ms
+ ✓ client/src/modules/rhythm-training/generation/levels.test.ts (3 tests) 7ms
+ ✓ client/src/modules/note-reading/notation/qaFixtures.test.ts (53 tests) 179ms
+ ✓ client/src/modules/rhythm-training/rhythm/durations.test.ts (28 tests) 10ms
+ ✓ client/src/modules/note-reading/pages/uxImprovements.test.tsx (27 tests) 8058ms
+   ✓ auto-advance flow > multiple-choice ON: immediate score/feedback then exactly one transition at 900ms (true) 667ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=true 569ms
+   ✓ auto-advance flow > Thử thách multiple-choice final feedback is never skipped, auto=false 496ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=true 580ms
+   ✓ auto-advance flow > Thử thách hôm nay multiple-choice final feedback is never skipped, auto=false 599ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=true 605ms
+   ✓ auto-advance flow > Thử thách piano final feedback is never skipped, auto=false 550ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=true 533ms
+   ✓ auto-advance flow > Thử thách hôm nay piano final feedback is never skipped, auto=false 619ms
+ ✓ server/auth.logout.test.ts (1 test) 6ms
+ ✓ client/src/modules/rhythm-training/generation/random.test.ts (3 tests) 10ms
+ ✓ client/src/modules/note-reading/configuration.test.ts (2 tests) 6ms
+ ✓ client/src/modules/note-reading/module.test.ts (3 tests) 5ms
+ ✓ client/src/modules/rhythm-training/generation/tiePolicy.test.ts (1 test) 14ms
+ ✓ client/src/modules/rhythm-training/generation/curriculumMatrix.test.ts (8 tests) 806ms
+
+ Test Files  40 passed (40)
+      Tests  436 passed (436)
+   Start at  06:33:52
+   Duration  12.45s (transform 1.59s, setup 0ms, collect 10.14s, tests 19.46s, environment 17.59s, prepare 3.50s)

@@ -22,13 +22,13 @@ export const writtenDurationSchema = z
   .strict();
 
 export const rhythmMeterSchema = z.union([
-  z
-    .object({
-      numerator: z.union([z.literal(2), z.literal(3), z.literal(4)]),
-      denominator: z.literal(4),
-    })
-    .strict(),
+  z.object({ numerator: z.literal(2), denominator: z.literal(4) }).strict(),
+  z.object({ numerator: z.literal(3), denominator: z.literal(4) }).strict(),
+  z.object({ numerator: z.literal(4), denominator: z.literal(4) }).strict(),
+  z.object({ numerator: z.literal(3), denominator: z.literal(8) }).strict(),
   z.object({ numerator: z.literal(6), denominator: z.literal(8) }).strict(),
+  z.object({ numerator: z.literal(9), denominator: z.literal(8) }).strict(),
+  z.object({ numerator: z.literal(2), denominator: z.literal(2) }).strict(),
 ]);
 
 // Optional import caches are checked and removed by validateRhythmPattern.

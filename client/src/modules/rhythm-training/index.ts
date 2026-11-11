@@ -8,8 +8,16 @@ export type {
   SoundingSpan,
 } from "./types";
 export { PPQ, durationToTicks } from "./rhythm/durations";
-export { deriveMeter, ticksToSeconds } from "./rhythm/meters";
-export type { MeterInfo } from "./rhythm/meters";
+export {
+  deriveMeter,
+  deriveMeterStructure,
+  ticksToSeconds,
+} from "./rhythm/meters";
+export type {
+  MeterInfo,
+  MeterStructure,
+  StructuralAccent,
+} from "./rhythm/meters";
 export {
   validateRhythmPattern,
   requireValidRhythmPattern,

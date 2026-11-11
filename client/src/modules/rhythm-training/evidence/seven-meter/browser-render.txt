@@ -1,0 +1,14 @@
+{
+  "meters": [
+    "2/4",
+    "3/4",
+    "4/4",
+    "3/8",
+    "6/8",
+    "9/8",
+    "2/2"
+  ],
+  "all70BrowserStagesPassed": true,
+  "renderCases": 35,
+  "image": "/home/ubuntu/seven-meter-runtime/seven-meter-renderings.png"
+}

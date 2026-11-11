@@ -8,6 +8,7 @@ import {
   deriveRhythmTimeline,
   type RhythmTimeline,
 } from "../rhythm/deriveTimeline";
+import type { StructuralAccent } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 
 export type ProjectedNotationDuration = `${number}` | `${number}r`;
@@ -33,6 +34,11 @@ export type NotationSegmentProjection = Readonly<{
   tieRole: TieRole;
   tieGroupId?: string;
   accent: "normal" | "strong";
+  structuralAccent: StructuralAccent;
+  pulseIndex: number;
+  pulseOffsetTicks: number;
+  subdivisionIndex: number;
+  subdivisionTicks: number;
 }>;
 
 export type NotationBeamGroup = Readonly<{
@@ -74,7 +80,8 @@ function durationString(
 
 function freezeProjectionSegment(
   position: SegmentPosition,
-  duration: WrittenDuration
+  duration: WrittenDuration,
+  structuralAccent: StructuralAccent
 ): NotationSegmentProjection {
   const projectedDuration = durationString(duration, position.kind);
   return Object.freeze({
@@ -99,6 +106,11 @@ function freezeProjectionSegment(
       ? { tieGroupId: position.tieGroupId }
       : {}),
     accent: position.accent,
+    structuralAccent,
+    pulseIndex: position.pulseIndex,
+    pulseOffsetTicks: position.pulseOffsetTicks,
+    subdivisionIndex: position.subdivisionIndex,
+    subdivisionTicks: position.subdivisionTicks,
   });
 }
 
@@ -211,14 +223,24 @@ export function projectRhythmNotation(
 ): ImmutableRhythmNotationProjection {
   const pattern = requireValidRhythmPattern(input);
   const timeline = deriveRhythmTimeline(pattern, 120);
+  const structuralAccents = new Map(
+    timeline.structure.accentPositions.map(point => [point.tick, point.level])
+  );
   const segments = Object.freeze(
-    timeline.segments.map(position =>
-      freezeProjectionSegment(
+    timeline.segments.map(position => {
+      const structuralAccent = structuralAccents.get(
+        position.measureOffsetTicks
+      );
+      if (structuralAccent === undefined) {
+        throw new RangeError("Missing canonical structural accent position");
+      }
+      return freezeProjectionSegment(
         position,
         pattern.measures[position.measureIndex].segments[position.segmentIndex]
-          .duration
-      )
-    )
+          .duration,
+        structuralAccent
+      );
+    })
   );
   const projection: ImmutableRhythmNotationProjection = {
     canonicalPattern: pattern,

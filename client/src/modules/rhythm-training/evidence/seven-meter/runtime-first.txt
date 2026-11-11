@@ -1,0 +1,574 @@
+
+ RUN  v2.1.9 /home/ubuntu/notnhac
+
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1 ] to deeply equal [ +0, +0, 1, 1 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S07 independent structural accents
+   → expected [ +0, 480 ] to deeply equal [ +0, 240, 480, 720 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1, 2 ] to deeply equal [ +0, +0, 1, 1, 2, 2 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S07 independent structural accents
+   → expected [ +0, 480, 960 ] to deeply equal [ +0, 240, 480, 720, 960, 1200 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1, 2, 3 ] to deeply equal [ +0, +0, 1, 1, 2, 2, 3, 3 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S07 independent structural accents
+   → expected [ +0, 480, 960, 1440 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(2) ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1, 2 ] to deeply equal [ +0, +0, +0 ]
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S07 independent structural accents
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S08 notation grouping and beam projection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S09 actual VexFlow SVG rendering
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S10 rendered approved beam and flag rules
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 all-rest bar executes without invented attacks
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1 ] to deeply equal [ +0, +0, +0, 1, 1, 1 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S07 independent structural accents
+   → expected [ +0, 720 ] to deeply equal [ +0, 240, 480, 720, 960, 1200 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1, 2 ] to deeply equal [ +0, +0, +0, 1, 1, 1, 2, 2, 2 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S07 independent structural accents
+   → expected [ +0, 720, 1440 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(3) ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S01 canonical model acceptance
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S02 exact duration and pulse calculations
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S03 correctly filled bar validation
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S04 underfilled and overfilled rejection
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S05 timeline onset derivation
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S06 structural pulse and subdivision metadata
+   → expected [ +0, 1 ] to deeply equal [ +0, +0, +0, +0, 1, 1, 1, 1 ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S07 independent structural accents
+   → expected [ +0, 960 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(2) ]
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S08 notation grouping and beam projection
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S09 actual VexFlow SVG rendering
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S10 rendered approved beam and flag rules
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 supported dots rests and cross-bar ties execute
+   → Missing canonical structural accent position
+ × client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 all-rest bar executes without invented attacks
+   → Missing canonical structural accent position
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":5,"denominator":8}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":7,"denominator":8}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":6,"denominator":4}
+ ✓ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > never falls back for unsupported meter {"numerator":4,"denominator":2}
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 44 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1 ] to deeply equal [ +0, +0, 1, 1 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   1,
+    1,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S07 independent structural accents
+AssertionError: expected [ +0, 480 ] to deeply equal [ +0, 240, 480, 720 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+    480,
+-   720,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S08 notation grouping and beam projection
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S08 notation grouping and beam projection
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S08 notation grouping and beam projection
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S08 notation grouping and beam projection
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S08 notation grouping and beam projection
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S08 notation grouping and beam projection
+RangeError: Missing canonical structural accent position
+ ❯ client/src/modules/rhythm-training/notation/projection.ts:235:15
+    233|       );
+    234|       if (structuralAccent === undefined) {
+    235|         throw new RangeError("Missing canonical structural accent posi…
+       |               ^
+    236|       }
+    237|       return freezeProjectionSegment(
+ ❯ Module.projectRhythmNotation client/src/modules/rhythm-training/notation/projection.ts:230:23
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:190:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S09 actual VexFlow SVG rendering
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S09 actual VexFlow SVG rendering
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S09 actual VexFlow SVG rendering
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S09 actual VexFlow SVG rendering
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S09 actual VexFlow SVG rendering
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S09 actual VexFlow SVG rendering
+RangeError: Missing canonical structural accent position
+ ❯ client/src/modules/rhythm-training/notation/projection.ts:235:15
+    233|       );
+    234|       if (structuralAccent === undefined) {
+    235|         throw new RangeError("Missing canonical structural accent posi…
+       |               ^
+    236|       }
+    237|       return freezeProjectionSegment(
+ ❯ Module.projectRhythmNotation client/src/modules/rhythm-training/notation/projection.ts:230:23
+ ❯ Module.renderRhythmNotation client/src/modules/rhythm-training/notation/VexFlowRhythm.ts:425:22
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:215:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 S10 rendered approved beam and flag rules
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S10 rendered approved beam and flag rules
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S10 rendered approved beam and flag rules
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S10 rendered approved beam and flag rules
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S10 rendered approved beam and flag rules
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S10 rendered approved beam and flag rules
+RangeError: Missing canonical structural accent position
+ ❯ client/src/modules/rhythm-training/notation/projection.ts:235:15
+    233|       );
+    234|       if (structuralAccent === undefined) {
+    235|         throw new RangeError("Missing canonical structural accent posi…
+       |               ^
+    236|       }
+    237|       return freezeProjectionSegment(
+ ❯ Module.projectRhythmNotation client/src/modules/rhythm-training/notation/projection.ts:230:23
+ ❯ Module.renderRhythmNotation client/src/modules/rhythm-training/notation/VexFlowRhythm.ts:425:22
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:256:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 supported dots rests and cross-bar ties execute
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 supported dots rests and cross-bar ties execute
+RangeError: Missing canonical structural accent position
+ ❯ client/src/modules/rhythm-training/notation/projection.ts:235:15
+    233|       );
+    234|       if (structuralAccent === undefined) {
+    235|         throw new RangeError("Missing canonical structural accent posi…
+       |               ^
+    236|       }
+    237|       return freezeProjectionSegment(
+ ❯ Module.projectRhythmNotation client/src/modules/rhythm-training/notation/projection.ts:230:23
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:304:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/4 all-rest bar executes without invented attacks
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 all-rest bar executes without invented attacks
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 all-rest bar executes without invented attacks
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 all-rest bar executes without invented attacks
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 all-rest bar executes without invented attacks
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 all-rest bar executes without invented attacks
+RangeError: Missing canonical structural accent position
+ ❯ client/src/modules/rhythm-training/notation/projection.ts:235:15
+    233|       );
+    234|       if (structuralAccent === undefined) {
+    235|         throw new RangeError("Missing canonical structural accent posi…
+       |               ^
+    236|       }
+    237|       return freezeProjectionSegment(
+ ❯ Module.projectRhythmNotation client/src/modules/rhythm-training/notation/projection.ts:230:23
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:345:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1, 2 ] to deeply equal [ +0, +0, 1, 1, 2, 2 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+    1,
+-   1,
+-   2,
+    2,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/4 S07 independent structural accents
+AssertionError: expected [ +0, 480, 960 ] to deeply equal [ +0, 240, 480, 720, 960, 1200 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+    480,
+-   720,
+    960,
+-   1200,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1, 2, 3 ] to deeply equal [ +0, +0, 1, 1, 2, 2, 3, 3 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   1,
+    1,
+-   2,
+    2,
+-   3,
+    3,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 4/4 S07 independent structural accents
+AssertionError: expected [ +0, 480, 960, 1440 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(2) ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+    480,
+-   720,
+    960,
+-   1200,
+    1440,
+-   1680,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 3/8 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1, 2 ] to deeply equal [ +0, +0, +0 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   0,
++   1,
++   2,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:155:9
+    153|       expect(
+    154|         structure.accentPositions.map(point => point.subdivisionIndex)
+    155|       ).toEqual(f.subdivisionIndices);
+       |         ^
+    156|     });
+    157|     it(`7M ${f.name} S07 independent structural accents`, () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1 ] to deeply equal [ +0, +0, +0, 1, 1, 1 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   0,
+-   1,
+-   1,
+    1,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 6/8 S07 independent structural accents
+AssertionError: expected [ +0, 720 ] to deeply equal [ +0, 240, 480, 720, 960, 1200 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+-   480,
+    720,
+-   960,
+-   1200,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1, 2 ] to deeply equal [ +0, +0, +0, 1, 1, 1, 2, 2, 2 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   0,
+-   1,
+-   1,
+    1,
+-   2,
+-   2,
+    2,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 9/8 S07 independent structural accents
+AssertionError: expected [ +0, 720, 1440 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(3) ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+-   480,
+    720,
+-   960,
+-   1200,
+    1440,
+-   1680,
+-   1920,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S06 structural pulse and subdivision metadata
+AssertionError: expected [ +0, 1 ] to deeply equal [ +0, +0, +0, +0, 1, 1, 1, 1 ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   0,
+-   0,
+-   0,
+-   1,
+-   1,
+-   1,
+    1,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:150:72
+    148|         timeline.segments.map(segment => segment.subdivisionIndex)
+    149|       ).toEqual(f.subdivisionIndices);
+    150|       expect(structure.accentPositions.map(point => point.pulseIndex))…
+       |                                                                        ^
+    151|         f.pulseIndices
+    152|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/44]⎯
+
+ FAIL  client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts > Seven-meter runtime completion gate > 7M 2/2 S07 independent structural accents
+AssertionError: expected [ +0, 960 ] to deeply equal [ +0, 240, 480, 720, 960, 1200, …(2) ]
+
+- Expected
++ Received
+
+  Array [
+    0,
+-   240,
+-   480,
+-   720,
+    960,
+-   1200,
+-   1440,
+-   1680,
+  ]
+
+ ❯ client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts:160:72
+    158|       const before = JSON.stringify(f.pattern);
+    159|       const plain = deriveRhythmTimeline(f.pattern, 240);
+    160|       expect(plain.structure.accentPositions.map(point => point.tick))…
+       |                                                                        ^
+    161|         f.eighthStarts
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/44]⎯
+
+ Test Files  1 failed (1)
+      Tests  44 failed | 44 passed (88)
+   Start at  06:39:31
+   Duration  1.78s (transform 194ms, setup 0ms, collect 365ms, tests 239ms, environment 774ms, prepare 81ms)

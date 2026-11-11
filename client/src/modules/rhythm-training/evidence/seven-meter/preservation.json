@@ -1,0 +1,30 @@
+{
+  "baselineHead": "35b82324e30453a0b175c8f6c5003a1d1aa47786",
+  "protectedFilesUnchanged": 196,
+  "changedExistingFiles": [
+    "client/src/modules/rhythm-training/README.md",
+    "client/src/modules/rhythm-training/TODO.md",
+    "client/src/modules/rhythm-training/generation/generator.ts",
+    "client/src/modules/rhythm-training/index.ts",
+    "client/src/modules/rhythm-training/notation/VexFlowRhythm.ts",
+    "client/src/modules/rhythm-training/notation/projection.ts",
+    "client/src/modules/rhythm-training/plan.md",
+    "client/src/modules/rhythm-training/rhythm/deriveTimeline.ts",
+    "client/src/modules/rhythm-training/rhythm/meters.test.ts",
+    "client/src/modules/rhythm-training/rhythm/meters.ts",
+    "client/src/modules/rhythm-training/rhythm/model.ts",
+    "client/src/modules/rhythm-training/rhythm/validate.test.ts",
+    "client/src/modules/rhythm-training/types.ts"
+  ],
+  "newFiles": [
+    "client/src/modules/rhythm-training/rhythm/structure.test.ts",
+    "client/src/modules/rhythm-training/runtime/fixtures.ts",
+    "client/src/modules/rhythm-training/runtime/generatorCompatibility.test.ts",
+    "client/src/modules/rhythm-training/runtime/meterValues.test.ts",
+    "client/src/modules/rhythm-training/runtime/sevenMeterRuntime.test.ts"
+  ],
+  "noteReadingUnchanged": true,
+  "catalogAndStaticManifestUnchanged": true,
+  "sharedContractsAndInfrastructureUnchanged": true,
+  "dependenciesUnchanged": true
+}

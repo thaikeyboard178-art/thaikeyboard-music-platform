@@ -181,6 +181,21 @@ function addCanonicalDataAttributes(
     element.setAttribute("data-canonical-onset", String(segment.onset));
     element.setAttribute("data-tie-role", segment.tieRole);
     element.setAttribute("data-rhythm-kind", segment.kind);
+    element.setAttribute("data-explicit-accent", segment.accent);
+    element.setAttribute("data-structural-accent", segment.structuralAccent);
+    element.setAttribute("data-pulse-index", String(segment.pulseIndex));
+    element.setAttribute(
+      "data-pulse-offset-ticks",
+      String(segment.pulseOffsetTicks)
+    );
+    element.setAttribute(
+      "data-subdivision-index",
+      String(segment.subdivisionIndex)
+    );
+    element.setAttribute(
+      "data-subdivision-ticks",
+      String(segment.subdivisionTicks)
+    );
     element.setAttribute(
       "data-rhythm-measure-index",
       String(segment.measureIndex)
@@ -222,6 +237,34 @@ function prepareBeams(context: RenderContext, beams: readonly Beam[]): void {
 
 function drawBeams(beams: readonly Beam[]): void {
   for (const beam of beams) beam.draw();
+}
+
+function markBeamElements(
+  svg: SVGSVGElement,
+  groups: readonly NotationBeamGroup[]
+): void {
+  const elements = Array.from(svg.querySelectorAll<SVGGElement>(".vf-beam"));
+  if (elements.length !== groups.length) {
+    throw new RhythmNotationRenderError(
+      "Rendered beam count disagrees with the canonical projection"
+    );
+  }
+  elements.forEach((element, index) => {
+    if (!element.querySelector("path")) {
+      throw new RhythmNotationRenderError(
+        "VexFlow beam has no actual drawn path"
+      );
+    }
+    const group = groups[index];
+    element.setAttribute("data-rhythm-beam-id", group.id);
+    element.setAttribute(
+      "data-rhythm-beam-segments",
+      group.segmentIds.join(",")
+    );
+    element.setAttribute("data-beam-pulse-index", String(group.pulseIndex));
+    element.setAttribute("data-beam-start-ticks", String(group.startTicks));
+    element.setAttribute("data-beam-end-ticks", String(group.endTicks));
+  });
 }
 
 function compareActualPositions(
@@ -624,6 +667,7 @@ export function renderRhythmNotation(
   }
   addCanonicalDataAttributes(svg, allNotes, projection.segments, rowByMeasure);
   markTieElements(svg, tieMarkers);
+  markBeamElements(svg, projection.beamGroups);
   svg.setAttribute("data-rhythm-pattern-id", projection.canonicalPattern.id);
   svg.setAttribute(
     "data-rhythm-meter",

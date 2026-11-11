@@ -1,0 +1,25 @@
+
+> notnhac@1.0.0 build /home/ubuntu/notnhac
+> vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v7.3.7 building client environment for production...
+<script src="/api/platform/config.js"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+✓ 1892 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/api/platform/config.js                  0.17 kB
+../dist/public/index.html                              0.76 kB │ gzip:   0.48 kB
+../dist/public/assets/index-CLedvGEj.css             125.49 kB │ gzip:  22.60 kB
+../dist/public/assets/index-BOFwURDx.js              428.21 kB │ gzip: 132.17 kB
+../dist/public/assets/NoteReadingPage-BhdsdT1j.js  1,218.74 kB │ gzip: 715.08 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.49s
+
+  dist/index.js  27.6kb
+
+⚡ Done in 7ms

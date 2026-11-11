@@ -1,0 +1,3288 @@
+{
+  "browser": "Chromium real production functions",
+  "rows": [
+    {
+      "meter": "2/4",
+      "patternId": "seven-meter-2-4",
+      "barCapacity": 960,
+      "pulseTicks": 480,
+      "pulseStarts": [
+        0,
+        480
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 720,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-2-4",
+          "meter": {
+            "numerator": 2,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 960
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 960,
+            "actualTicks": 720
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 960,
+            "actualTicks": 1200
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 480
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n2",
+              "n3"
+            ],
+            "segmentIDs": [
+              "n2",
+              "n3"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 480,
+            "endTicks": 960
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "8192/1",
+            "actualTicks": "8192/1",
+            "expectedTicksUsed": "8192/1",
+            "actualTicksUsed": "8192/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 104.2265625,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 316.61328125,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 529,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 741.38671875,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "3/4",
+      "patternId": "seven-meter-3-4",
+      "barCapacity": 1440,
+      "pulseTicks": 480,
+      "pulseStarts": [
+        0,
+        480,
+        960
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 720,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 960,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 1200,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 1
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-3-4",
+          "meter": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n4",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n5",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 1440
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1440,
+            "actualTicks": 1200
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1440,
+            "actualTicks": 1680
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 480
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n2",
+              "n3"
+            ],
+            "segmentIDs": [
+              "n2",
+              "n3"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 480,
+            "endTicks": 960
+          },
+          {
+            "id": "beam-3",
+            "segmentIds": [
+              "n4",
+              "n5"
+            ],
+            "segmentIDs": [
+              "n4",
+              "n5"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 2,
+            "startTicks": 960,
+            "endTicks": 1440
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n4",
+            "segmentID": "n4",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n5",
+            "segmentID": "n5",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 76.07997131347656,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 228.79998016357425,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 381.51998901367193,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 534.2399978637696,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n4",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 686.9600067138673,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n5",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 839.680015563965,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "4/4",
+      "patternId": "seven-meter-4-4",
+      "barCapacity": 1920,
+      "pulseTicks": 480,
+      "pulseStarts": [
+        0,
+        480,
+        960,
+        1440
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 720,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 960,
+          "level": "medium",
+          "pulseIndex": 2,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 1200,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 1440,
+          "level": "weak",
+          "pulseIndex": 3,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 1680,
+          "level": "weak",
+          "pulseIndex": 3,
+          "subdivisionIndex": 1
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-4-4",
+          "meter": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n4",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n5",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n6",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n7",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 1920
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1920,
+            "actualTicks": 1680
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1920,
+            "actualTicks": 2160
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 480
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n2",
+              "n3"
+            ],
+            "segmentIDs": [
+              "n2",
+              "n3"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 480,
+            "endTicks": 960
+          },
+          {
+            "id": "beam-3",
+            "segmentIds": [
+              "n4",
+              "n5"
+            ],
+            "segmentIDs": [
+              "n4",
+              "n5"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 2,
+            "startTicks": 960,
+            "endTicks": 1440
+          },
+          {
+            "id": "beam-4",
+            "segmentIds": [
+              "n6",
+              "n7"
+            ],
+            "segmentIDs": [
+              "n6",
+              "n7"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 3,
+            "startTicks": 1440,
+            "endTicks": 1920
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n4",
+            "segmentID": "n4",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "medium",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n5",
+            "segmentID": "n5",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n6",
+            "segmentID": "n6",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 6,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1440,
+            "endTicks": 1680,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1680,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 3,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n7",
+            "segmentID": "n7",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 7,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1680,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1680,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 3,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 76.07997131347656,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 190.6199779510498,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 305.15998458862305,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 419.6999912261963,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n4",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 534.2399978637695,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n5",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 648.7800045013428,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n6",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1680,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 763.320011138916,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n7",
+            "canonicalStartTicks": 1680,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "14336/1",
+            "actualVexFlowStartTicks": "14336/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 877.8600177764893,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "3/8",
+      "patternId": "seven-meter-3-8",
+      "barCapacity": 720,
+      "pulseTicks": 240,
+      "pulseStarts": [
+        0,
+        240,
+        480
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 0
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-3-8",
+          "meter": {
+            "numerator": 3,
+            "denominator": 8
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 720
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 720,
+            "actualTicks": 480
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 720,
+            "actualTicks": 960
+          }
+        ]
+      },
+      "projection": {
+        "beams": [],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "6144/1",
+            "actualTicks": "6144/1",
+            "expectedTicksUsed": "6144/1",
+            "actualTicksUsed": "6144/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 74.719970703125,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 380.6133219401042,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 686.5066731770834,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "6/8",
+      "patternId": "seven-meter-6-8",
+      "barCapacity": 1440,
+      "pulseTicks": 720,
+      "pulseStarts": [
+        0,
+        720
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 2
+        },
+        {
+          "tick": 720,
+          "level": "medium",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 960,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 1200,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 2
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-6-8",
+          "meter": {
+            "numerator": 6,
+            "denominator": 8
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n4",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n5",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 1440
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1440,
+            "actualTicks": 1200
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1440,
+            "actualTicks": 1680
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1",
+              "n2"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1",
+              "n2"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 720
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n3",
+              "n4",
+              "n5"
+            ],
+            "segmentIDs": [
+              "n3",
+              "n4",
+              "n5"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 720,
+            "endTicks": 1440
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "medium",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n4",
+            "segmentID": "n4",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n5",
+            "segmentID": "n5",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "12288/1",
+            "actualTicks": "12288/1",
+            "expectedTicksUsed": "12288/1",
+            "actualTicksUsed": "12288/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 74.719970703125,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 227.6666463216146,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 380.6133219401042,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 533.5599975585938,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n4",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 686.5066731770834,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n5",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 839.453348795573,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "9/8",
+      "patternId": "seven-meter-9-8",
+      "barCapacity": 2160,
+      "pulseTicks": 720,
+      "pulseStarts": [
+        0,
+        720,
+        1440
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680,
+        1920
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 2
+        },
+        {
+          "tick": 720,
+          "level": "medium",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 960,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 1200,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 2
+        },
+        {
+          "tick": 1440,
+          "level": "medium",
+          "pulseIndex": 2,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 1680,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 1920,
+          "level": "weak",
+          "pulseIndex": 2,
+          "subdivisionIndex": 2
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680,
+        1920
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-9-8",
+          "meter": {
+            "numerator": 9,
+            "denominator": 8
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n4",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n5",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n6",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n7",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n8",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 2160
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 2160,
+            "actualTicks": 1920
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 2160,
+            "actualTicks": 2400
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1",
+              "n2"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1",
+              "n2"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 720
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n3",
+              "n4",
+              "n5"
+            ],
+            "segmentIDs": [
+              "n3",
+              "n4",
+              "n5"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 720,
+            "endTicks": 1440
+          },
+          {
+            "id": "beam-3",
+            "segmentIds": [
+              "n6",
+              "n7",
+              "n8"
+            ],
+            "segmentIDs": [
+              "n6",
+              "n7",
+              "n8"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 2,
+            "startTicks": 1440,
+            "endTicks": 2160
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "medium",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n4",
+            "segmentID": "n4",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n5",
+            "segmentID": "n5",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n6",
+            "segmentID": "n6",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 6,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1440,
+            "endTicks": 1680,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1680,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "medium",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n7",
+            "segmentID": "n7",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 7,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1680,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1680,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n8",
+            "segmentID": "n8",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 8,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1920,
+            "endTicks": 2160,
+            "absoluteStartTicks": 1920,
+            "absoluteEndTicks": 2160,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 2,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "18432/1",
+            "actualTicks": "18432/1",
+            "expectedTicksUsed": "18432/1",
+            "actualTicksUsed": "18432/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 74.719970703125,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 176.68442111545139,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 278.64887152777777,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 380.61332194010413,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n4",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 482.57777235243054,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n5",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 584.542222764757,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n6",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1680,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 686.5066731770834,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n7",
+            "canonicalStartTicks": 1680,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "14336/1",
+            "actualVexFlowStartTicks": "14336/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 788.4711235894098,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n8",
+            "canonicalStartTicks": 1920,
+            "canonicalEndTicks": 2160,
+            "expectedVexFlowStartTicks": "16384/1",
+            "actualVexFlowStartTicks": "16384/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 890.4355740017362,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "meter": "2/2",
+      "patternId": "seven-meter-2-2",
+      "barCapacity": 1920,
+      "pulseTicks": 960,
+      "pulseStarts": [
+        0,
+        960
+      ],
+      "subdivisionTicks": 240,
+      "subdivisionStarts": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680
+      ],
+      "structuralAccentPositions": [
+        {
+          "tick": 0,
+          "level": "strong",
+          "pulseIndex": 0,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 240,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 480,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 2
+        },
+        {
+          "tick": 720,
+          "level": "weak",
+          "pulseIndex": 0,
+          "subdivisionIndex": 3
+        },
+        {
+          "tick": 960,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 0
+        },
+        {
+          "tick": 1200,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 1
+        },
+        {
+          "tick": 1440,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 2
+        },
+        {
+          "tick": 1680,
+          "level": "weak",
+          "pulseIndex": 1,
+          "subdivisionIndex": 3
+        }
+      ],
+      "onsets": [
+        0,
+        240,
+        480,
+        720,
+        960,
+        1200,
+        1440,
+        1680
+      ],
+      "stages": {
+        "S01": true,
+        "S02": true,
+        "S03": true,
+        "S04": true,
+        "S05": true,
+        "S06": true,
+        "S07": true,
+        "S08": true,
+        "S09": true,
+        "S10": true
+      },
+      "validation": {
+        "valid": true,
+        "pattern": {
+          "id": "seven-meter-2-2",
+          "meter": {
+            "numerator": 2,
+            "denominator": 2
+          },
+          "tempo": {
+            "pulseBpm": 60
+          },
+          "measures": [
+            {
+              "id": "bar-1",
+              "segments": [
+                {
+                  "id": "n0",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n1",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n2",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n3",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n4",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n5",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n6",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                },
+                {
+                  "id": "n7",
+                  "kind": "note",
+                  "duration": {
+                    "denominator": 8,
+                    "dots": 0
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "totalTicks": 1920
+      },
+      "underfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_UNDERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1920,
+            "actualTicks": 1680
+          }
+        ]
+      },
+      "overfilled": {
+        "valid": false,
+        "issues": [
+          {
+            "code": "MEASURE_OVERFILLED",
+            "path": "measures.0",
+            "message": "Every measure must contain exactly its meter capacity",
+            "expectedTicks": 1920,
+            "actualTicks": 2160
+          }
+        ]
+      },
+      "projection": {
+        "beams": [
+          {
+            "id": "beam-1",
+            "segmentIds": [
+              "n0",
+              "n1",
+              "n2",
+              "n3"
+            ],
+            "segmentIDs": [
+              "n0",
+              "n1",
+              "n2",
+              "n3"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 0,
+            "startTicks": 0,
+            "endTicks": 960
+          },
+          {
+            "id": "beam-2",
+            "segmentIds": [
+              "n4",
+              "n5",
+              "n6",
+              "n7"
+            ],
+            "segmentIDs": [
+              "n4",
+              "n5",
+              "n6",
+              "n7"
+            ],
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "pulseIndex": 1,
+            "startTicks": 960,
+            "endTicks": 1920
+          }
+        ],
+        "segments": [
+          {
+            "segmentId": "n0",
+            "segmentID": "n0",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 0,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 0,
+            "endTicks": 240,
+            "absoluteStartTicks": 0,
+            "absoluteEndTicks": 240,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "strong",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n1",
+            "segmentID": "n1",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 1,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 240,
+            "endTicks": 480,
+            "absoluteStartTicks": 240,
+            "absoluteEndTicks": 480,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n2",
+            "segmentID": "n2",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 2,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 480,
+            "endTicks": 720,
+            "absoluteStartTicks": 480,
+            "absoluteEndTicks": 720,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n3",
+            "segmentID": "n3",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 3,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 720,
+            "endTicks": 960,
+            "absoluteStartTicks": 720,
+            "absoluteEndTicks": 960,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 0,
+            "pulseOffsetTicks": 720,
+            "subdivisionIndex": 6,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n4",
+            "segmentID": "n4",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 4,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 960,
+            "endTicks": 1200,
+            "absoluteStartTicks": 960,
+            "absoluteEndTicks": 1200,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 0,
+            "subdivisionIndex": 0,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n5",
+            "segmentID": "n5",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 5,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1200,
+            "endTicks": 1440,
+            "absoluteStartTicks": 1200,
+            "absoluteEndTicks": 1440,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 240,
+            "subdivisionIndex": 2,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n6",
+            "segmentID": "n6",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 6,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1440,
+            "endTicks": 1680,
+            "absoluteStartTicks": 1440,
+            "absoluteEndTicks": 1680,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 480,
+            "subdivisionIndex": 4,
+            "subdivisionTicks": 120
+          },
+          {
+            "segmentId": "n7",
+            "segmentID": "n7",
+            "measureId": "bar-1",
+            "measureIndex": 0,
+            "segmentIndex": 7,
+            "kind": "note",
+            "duration": "8",
+            "durationString": "8",
+            "dotCount": 0,
+            "canonicalDurationTicks": 240,
+            "startTicks": 1680,
+            "endTicks": 1920,
+            "absoluteStartTicks": 1680,
+            "absoluteEndTicks": 1920,
+            "onset": true,
+            "isOnset": true,
+            "tieRole": "none",
+            "accent": "normal",
+            "structuralAccent": "weak",
+            "pulseIndex": 1,
+            "pulseOffsetTicks": 720,
+            "subdivisionIndex": 6,
+            "subdivisionTicks": 120
+          }
+        ]
+      },
+      "parity": {
+        "ok": true,
+        "voiceReports": [
+          {
+            "measureId": "bar-1",
+            "expectedTicks": "16384/1",
+            "actualTicks": "16384/1",
+            "expectedTicksUsed": "16384/1",
+            "actualTicksUsed": "16384/1",
+            "strictComplete": true,
+            "tickMatches": true
+          }
+        ],
+        "segmentReports": [
+          {
+            "segmentId": "n0",
+            "canonicalStartTicks": 0,
+            "canonicalEndTicks": 240,
+            "expectedVexFlowStartTicks": "0/1",
+            "actualVexFlowStartTicks": "0/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 75.11996459960938,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n1",
+            "canonicalStartTicks": 240,
+            "canonicalEndTicks": 480,
+            "expectedVexFlowStartTicks": "2048/1",
+            "actualVexFlowStartTicks": "2048/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 189.77997207641602,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n2",
+            "canonicalStartTicks": 480,
+            "canonicalEndTicks": 720,
+            "expectedVexFlowStartTicks": "4096/1",
+            "actualVexFlowStartTicks": "4096/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 304.43997955322266,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n3",
+            "canonicalStartTicks": 720,
+            "canonicalEndTicks": 960,
+            "expectedVexFlowStartTicks": "6144/1",
+            "actualVexFlowStartTicks": "6144/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 419.0999870300293,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n4",
+            "canonicalStartTicks": 960,
+            "canonicalEndTicks": 1200,
+            "expectedVexFlowStartTicks": "8192/1",
+            "actualVexFlowStartTicks": "8192/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 533.7599945068359,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n5",
+            "canonicalStartTicks": 1200,
+            "canonicalEndTicks": 1440,
+            "expectedVexFlowStartTicks": "10240/1",
+            "actualVexFlowStartTicks": "10240/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 648.4200019836426,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n6",
+            "canonicalStartTicks": 1440,
+            "canonicalEndTicks": 1680,
+            "expectedVexFlowStartTicks": "12288/1",
+            "actualVexFlowStartTicks": "12288/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 763.0800094604492,
+            "tickMatches": true,
+            "positionMatches": true
+          },
+          {
+            "segmentId": "n7",
+            "canonicalStartTicks": 1680,
+            "canonicalEndTicks": 1920,
+            "expectedVexFlowStartTicks": "14336/1",
+            "actualVexFlowStartTicks": "14336/1",
+            "expectedVexFlowDurationTicks": "2048/1",
+            "actualVexFlowDurationTicks": "2048/1",
+            "actualX": 877.7400169372559,
+            "tickMatches": true,
+            "positionMatches": true
+          }
+        ]
+      }
+    }
+  ],
+  "browserCases": 35
+}
