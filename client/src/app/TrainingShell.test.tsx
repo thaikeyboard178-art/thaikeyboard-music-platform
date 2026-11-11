@@ -12,9 +12,11 @@ describe("shared application shell", () => {
     const nav = screen.getByRole("navigation", { name: "Điều hướng" });
     expect(within(nav).getByRole("link", { name: "Đọc nốt" }).getAttribute("href")).toBe("/note-reading");
     expect(within(nav).getByRole("link", { name: "Đọc nốt" }).getAttribute("aria-current")).toBe("page");
-    expect(within(nav).queryByRole("link", { name: /Tiết tấu|Hợp âm/ })).toBeNull();
+    expect(within(nav).getByRole("link", { name: "Tiết tấu" }).getAttribute("href")).toBe("/rhythm-training");
+    expect(within(nav).getByRole("link", { name: "Tiết tấu" }).hasAttribute("aria-current")).toBe(false);
+    expect(within(nav).queryByRole("link", { name: /Hợp âm/ })).toBeNull();
     expect(within(nav).queryByRole("button")).toBeNull();
-    expect(within(nav).getAllByText("Coming Soon")).toHaveLength(2);
+    expect(within(nav).getAllByText("Coming Soon")).toHaveLength(1);
   });
   it("accepts an unknown module identity without a Note Reading-specific branch", () => {
     render(<TrainingHeader currentModuleId="some-future-module" />);

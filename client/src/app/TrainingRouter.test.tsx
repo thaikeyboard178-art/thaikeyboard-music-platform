@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -13,7 +13,7 @@ describe("catalog-driven router integration", () => {
     const location = memoryLocation({ path: "/" });
     const user = userEvent.setup();
     render(<Router hook={location.hook}><TrainingRouter /></Router>);
-    await user.click(screen.getByRole("link", { name: "Mở bài học" }));
+    await user.click(within(screen.getByRole("article", { name: "Đọc nốt nhạc" })).getByRole("link", { name: "Mở bài học" }));
     expect(await screen.findByRole("heading", { name: "Đọc nốt nhạc" })).not.toBeNull();
     expect((screen.getByLabelText("Dòng phụ phía trên") as HTMLSelectElement).value).toBe("1");
     expect(screen.getByRole("switch", { name: "Tự động chuyển câu tiếp theo" }).getAttribute("aria-checked")).toBe("true");

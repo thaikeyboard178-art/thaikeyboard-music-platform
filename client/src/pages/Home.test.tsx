@@ -15,11 +15,15 @@ it("places the labeled Mi4 landing illustration on the treble bottom staff line"
   expect(document.querySelector(".hero-note-name")?.textContent).toBe("Mi₄");
 });
 
-it("shows all three modules but only Note Reading has an enabled lesson action", () => {
+it("shows real Note Reading and Tap Rhythm actions while Chord remains Coming Soon", () => {
   render(<Home />);
   const notes = screen.getByRole("article", { name: "Đọc nốt nhạc" });
   expect(within(notes).getByRole("link", { name: /Mở bài học/ }).getAttribute("href")).toBe("/note-reading");
-  for (const name of ["Luyện tiết tấu", "Nhận diện hợp âm"]) {
+  const rhythm = screen.getByRole("article", { name: "Luyện tiết tấu" });
+  expect(within(rhythm).getByRole("link", { name: /Mở bài học/ }).getAttribute("href")).toBe("/rhythm-training");
+  expect(within(rhythm).queryByText("Coming Soon")).toBeNull();
+  expect(within(rhythm).getByText("Tap Rhythm")).not.toBeNull();
+  for (const name of ["Nhận diện hợp âm"]) {
     const card = screen.getByRole("article", { name });
     expect(within(card).getByText("Coming Soon")).not.toBeNull();
     expect(within(card).queryByRole("link")).toBeNull();

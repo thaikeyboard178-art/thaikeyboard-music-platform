@@ -6,9 +6,9 @@ import { noteReadingModule } from "../modules/note-reading/module";
 
 const active = getActiveTrainingModules()[0];
 describe("explicit module catalog", () => {
-  it("has one active module and two metadata-only Coming Soon entries", () => {
-    expect(getTrainingModules().map(({ id, status }) => [id, status])).toEqual([["note-reading", "active"], ["rhythm-training", "coming-soon"], ["chord-recognition", "coming-soon"]]);
-    expect(getActiveTrainingModules().map(({ path }) => path)).toEqual(["/note-reading"]);
+  it("has two real active modules and one metadata-only Coming Soon entry", () => {
+    expect(getTrainingModules().map(({ id, status }) => [id, status])).toEqual([["note-reading", "active"], ["rhythm-training", "active"], ["chord-recognition", "coming-soon"]]);
+    expect(getActiveTrainingModules().map(({ path }) => path)).toEqual(["/note-reading", "/rhythm-training"]);
     expect(active.id).toBe(noteReadingModule.id);
     for (const module of getTrainingModules().filter((m) => m.status === "coming-soon")) {
       expect("Page" in module).toBe(false);
@@ -29,7 +29,7 @@ describe("explicit module catalog", () => {
     expect(() => defineModuleCatalog([{ ...active, path: "https://example.test" }])).toThrow(/active module route/);
   });
   it("rejects forged Coming Soon page/route bindings at runtime", () => {
-    const future = getTrainingModule("rhythm-training")!;
+    const future = getTrainingModule("chord-recognition")!;
     expect(() => defineModuleCatalog([{ ...future, path: "/fake" } as ModuleRegistration])).toThrow(/cannot register/);
     expect(() => defineModuleCatalog([{ ...future, Page: active.Page } as ModuleRegistration])).toThrow(/cannot register/);
   });
