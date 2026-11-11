@@ -32,6 +32,7 @@ describe("Phase1 scope boundaries", () => {
             specifier === "zod" ||
               specifier === "vexflow" ||
               specifier === "vitest" ||
+              specifier === "@/features/training/session" ||
               specifier.startsWith("node:")
           ).toBe(true);
       }

@@ -175,7 +175,7 @@ describe("Phase2 actual notation regressions", () => {
   it("uses natural layout with uniform aspect-ratio scaling for dense narrow SVG, not glyph distortion", () => {
     const pattern = generateRhythmPattern({
       seed: "dense-width",
-      level: 8,
+      level: 5,
       meter: { numerator: 4, denominator: 4 },
       focus: "sixteenths",
       bars: 2,
@@ -252,7 +252,7 @@ describe("Phase2 actual notation regressions", () => {
       expect(container.innerHTML).toBe("<span>preserve</span>");
     }
   );
-  it.each([1, 2, 3, 4, 5, 6, 7, 8] as const)(
+  it.each([1, 2, 3, 4, 5, 6, "bonus"] as const)(
     "keeps generated Level%s patterns and actual VexFlow notation in parity at narrow and wide sizes",
     level => {
       for (let seed = 0; seed < 3; seed++) {

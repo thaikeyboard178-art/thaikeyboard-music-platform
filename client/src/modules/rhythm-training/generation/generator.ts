@@ -2,6 +2,7 @@ import type {
   RhythmMeter,
   RhythmPattern,
   RhythmSegment,
+  RhythmTrack,
   WrittenDuration,
 } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
@@ -9,16 +10,15 @@ import { durationToTicks } from "../rhythm/durations";
 import { deriveMeter } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import {
-  LEVEL_POLICIES,
+  policyForLevel,
   type LevelPolicy,
   type RhythmFocus,
-  type RhythmLevel,
 } from "./levels";
 import { createSeededRandom, seededShuffle } from "./random";
 
 export type RhythmGenerationConfig = Readonly<{
   readonly seed: string;
-  readonly level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  readonly level: RhythmTrack;
   readonly meter?: RhythmMeter;
   readonly bars?: 1 | 2;
   readonly pulseBpm?: number;
@@ -29,7 +29,8 @@ export type RhythmGenerationConfig = Readonly<{
     | "combined"
     | "sixteenths"
     | "compound"
-    | "syncopation";
+    | "syncopation"
+    | "integrated";
 }>;
 
 type ConfigFocus = NonNullable<RhythmGenerationConfig["focus"]>;
@@ -61,6 +62,7 @@ const CONFIG_FOCI: readonly ConfigFocus[] = Object.freeze([
   "sixteenths",
   "compound",
   "syncopation",
+  "integrated",
 ]);
 const MAX_GENERATION_ATTEMPTS = 256;
 const MAX_COMPOSITION_NODES = 24_000;
@@ -104,10 +106,10 @@ function isCompoundPulseDot(
   meter: RhythmMeter
 ): boolean {
   return (
-    meter.numerator === 6 &&
+    (meter.numerator === 6 || meter.numerator === 9) &&
     meter.denominator === 8 &&
     duration.dots === 1 &&
-    (duration.denominator === 2 || duration.denominator === 4)
+    duration.denominator === 4
   );
 }
 
@@ -131,12 +133,13 @@ function validateBasicConfig(input: RhythmGenerationConfig): void {
     fail("Generation config requires a nonempty seed.");
   }
   if (
-    typeof input.level !== "number" ||
-    !Number.isInteger(input.level) ||
-    input.level < 1 ||
-    input.level > 8
+    input.level !== "bonus" &&
+    (typeof input.level !== "number" ||
+      !Number.isInteger(input.level) ||
+      input.level < 1 ||
+      input.level > 6)
   ) {
-    fail("Generation config level must be an integer from 1 through 8.");
+    fail("Generation config level must be 1 through 6 or the Bonus track.");
   }
   if (input.bars !== undefined && input.bars !== 1 && input.bars !== 2) {
     fail("Generation config bars must be 1 or 2.");
@@ -164,7 +167,7 @@ function featureSet(
     return { dots: false, ties: true, sixteenths: false, syncopation: false };
   if (focus === "combined") {
     return {
-      dots: policy.allowDots,
+      dots: policy.allowDots && policy.level !== 5,
       ties: policy.allowTies,
       sixteenths: policy.level === 5,
       syncopation: false,
@@ -184,7 +187,7 @@ function featureSet(
   if (focus === "basic")
     return { dots: false, ties: false, sixteenths: false, syncopation: false };
 
-  // The internal Level 8 default is integrated. Choose one or two genuine
+  // The Level 5 integrated track chooses one or two genuine
   // sources; compound meter's pulse-defining dots are not one of them.
   const sources: Array<keyof Features> = [];
   if (policy.allowDots && (meter.numerator !== 6 || random() > 0.35))
@@ -225,14 +228,18 @@ function chooseMeter(
 
   let choices = policy.allowedMeters;
   if (focus === "compound")
-    choices = choices.filter(meter => meter.numerator === 6);
+    choices = choices.filter(
+      meter => meter.denominator === 8 && meter.numerator !== 3
+    );
   if (
     focus === "syncopation" ||
     focus === "dots" ||
     focus === "ties" ||
     focus === "sixteenths"
   ) {
-    choices = choices.filter(meter => meter.denominator === 4);
+    choices = choices.filter(
+      meter => meter.denominator === (policy.level === 6 ? 8 : 4)
+    );
   }
   if (choices.length === 0)
     fail("No meter is compatible with the selected focus.");
@@ -250,9 +257,13 @@ function chooseMeter(
 }
 
 function tempoBand(policy: LevelPolicy, meter: RhythmMeter) {
-  return meter.numerator === 6 && meter.denominator === 8
-    ? (policy.tempo.compound ?? policy.tempo.simple)
-    : policy.tempo.simple;
+  if (meter.denominator === 8 && meter.numerator === 3)
+    return policy.tempo.eighth ?? policy.tempo.simple;
+  if (meter.denominator === 8)
+    return policy.tempo.compound ?? policy.tempo.simple;
+  if (meter.numerator === 2 && meter.denominator === 2)
+    return policy.tempo.half ?? policy.tempo.simple;
+  return policy.tempo.simple;
 }
 
 function resolveConfig(
@@ -260,7 +271,7 @@ function resolveConfig(
   random: () => number
 ): ResolvedConfig {
   validateBasicConfig(config);
-  const policy = LEVEL_POLICIES[config.level as RhythmLevel];
+  const policy = policyForLevel(config.level);
   const focus = (config.focus ?? policy.defaultFocus) as RhythmFocus;
   if (!policy.supportedFocus.includes(focus))
     fail("Focus is not configured for this level.");
@@ -322,6 +333,9 @@ function buildBar(
   const pulseTicks = meter.pulseTicks;
   const fineFeature = resolved.features.sixteenths;
   const preservePulseBoundaries = !resolved.features.syncopation;
+  const permittedRestDurations = new Set(
+    resolved.policy.restDurations.map(durationKey)
+  );
   const preferFine =
     resolved.features.syncopation || resolved.features.sixteenths;
 
@@ -374,6 +388,11 @@ function buildBar(
       if (random() < (resolved.policy.level === 3 ? 0.55 : 0.28))
         kinds.reverse();
       for (const kind of kinds) {
+        if (
+          kind === "rest" &&
+          !permittedRestDurations.has(durationKey(row.duration))
+        )
+          continue;
         if (kind === "rest" && restCount >= resolved.policy.maxRestsPerBar)
           continue;
         const pulse = Math.floor(offset / pulseTicks);
@@ -438,6 +457,60 @@ function applyIntraBarTie(
         candidates.push({ bar: barIndex, index, options });
     });
   });
+  if (resolved.features.sixteenths) {
+    const finePairCandidates = candidates.flatMap(candidate => {
+      const options = candidate.options.filter(
+        ([left, right]) =>
+          isSixteenthFamily(left) && isSixteenthFamily(right)
+      );
+      return options.length > 0 ? [{ ...candidate, options }] : [];
+    });
+    if (finePairCandidates.length > 0) {
+      const chosen =
+        finePairCandidates[Math.floor(random() * finePairCandidates.length)];
+      const pair = chosen.options[Math.floor(random() * chosen.options.length)];
+      bars[chosen.bar].splice(
+        chosen.index,
+        1,
+        { kind: "note", duration: pair[0], tieGroupId: "tie-1" },
+        { kind: "note", duration: pair[1], tieGroupId: "tie-1" }
+      );
+      return true;
+    }
+
+    const pulseTicks = deriveMeter(resolved.meter).pulseTicks;
+    const adjacentFine: Array<{ bar: number; index: number }> = [];
+    bars.forEach((bar, barIndex) => {
+      let offset = 0;
+      bar.forEach((segment, index) => {
+        const next = bar[index + 1];
+        const end =
+          offset +
+          durationToTicks(segment.duration) +
+          (next ? durationToTicks(next.duration) : 0);
+        const pulseEnd = (Math.floor(offset / pulseTicks) + 1) * pulseTicks;
+        if (
+          next &&
+          segment.kind === "note" &&
+          next.kind === "note" &&
+          isSixteenthFamily(segment.duration) &&
+          isSixteenthFamily(next.duration) &&
+          (resolved.features.syncopation ||
+            offset % pulseTicks === 0 ||
+            end <= pulseEnd)
+        ) {
+          adjacentFine.push({ bar: barIndex, index });
+        }
+        offset += durationToTicks(segment.duration);
+      });
+    });
+    if (adjacentFine.length > 0) {
+      const chosen = adjacentFine[Math.floor(random() * adjacentFine.length)];
+      bars[chosen.bar][chosen.index].tieGroupId = "tie-1";
+      bars[chosen.bar][chosen.index + 1].tieGroupId = "tie-1";
+      return true;
+    }
+  }
   if (candidates.length === 0) {
     // Two adjacent fine-grid notes can be tied even when neither note can be
     // split further. Requiring a splittable segment made fine+tie generation
@@ -643,7 +716,10 @@ function assertFeatures(
   if (focus === "dots" && (!flags.hasDot || flags.hasTie || flags.hasFine)) {
     fail("Dots focus requires dots only.");
   }
-  if (focus === "ties" && (!flags.hasTie || flags.hasDot || flags.hasFine)) {
+  if (
+    focus === "ties" &&
+    (!flags.hasTie || flags.hasDotConcept || flags.hasFine)
+  ) {
     fail("Ties focus requires ties only.");
   }
   if (
@@ -654,7 +730,9 @@ function assertFeatures(
   }
   if (
     focus === "combined" &&
-    (!flags.hasDot || !flags.hasTie || (policy.level === 5 && !flags.hasFine))
+    (policy.level === 5
+      ? !flags.hasTie || !flags.hasFine || flags.hasDot
+      : !flags.hasDot || !flags.hasTie || flags.hasFine)
   ) {
     fail("Combined focus requires the configured combined sources.");
   }
@@ -662,9 +740,9 @@ function assertFeatures(
     fail("Syncopation focus requires an offbeat onset.");
   if (
     focus === "compound" &&
-    !(meter.numerator === 6 && meter.denominator === 8)
+    !(meter.denominator === 8 && (meter.numerator === 6 || meter.numerator === 9))
   ) {
-    fail("Compound focus requires 6/8.");
+    fail("Compound focus requires 6/8 or 9/8.");
   }
   const configuredSourceCount = [
     flags.hasDotConcept && (focus === "integrated" || features.dots),
@@ -672,11 +750,10 @@ function assertFeatures(
     flags.hasFine && (focus === "integrated" || features.sixteenths),
     flags.hasSyncopation && (focus === "integrated" || features.syncopation),
   ].filter(Boolean).length;
-  if (
-    policy.level === 8 &&
-    configuredSourceCount > policy.maxDifficultySources
-  ) {
-    fail("Level 8 difficulty budget allows at most two interacting sources.");
+  if (configuredSourceCount > policy.maxDifficultySources) {
+    fail(
+      `This curriculum track allows at most ${policy.maxDifficultySources} interacting difficulty sources.`
+    );
   }
 }
 
@@ -700,6 +777,9 @@ function auditVocabulary(
       ? resolved.policy.durations
       : allowedDurations(resolved);
   const permitted = new Set(vocabulary.map(durationKey));
+  const permittedRests = new Set(
+    resolved.policy.restDurations.map(durationKey)
+  );
   for (const measure of pattern.measures) {
     for (const segment of measure.segments) {
       if (!permitted.has(durationKey(segment.duration))) {
@@ -709,6 +789,12 @@ function auditVocabulary(
       }
       if (segment.kind === "rest" && segment.accent === "strong") {
         fail("A rest cannot carry a strong accent.");
+      }
+      if (
+        segment.kind === "rest" &&
+        !permittedRests.has(durationKey(segment.duration))
+      ) {
+        fail("Pattern contains a rest value not taught in this curriculum track.");
       }
     }
   }
@@ -775,6 +861,7 @@ export function assertLevelConstraints(
     fail("Pattern exceeds the level rest budget.");
   }
   if (
+    typeof resolved.policy.level === "number" &&
     resolved.policy.level <= 3 &&
     flags.timeline.segments.some(position => {
       const offPulse =
@@ -802,30 +889,17 @@ export function assertLevelConstraints(
     );
   }
   if (
-    resolved.policy.level === 7 &&
-    flags.offbeatOnsetsPerBar.some(count => count > 1)
-  ) {
-    fail("Level 7 permits at most one syncopated onset per bar.");
-  }
-  if (
-    resolved.policy.level === 8 &&
-    flags.offbeatOnsetsPerBar.some(count => count > 2)
-  ) {
-    fail("Level 8 permits at most two syncopated onsets per bar.");
-  }
-  if (
-    resolved.policy.level === 6 &&
-    (canonical.meter.numerator !== 6 || canonical.meter.denominator !== 8)
-  ) {
-    fail("Level 6 is exclusively compound-duple 6/8.");
-  }
-  if (
-    resolved.policy.level === 6 &&
-    canonical.measures.some(measure =>
-      measure.segments.some(segment => segment.duration.denominator === 1)
+    flags.offbeatOnsetsPerBar.some(
+      count => count > resolved.policy.maxSyncopatedOnsetsPerBar
     )
   ) {
-    fail("A whole note cannot fill or appear in a Level 6 6/8 bar.");
+    fail("Pattern exceeds the syncopated-onset budget for this curriculum track.");
+  }
+  if (
+    resolved.policy.level === 6 &&
+    canonical.meter.denominator !== 8
+  ) {
+    fail("Level 6 supports only its approved 3/8, 6/8 and 9/8 meters.");
   }
   const flat = canonical.measures.flatMap(measure => measure.segments);
   for (let index = 0; index < flat.length - 1; index += 1) {

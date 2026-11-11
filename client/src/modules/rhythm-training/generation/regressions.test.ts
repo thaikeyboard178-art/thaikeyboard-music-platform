@@ -67,7 +67,7 @@ describe("Phase2 generator integration regressions", () => {
     for (let index = 0; index < 40; index++) {
       const input = {
         seed: `integrated-${index}`,
-        level: 8 as const,
+        level: 5 as const,
         meter: { numerator: 4 as const, denominator: 4 as const },
         bars: 2 as const,
         pulseBpm: 72,
@@ -82,30 +82,41 @@ describe("Phase2 generator integration regressions", () => {
       ).not.toThrow();
     }
   });
-  it("can combine adjacent sixteenth notes with ties without requiring an impossible further split", () => {
-    const pattern = generateRhythmPattern({
-      seed: "regression/24/1n5lq54",
-      level: 8,
-      meter: { numerator: 4, denominator: 4 },
-      pulseBpm: 72,
-    });
-    expect(patternMetrics(pattern)).toMatchObject({
+  it("combines adjacent sixteenth notes with ties in the Level 5 advanced vocabulary", () => {
+    let pattern: RhythmPattern | undefined;
+    for (let seed = 0; seed < 100 && !pattern; seed += 1) {
+      const candidate = generateRhythmPattern({
+        seed: `level5-integrated-tie-${seed}`,
+        level: 5,
+        meter: { numerator: 4, denominator: 4 },
+      });
+      const metrics = patternMetrics(candidate);
+      const tied = candidate.measures
+        .flatMap(measure => measure.segments)
+        .filter(segment => segment.tieGroupId !== undefined);
+      if (
+        metrics.hasFine &&
+        metrics.hasTie &&
+        !metrics.hasDot &&
+        tied.length === 2 &&
+        tied.every(segment => segment.duration.denominator === 16)
+      )
+        pattern = candidate;
+    }
+    expect(pattern).toBeDefined();
+    expect(patternMetrics(pattern!)).toMatchObject({
       hasFine: true,
       hasTie: true,
       sourceCount: 2,
     });
-    const tied = pattern.measures
-      .flatMap(measure => measure.segments)
-      .filter(segment => segment.tieGroupId !== undefined);
+    const tied = pattern!.measures.flatMap(measure => measure.segments).filter(segment => segment.tieGroupId !== undefined);
     expect(tied).toHaveLength(2);
-    expect(tied.every(segment => segment.duration.denominator === 16)).toBe(
-      true
-    );
+    expect(tied.every(segment => segment.duration.denominator === 16)).toBe(true);
   });
-  it("counts a dotted eighth in compound meter as a dot concept, not a pulse-defining dot", () => {
+  it("rejects three interacting difficulty sources in the Level 5 integrated budget", () => {
     const input: RhythmPattern = {
       id: "three-sources",
-      meter: { numerator: 6, denominator: 8 },
+      meter: { numerator: 4, denominator: 4 },
       tempo: { pulseBpm: 60 },
       measures: [
         {
@@ -125,6 +136,7 @@ describe("Phase2 generator integration regressions", () => {
             },
             { id: "c", kind: "note", duration: { denominator: 8, dots: 0 } },
             { id: "r", kind: "rest", duration: { denominator: 4, dots: 1 } },
+            { id: "d", kind: "note", duration: { denominator: 4, dots: 0 } },
           ],
         },
       ],
@@ -138,11 +150,11 @@ describe("Phase2 generator integration regressions", () => {
     expect(() =>
       assertLevelConstraints(input, {
         seed: "audit",
-        level: 8,
+        level: 5,
         meter: input.meter,
         pulseBpm: 60,
       })
-    ).toThrow(/at most two/);
+    ).toThrow(/at most 2/);
   });
   it("does not introduce an offbeat sustain in basic compound focus", () => {
     const input: RhythmPattern = {
@@ -167,17 +179,18 @@ describe("Phase2 generator integration regressions", () => {
         meter: input.meter,
         pulseBpm: 60,
       })
-    ).toThrow(/syncopation/);
+    ).toThrow(/syncopated-onset/);
   });
-  it("reuses known ties in some Level7 syncopation items without exceeding one syncopated attack", () => {
+  it("reuses ties in Level 5 syncopation items without exceeding one syncopated attack", () => {
     let tied = false;
     let untied = false;
     for (let seed = 0; seed < 40; seed++) {
       const pattern = generateRhythmPattern({
         seed: `sync-ties-${seed}`,
-        level: 7,
+        level: 5,
         meter: { numerator: 4, denominator: 4 },
         pulseBpm: 60,
+        focus: "syncopation",
       });
       const metrics = patternMetrics(pattern);
       tied ||= metrics.hasTie;

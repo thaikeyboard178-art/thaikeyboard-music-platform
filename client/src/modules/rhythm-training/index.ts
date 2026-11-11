@@ -6,6 +6,9 @@ export type {
   RhythmPattern,
   SegmentPosition,
   SoundingSpan,
+  RhythmLevel,
+  RhythmTrack,
+  RhythmExerciseKind,
 } from "./types";
 export { PPQ, durationToTicks } from "./rhythm/durations";
 export {
@@ -37,9 +40,8 @@ export {
   patternMetrics,
 } from "./generation/generator";
 export type { RhythmGenerationConfig } from "./generation/generator";
-export { LEVEL_POLICIES } from "./generation/levels";
+export { LEVEL_POLICIES, BONUS_POLICY, policyForLevel } from "./generation/levels";
 export type {
-  RhythmLevel,
   RhythmFocus,
   LevelPolicy,
 } from "./generation/levels";
@@ -58,6 +60,51 @@ export {
   InsufficientDistinctChoicesError,
 } from "./generation/choices";
 export type { RhythmChoice, RhythmChoiceSet } from "./generation/choices";
+export {
+  RHYTHM_CURRICULUM,
+  getRhythmCurriculum,
+  getCurriculumUnit,
+  isExerciseKindAllowed,
+  requireExerciseKindAllowed,
+} from "./curriculum/curriculum";
+export type {
+  CurriculumSection,
+  CurriculumLesson,
+  RhythmCurriculumUnit,
+  MultipleChoiceFocus,
+  CountBeatFocus,
+} from "./curriculum/curriculum";
+export {
+  generateMultipleChoiceExercise,
+  evaluateMultipleChoice,
+} from "./exercises/multipleChoice";
+export type {
+  MultipleChoiceOption,
+  MultipleChoiceExercise,
+  MultipleChoiceAnswer,
+  MultipleChoiceEvaluation,
+} from "./exercises/multipleChoice";
+export {
+  generateCountBeatExercise,
+  evaluateCountBeatAnswer,
+} from "./exercises/countBeat";
+export type {
+  CountBeatExercise,
+  CountBeatPosition,
+  CountBeatEvent,
+  CountBeatSemantics,
+  CountBeatAnswer,
+  CountBeatEvaluation,
+} from "./exercises/countBeat";
+export {
+  createRhythmTrainingSession,
+  submitRhythmExerciseAnswer,
+} from "./exercises/scoring";
+export type {
+  RhythmGradedExercise,
+  RhythmTrainingSession,
+  RhythmSubmissionResult,
+} from "./exercises/scoring";
 export { projectRhythmNotation } from "./notation/projection";
 export type { ImmutableRhythmNotationProjection } from "./notation/projection";
 export {

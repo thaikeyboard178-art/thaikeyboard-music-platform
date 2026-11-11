@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FOUR_FOUR, HALF_TIE, WHOLE_NOTE } from "../rhythm/fixtures";
 import { validateRhythmPattern } from "../rhythm/validate";
 import type { RhythmPattern } from "../types";
+import { notationSignature } from "../rhythm/signatures";
 import { choiceRejectionReason } from "./answerSignatures";
 import {
   generateRhythmChoices,
@@ -55,6 +56,12 @@ describe("bounded deterministic choice data", () => {
     expect(
       result.choices.filter(choice => choice.id === result.correctOptionId)
     ).toHaveLength(1);
+    expect(result.correctCanonicalIdentity).toBe(notationSignature(result.target));
+    expect(
+      result.choices.find(
+        choice => choice.canonicalIdentity === result.correctCanonicalIdentity
+      )?.pattern
+    ).toEqual(result.target);
     expect(
       result.choices.find(choice => choice.id === result.correctOptionId)!
         .pattern
@@ -119,8 +126,8 @@ describe("bounded deterministic choice data", () => {
     expect(() => selectRhythmChoices(WHOLE_NOTE, [], { seed: "" })).toThrow();
     expect(() => generateRhythmChoices({ level: 1, seed: "" })).toThrow();
   });
-  it.each([1, 2, 3, 4, 5, 6, 7, 8] as const)(
-    "generates unique valid deterministic choices at level%s",
+  it.each([1, 2, 3, 4, 5, 6, "bonus"] as const)(
+    "generates unique valid deterministic choices at track%s",
     level => {
       for (let seed = 0; seed < 10; seed++) {
         const config = { level, seed: `choice-matrix-${level}-${seed}` };
@@ -150,6 +157,8 @@ describe("bounded deterministic choice data", () => {
             ).toBe(null);
         expect(Object.isFrozen(result.choices)).toBe(true);
         expect(new Set(result.choices.map(choice => choice.id)).size).toBe(4);
+        expect(new Set(result.choices.map(choice => choice.canonicalIdentity)).size).toBe(4);
+        expect(result.choices.some(choice => choice.canonicalIdentity === result.correctCanonicalIdentity)).toBe(true);
       }
     }
   );

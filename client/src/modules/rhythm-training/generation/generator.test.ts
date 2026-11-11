@@ -9,7 +9,7 @@ import {
   type RhythmGenerationConfig,
 } from "./generator";
 
-const levels = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+const levels = [1, 2, 3, 4, 5, 6, "bonus"] as const;
 
 function config(
   level: RhythmGenerationConfig["level"],
@@ -41,7 +41,7 @@ describe("seeded level-constrained rhythm generation", () => {
   it("is stable for repeated deep-equal configs and changes the stream with a seed", () => {
     const input = {
       seed: "repeatable",
-      level: 8,
+      level: 5,
       meter: { numerator: 4, denominator: 4 },
       bars: 2,
     } as const;
@@ -114,23 +114,45 @@ describe("seeded level-constrained rhythm generation", () => {
     }
   });
 
-  it("models Level 6 as 6/8 with two 720-tick pulse groups", () => {
-    for (let index = 0; index < 25; index += 1) {
-      const pattern = generateRhythmPattern({
-        seed: `compound-${index}`,
-        level: 6,
-      });
-      const timeline = deriveRhythmTimeline(pattern, 240);
-      expect(pattern.meter).toEqual({ numerator: 6, denominator: 8 });
-      expect(timeline.meter.pulseTicks).toBe(720);
-      expect(timeline.meter.groups).toEqual([3, 3]);
-      expect(timeline.totalTicks).toBe(pattern.measures.length * 1440);
-      expect(
-        pattern.measures
-          .flatMap(measure => measure.segments)
-          .some(segment => segment.duration.denominator === 1)
-      ).toBe(false);
+  it("executes all approved Level 6 meters with their distinct pulse semantics", () => {
+    const cases = [
+      { meter: { numerator: 3, denominator: 8 }, pulseTicks: 240, groups: [1, 1, 1], capacity: 720 },
+      { meter: { numerator: 6, denominator: 8 }, pulseTicks: 720, groups: [3, 3], capacity: 1440 },
+      { meter: { numerator: 9, denominator: 8 }, pulseTicks: 720, groups: [3, 3, 3], capacity: 2160 },
+    ] as const;
+    for (const entry of cases) {
+      for (let index = 0; index < 10; index += 1) {
+        const pattern = generateRhythmPattern({
+          seed: `level6-${entry.meter.numerator}-${index}`,
+          level: 6,
+          meter: entry.meter,
+          pulseBpm: 60,
+        });
+        const timeline = deriveRhythmTimeline(pattern, 240);
+        expect(pattern.meter).toEqual(entry.meter);
+        expect(timeline.meter.pulseTicks).toBe(entry.pulseTicks);
+        expect(timeline.meter.groups).toEqual(entry.groups);
+        expect(timeline.totalTicks).toBe(entry.capacity);
+        expect(pattern.measures.flatMap(measure => measure.segments).some(segment => segment.duration.denominator === 1)).toBe(false);
+      }
     }
+  });
+
+  it("supports optional 2/2 Bonus as two half-note pulses, not as another numbered level", () => {
+    const pattern = generateRhythmPattern({
+      seed: "alla-breve",
+      level: "bonus",
+      meter: { numerator: 2, denominator: 2 },
+      pulseBpm: 60,
+    });
+    const timeline = deriveRhythmTimeline(pattern, 240);
+    expect(timeline.meter).toMatchObject({
+      pulseCount: 2,
+      pulseTicks: 960,
+      pulseStarts: [0, 960],
+      groups: [1, 1],
+    });
+    expect(timeline.totalTicks).toBe(1920);
   });
 
   it("creates complete two-bar cross-bar ties only when requested", () => {
@@ -154,6 +176,8 @@ describe("seeded level-constrained rhythm generation", () => {
   it("rejects invalid level, meter, seed, bar, focus, and tempo configurations", () => {
     const bad = [
       { seed: "x", level: 0 as never },
+      { seed: "x", level: 7 as never },
+      { seed: "x", level: 8 as never },
       { seed: "x", level: 1 as const, meter: { numerator: 3, denominator: 4 } },
       { seed: "x", level: 6 as const, meter: { numerator: 4, denominator: 4 } },
       { seed: "x", level: 1 as const, bars: 3 as never },

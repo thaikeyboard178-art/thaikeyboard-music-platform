@@ -3,7 +3,7 @@ import { CROSS_BAR_TIE } from "../rhythm/fixtures";
 import { assertLevelConstraints } from "./generator";
 
 describe("level policy tie boundary", () => {
-  it("rejects a canonical cross-bar tie at Level5 while allowing it at Level4 and Level8", () => {
+  it("rejects a canonical cross-bar tie at Level 5 while allowing it at Level 4", () => {
     const pattern = { ...CROSS_BAR_TIE, tempo: { pulseBpm: 80 } };
     const config = {
       seed: "cross-bar-policy",
@@ -15,9 +15,8 @@ describe("level policy tie boundary", () => {
     expect(() =>
       assertLevelConstraints(pattern, { ...config, level: 5 })
     ).toThrow(/Cross-bar ties are not enabled/);
-    for (const level of [4, 8] as const)
-      expect(() =>
-        assertLevelConstraints(pattern, { ...config, level })
-      ).not.toThrow();
+    expect(() =>
+      assertLevelConstraints(pattern, { ...config, level: 4 })
+    ).not.toThrow();
   });
 });

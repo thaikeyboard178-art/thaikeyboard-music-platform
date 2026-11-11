@@ -7,6 +7,14 @@ export type RhythmMeter =
   | Readonly<{ numerator: 9; denominator: 8 }>
   | Readonly<{ numerator: 2; denominator: 2 }>;
 
+export type RhythmLevel = 1 | 2 | 3 | 4 | 5 | 6;
+export type RhythmTrack = RhythmLevel | "bonus";
+export type RhythmExerciseKind =
+  | "multiple-choice"
+  | "tap-rhythm"
+  | "listen-identify"
+  | "count-beat";
+
 export type WrittenDuration = Readonly<{
   denominator: 1 | 2 | 4 | 8 | 16;
   dots: 0 | 1;

@@ -6,7 +6,8 @@ import {
   type RhythmGenerationConfig,
 } from "./generator";
 import { createSeededRandom, seededShuffle } from "./random";
-import { LEVEL_POLICIES } from "./levels";
+import { policyForLevel } from "./levels";
+import { notationSignature } from "../rhythm/signatures";
 import {
   answerSignatures,
   choiceRejectionReason,
@@ -17,6 +18,7 @@ import {
 
 export type RhythmChoice = Readonly<{
   id: string;
+  canonicalIdentity: string;
   pattern: RhythmPattern;
   signatures: RhythmAnswerSignatures;
 }>;
@@ -24,6 +26,7 @@ export type RhythmChoiceSet = Readonly<{
   seed: string;
   target: RhythmPattern;
   correctOptionId: string;
+  correctCanonicalIdentity: string;
   choices: readonly RhythmChoice[];
   evidence: Readonly<{
     attemptedCandidates: number;
@@ -94,6 +97,7 @@ export function selectRhythmChoices(
   const choices = selected.map((pattern, index) =>
     Object.freeze({
       id: `option-${index + 1}`,
+      canonicalIdentity: notationSignature(pattern),
       pattern,
       signatures: answerSignatures(pattern),
     })
@@ -102,6 +106,7 @@ export function selectRhythmChoices(
     seed: options.seed,
     target,
     correctOptionId: choices[0].id,
+    correctCanonicalIdentity: notationSignature(target),
     choices: Object.freeze(seededShuffle(choices, random)),
     evidence: Object.freeze({
       attemptedCandidates,
@@ -118,14 +123,17 @@ export function generateRhythmChoices(
   const discrimination = config.discrimination ?? "sounding";
   validateOptions(count, discrimination);
   createSeededRandom(config.seed);
-  const focus = config.focus ?? LEVEL_POLICIES[config.level]?.defaultFocus;
+  const focus = config.focus ?? policyForLevel(config.level).defaultFocus;
   // A one-bar2/4 dots-only question has only three permitted distinct sound
   // shapes. When the caller leaves meter open, use4/4 for dot/tie questions;
   // explicit smaller contexts still fail closed instead of relaxing vocabulary.
+  const levelMeters = policyForLevel(config.level).allowedMeters;
   const defaultMeter =
     config.meter ??
     (count === 4 && (focus === "dots" || focus === "combined")
-      ? { numerator: 4 as const, denominator: 4 as const }
+      ? levelMeters.find(
+          meter => meter.numerator === 4 && meter.denominator === 4
+        ) ?? levelMeters.at(-1)
       : undefined);
   const generationConfig: RhythmGenerationConfig = {
     seed: config.seed,
@@ -185,6 +193,7 @@ export function generateRhythmChoices(
   const choices = selected.map((pattern, index) =>
     Object.freeze({
       id: `option-${index + 1}`,
+      canonicalIdentity: notationSignature(pattern),
       pattern,
       signatures: answerSignatures(pattern),
     })
@@ -193,6 +202,7 @@ export function generateRhythmChoices(
     seed: config.seed,
     target,
     correctOptionId: choices[0].id,
+    correctCanonicalIdentity: notationSignature(target),
     choices: Object.freeze(
       seededShuffle(choices, createSeededRandom(`${config.seed}/order`))
     ),

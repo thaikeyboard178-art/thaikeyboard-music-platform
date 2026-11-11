@@ -1,6 +1,11 @@
-import type { RhythmMeter, WrittenDuration } from "../types";
+import type {
+  RhythmLevel,
+  RhythmMeter,
+  RhythmTrack,
+  WrittenDuration,
+} from "../types";
 
-export type RhythmLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type { RhythmLevel, RhythmTrack } from "../types";
 export type RhythmFocus =
   | "basic"
   | "dots"
@@ -14,13 +19,14 @@ export type RhythmFocus =
 export type TempoBand = Readonly<{
   min: number;
   max: number;
-  pulse: "quarter" | "dotted-quarter";
+  pulse: "quarter" | "eighth" | "dotted-quarter" | "half";
 }>;
 
 export type LevelPolicy = Readonly<{
-  level: RhythmLevel;
+  level: RhythmTrack;
   allowedMeters: readonly RhythmMeter[];
   durations: readonly WrittenDuration[];
+  restDurations: readonly WrittenDuration[];
   supportedFocus: readonly RhythmFocus[];
   defaultFocus: RhythmFocus;
   maxRestsPerBar: number;
@@ -33,21 +39,26 @@ export type LevelPolicy = Readonly<{
   allowSyncopation: boolean;
   tempo: Readonly<{
     simple: TempoBand;
+    eighth?: TempoBand;
     compound?: TempoBand;
+    half?: TempoBand;
   }>;
 }>;
 
-const simpleMeters = Object.freeze([
-  Object.freeze({ numerator: 2, denominator: 4 }),
-  Object.freeze({ numerator: 3, denominator: 4 }),
-  Object.freeze({ numerator: 4, denominator: 4 }),
-] as const);
-const fourFour = Object.freeze([
-  Object.freeze({ numerator: 4, denominator: 4 }),
-] as const);
-const compoundMeter = Object.freeze([
-  Object.freeze({ numerator: 6, denominator: 8 }),
-] as const);
+const freezeMeters = (meters: readonly RhythmMeter[]) =>
+  Object.freeze(meters.map(meter => Object.freeze({ ...meter })));
+const simpleMeters = freezeMeters([
+  { numerator: 2, denominator: 4 },
+  { numerator: 3, denominator: 4 },
+  { numerator: 4, denominator: 4 },
+]);
+const fourFour = freezeMeters([{ numerator: 4, denominator: 4 }]);
+const groupingMeters = freezeMeters([
+  { numerator: 3, denominator: 8 },
+  { numerator: 6, denominator: 8 },
+  { numerator: 9, denominator: 8 },
+]);
+const allaBreve = freezeMeters([{ numerator: 2, denominator: 2 }]);
 
 const whole: WrittenDuration = Object.freeze({ denominator: 1, dots: 0 });
 const half: WrittenDuration = Object.freeze({ denominator: 2, dots: 0 });
@@ -64,25 +75,36 @@ const dottedEighth: WrittenDuration = Object.freeze({
   dots: 1,
 });
 
-const simpleTempo = (
+const durationList = (...durations: WrittenDuration[]) =>
+  Object.freeze(durations);
+const focusList = (...focus: RhythmFocus[]) => Object.freeze(focus);
+const band = (
   min: number,
-  max: number
-): Readonly<{ simple: TempoBand }> =>
+  max: number,
+  pulse: TempoBand["pulse"]
+): TempoBand => Object.freeze({ min, max, pulse });
+const levelPolicy = (policy: LevelPolicy): LevelPolicy =>
   Object.freeze({
-    simple: Object.freeze({ min, max, pulse: "quarter" }),
+    ...policy,
+    allowedMeters: Object.freeze([...policy.allowedMeters]),
+    durations: Object.freeze([...policy.durations]),
+    restDurations: Object.freeze([...policy.restDurations]),
+    supportedFocus: Object.freeze([...policy.supportedFocus]),
+    tempo: Object.freeze({ ...policy.tempo }),
   });
 
 /**
- * The policy table is deliberately data-only. It is not scoring or access
- * policy; it describes what the canonical generator may put in a pattern.
+ * Curriculum runtime generation gates. The only numbered tracks are Levels
+ * 1–6; the optional 2/2 progression is represented separately as Bonus.
  */
 export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
   Object.freeze({
-    1: Object.freeze({
+    1: levelPolicy({
       level: 1,
       allowedMeters: fourFour,
-      durations: Object.freeze([whole, half, quarter]),
-      supportedFocus: Object.freeze(["basic"] as readonly RhythmFocus[]),
+      durations: durationList(whole, half, quarter),
+      restDurations: durationList(quarter),
+      supportedFocus: focusList("basic"),
       defaultFocus: "basic",
       maxRestsPerBar: 2,
       maxSyncopatedOnsetsPerBar: 0,
@@ -92,13 +114,14 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: false,
       allowSyncopation: false,
-      tempo: simpleTempo(60, 84),
+      tempo: { simple: band(60, 84, "quarter") },
     }),
-    2: Object.freeze({
+    2: levelPolicy({
       level: 2,
-      allowedMeters: simpleMeters,
-      durations: Object.freeze([whole, half, quarter, eighth]),
-      supportedFocus: Object.freeze(["basic"] as readonly RhythmFocus[]),
+      allowedMeters: fourFour,
+      durations: durationList(whole, half, quarter, eighth),
+      restDurations: durationList(quarter, eighth),
+      supportedFocus: focusList("basic"),
       defaultFocus: "basic",
       maxRestsPerBar: 2,
       maxSyncopatedOnsetsPerBar: 0,
@@ -108,13 +131,14 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: false,
       allowSyncopation: false,
-      tempo: simpleTempo(60, 96),
+      tempo: { simple: band(60, 96, "quarter") },
     }),
-    3: Object.freeze({
+    3: levelPolicy({
       level: 3,
       allowedMeters: simpleMeters,
-      durations: Object.freeze([whole, half, quarter, eighth]),
-      supportedFocus: Object.freeze(["basic"] as readonly RhythmFocus[]),
+      durations: durationList(whole, half, quarter, eighth),
+      restDurations: durationList(quarter, eighth),
+      supportedFocus: focusList("basic"),
       defaultFocus: "basic",
       maxRestsPerBar: 3,
       maxSyncopatedOnsetsPerBar: 0,
@@ -124,24 +148,14 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: false,
       allowSyncopation: false,
-      tempo: simpleTempo(60, 108),
+      tempo: { simple: band(60, 108, "quarter") },
     }),
-    4: Object.freeze({
+    4: levelPolicy({
       level: 4,
       allowedMeters: simpleMeters,
-      durations: Object.freeze([
-        whole,
-        half,
-        quarter,
-        eighth,
-        dottedHalf,
-        dottedQuarter,
-      ]),
-      supportedFocus: Object.freeze([
-        "dots",
-        "ties",
-        "combined",
-      ] as readonly RhythmFocus[]),
+      durations: durationList(whole, half, quarter, eighth, dottedHalf, dottedQuarter),
+      restDurations: durationList(quarter, eighth, dottedHalf, dottedQuarter),
+      supportedFocus: focusList("dots", "ties", "combined"),
       defaultFocus: "dots",
       maxRestsPerBar: 3,
       maxSyncopatedOnsetsPerBar: 0,
@@ -151,12 +165,12 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: true,
       allowSixteenths: false,
       allowSyncopation: false,
-      tempo: simpleTempo(60, 96),
+      tempo: { simple: band(60, 96, "quarter") },
     }),
-    5: Object.freeze({
+    5: levelPolicy({
       level: 5,
       allowedMeters: simpleMeters,
-      durations: Object.freeze([
+      durations: durationList(
         whole,
         half,
         quarter,
@@ -164,116 +178,77 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
         sixteenth,
         dottedHalf,
         dottedQuarter,
-        dottedEighth,
-      ]),
-      supportedFocus: Object.freeze([
-        "sixteenths",
+        dottedEighth
+      ),
+      restDurations: durationList(
+        quarter,
+        eighth,
+        sixteenth,
+        dottedHalf,
+        dottedQuarter,
+        dottedEighth
+      ),
+      supportedFocus: focusList(
         "dots",
         "ties",
         "combined",
-      ] as readonly RhythmFocus[]),
-      defaultFocus: "sixteenths",
-      maxRestsPerBar: 3,
-      maxSyncopatedOnsetsPerBar: 0,
-      maxDifficultySources: 3,
-      allowDots: true,
-      allowTies: true,
-      allowCrossBarTies: false,
-      allowSixteenths: true,
-      allowSyncopation: false,
-      tempo: simpleTempo(50, 108),
-    }),
-    6: Object.freeze({
-      level: 6,
-      allowedMeters: compoundMeter,
-      durations: Object.freeze([
-        half,
-        quarter,
-        eighth,
-        dottedQuarter,
-        dottedHalf,
-      ]),
-      supportedFocus: Object.freeze([
-        "basic",
-        "compound",
-      ] as readonly RhythmFocus[]),
-      defaultFocus: "compound",
-      maxRestsPerBar: 2,
-      maxSyncopatedOnsetsPerBar: 0,
-      maxDifficultySources: 0,
-      allowDots: true,
-      allowTies: false,
-      allowCrossBarTies: false,
-      allowSixteenths: false,
-      allowSyncopation: false,
-      tempo: Object.freeze({
-        simple: Object.freeze({ min: 40, max: 72, pulse: "dotted-quarter" }),
-        compound: Object.freeze({ min: 40, max: 72, pulse: "dotted-quarter" }),
-      }),
-    }),
-    7: Object.freeze({
-      level: 7,
-      allowedMeters: simpleMeters,
-      durations: Object.freeze([
-        whole,
-        half,
-        quarter,
-        eighth,
-        sixteenth,
-        dottedQuarter,
-        dottedEighth,
-      ]),
-      supportedFocus: Object.freeze(["syncopation"] as readonly RhythmFocus[]),
-      defaultFocus: "syncopation",
+        "sixteenths",
+        "syncopation",
+        "integrated"
+      ),
+      defaultFocus: "integrated",
       maxRestsPerBar: 3,
       maxSyncopatedOnsetsPerBar: 1,
-      maxDifficultySources: 1,
+      maxDifficultySources: 2,
       allowDots: true,
       allowTies: true,
       allowCrossBarTies: false,
       allowSixteenths: true,
       allowSyncopation: true,
-      tempo: simpleTempo(50, 84),
+      tempo: { simple: band(50, 108, "quarter") },
     }),
-    8: Object.freeze({
-      level: 8,
-      allowedMeters: Object.freeze([...simpleMeters, ...compoundMeter]),
-      durations: Object.freeze([
-        whole,
-        half,
-        quarter,
-        eighth,
-        sixteenth,
-        dottedHalf,
-        dottedQuarter,
-        dottedEighth,
-      ]),
-      supportedFocus: Object.freeze([
-        "basic",
-        "dots",
-        "ties",
-        "combined",
-        "sixteenths",
-        "compound",
-        "syncopation",
-        "integrated",
-      ] as readonly RhythmFocus[]),
-      defaultFocus: "integrated",
-      maxRestsPerBar: 4,
-      maxSyncopatedOnsetsPerBar: 2,
+    6: levelPolicy({
+      level: 6,
+      allowedMeters: groupingMeters,
+      durations: durationList(half, quarter, eighth, dottedQuarter, dottedHalf),
+      restDurations: durationList(quarter, eighth, dottedQuarter, dottedHalf),
+      supportedFocus: focusList("basic", "compound", "dots", "ties", "combined"),
+      defaultFocus: "basic",
+      maxRestsPerBar: 2,
+      maxSyncopatedOnsetsPerBar: 0,
       maxDifficultySources: 2,
       allowDots: true,
       allowTies: true,
       allowCrossBarTies: true,
-      allowSixteenths: true,
-      allowSyncopation: true,
-      tempo: Object.freeze({
-        simple: Object.freeze({ min: 50, max: 108, pulse: "quarter" }),
-        compound: Object.freeze({ min: 40, max: 72, pulse: "dotted-quarter" }),
-      }),
+      allowSixteenths: false,
+      allowSyncopation: false,
+      tempo: {
+        simple: band(40, 72, "eighth"),
+        eighth: band(40, 72, "eighth"),
+        compound: band(40, 72, "dotted-quarter"),
+      },
     }),
   });
 
-export function policyForLevel(level: RhythmLevel): LevelPolicy {
-  return LEVEL_POLICIES[level];
+/** Optional V1-supported Alla Breve progression; it is not a seventh Level. */
+export const BONUS_POLICY: LevelPolicy = levelPolicy({
+  level: "bonus",
+  allowedMeters: allaBreve,
+  durations: durationList(whole, half, quarter, eighth),
+  restDurations: durationList(quarter, eighth),
+  supportedFocus: focusList("basic"),
+  defaultFocus: "basic",
+  maxRestsPerBar: 2,
+  maxSyncopatedOnsetsPerBar: 0,
+  maxDifficultySources: 0,
+  allowDots: false,
+  allowTies: false,
+  allowCrossBarTies: false,
+  allowSixteenths: false,
+  allowSyncopation: false,
+  tempo: { simple: band(40, 72, "half"), half: band(40, 72, "half") },
+});
+
+export function policyForLevel(level: RhythmTrack): LevelPolicy {
+  return level === "bonus" ? BONUS_POLICY : LEVEL_POLICIES[level];
 }
