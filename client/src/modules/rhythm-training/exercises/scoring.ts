@@ -4,22 +4,42 @@ import {
   type SessionConfiguration,
   type TrainingSession,
 } from "@/features/training/session";
-import {
-  evaluateCountBeatAnswer,
-  type CountBeatExercise,
-} from "./countBeat";
+import { evaluateCountBeatAnswer, type CountBeatExercise } from "./countBeat";
 import {
   evaluateMultipleChoice,
   type MultipleChoiceExercise,
 } from "./multipleChoice";
+import { evaluateTapRhythmAnswer, type TapRhythmExercise } from "./tapRhythm";
+import { isRuntimeTapAttempt } from "./tapCompletion";
+
+// Ephemeral completion guard; no persistence or changes to shared session state.
+const submittedTapAttempts = new WeakSet<object>();
+const answeredTapQuestions = new Set<string>();
+
+function tapQuestionKey(
+  session: RhythmTrainingSession,
+  exercise: TapRhythmExercise
+): string {
+  return JSON.stringify([
+    session.sessionId,
+    session.questionsAnswered,
+    exercise.id,
+  ]);
+}
 
 export type RhythmGradedExercise =
   | MultipleChoiceExercise
-  | CountBeatExercise;
+  | CountBeatExercise
+  | TapRhythmExercise;
 export type RhythmTrainingSession = TrainingSession<RhythmGradedExercise>;
 
 export type RhythmSubmissionResult = Readonly<{
-  status: "graded" | "technical-abort" | "duplicate" | "stale-exercise";
+  status:
+    | "graded"
+    | "technical-abort"
+    | "practice"
+    | "duplicate"
+    | "stale-exercise";
   session: RhythmTrainingSession;
   correct?: boolean;
   scoreDelta: number;
@@ -70,10 +90,52 @@ export function submitRhythmExerciseAnswer(
     return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
   }
 
+  if (exercise.kind === "tap-rhythm") {
+    const attempt = submission.answer;
+    if (
+      !isRuntimeTapAttempt(attempt) ||
+      attempt.status === "technical-abort" ||
+      attempt.accuracyPercent === null
+    ) {
+      return Object.freeze({
+        status: "technical-abort",
+        session,
+        scoreDelta: 0,
+      });
+    }
+    if (
+      attempt.exerciseId !== exercise.id ||
+      attempt.targetTicks.length !== exercise.targets.length ||
+      attempt.targetTicks.some(
+        (tick, index) => tick !== exercise.targets[index].tick
+      )
+    ) {
+      return Object.freeze({
+        status: "stale-exercise",
+        session,
+        scoreDelta: 0,
+      });
+    }
+    if (attempt.mode === "practice") {
+      return Object.freeze({ status: "practice", session, scoreDelta: 0 });
+    }
+    if (
+      submittedTapAttempts.has(attempt) ||
+      answeredTapQuestions.has(tapQuestionKey(session, exercise))
+    ) {
+      return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
+    }
+  }
+
   const evaluation =
     exercise.kind === "multiple-choice"
       ? evaluateMultipleChoice(exercise, submission.answer)
-      : evaluateCountBeatAnswer(exercise, submission.answer);
+      : exercise.kind === "count-beat"
+        ? evaluateCountBeatAnswer(exercise, submission.answer)
+        : evaluateTapRhythmAnswer(exercise, submission.answer);
+  if (evaluation === null) {
+    return Object.freeze({ status: "technical-abort", session, scoreDelta: 0 });
+  }
   const next = submitSessionAnswer(
     session,
     evaluation.correct,
@@ -81,6 +143,13 @@ export function submitRhythmExerciseAnswer(
     10,
     completedAt
   );
+  if (
+    exercise.kind === "tap-rhythm" &&
+    isRuntimeTapAttempt(submission.answer)
+  ) {
+    submittedTapAttempts.add(submission.answer);
+    answeredTapQuestions.add(tapQuestionKey(session, exercise));
+  }
   return Object.freeze({
     status: "graded",
     session: next,

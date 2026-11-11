@@ -40,11 +40,12 @@ export {
   patternMetrics,
 } from "./generation/generator";
 export type { RhythmGenerationConfig } from "./generation/generator";
-export { LEVEL_POLICIES, BONUS_POLICY, policyForLevel } from "./generation/levels";
-export type {
-  RhythmFocus,
-  LevelPolicy,
+export {
+  LEVEL_POLICIES,
+  BONUS_POLICY,
+  policyForLevel,
 } from "./generation/levels";
+export type { RhythmFocus, LevelPolicy } from "./generation/levels";
 export {
   answerSignatures,
   choiceRejectionReason,
@@ -116,10 +117,7 @@ export type {
   RhythmNotationRenderOptions,
   RhythmNotationParityReport,
 } from "./notation/VexFlowRhythm";
-export {
-  createRhythmAudioPlan,
-  createListenPlaybackPlan,
-} from "./audio/plan";
+export { createRhythmAudioPlan, createListenPlaybackPlan } from "./audio/plan";
 export type {
   AudioLane,
   RhythmAudioEvent,
@@ -136,3 +134,22 @@ export type {
   RhythmTransportOptions,
 } from "./audio/transport";
 export type { RhythmVisualCount } from "./audio/plan";
+
+// Approved Phase 4B headless Tap runtime. No application catalog/route activation.
+export {
+  createTapRhythmExercise,
+  generateTapRhythmExercise,
+  createTapTargets,
+  evaluateTapRhythmAnswer,
+} from "./exercises/tapRhythm";
+export type { TapRhythmExercise, TapTarget } from "./exercises/tapRhythm";
+export { matchTapRhythm } from "./exercises/tapMatcher";
+export type { TapEvaluation, TapMatchInput } from "./exercises/tapMatcher";
+export { TapRhythmEngine } from "./audio/tapEngine";
+export type {
+  TapEngineOptions,
+  TapEngineState,
+  TapCollectionSnapshot,
+} from "./audio/tapEngine";
+export type { TapAttemptResult } from "./exercises/tapCompletion";
+export { createTapAttemptPlan } from "./audio/tapPlan";
