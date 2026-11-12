@@ -3,6 +3,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -15,6 +16,7 @@ import RhythmTrainingPage from "./RhythmTrainingPage";
 import { isExerciseKindAllowed } from "../curriculum/curriculum";
 import { generateRhythmPattern } from "../generation/generator";
 import { policyForLevel } from "../generation/levels";
+import { QUIZ_QUESTION_BANK } from "../quiz/questionBank";
 
 const scenario = vi.hoisted(() => ({ mode: "normal" }));
 vi.mock("../components/RhythmNotation", () => ({
@@ -114,7 +116,22 @@ function showPage() {
   );
 }
 
+async function openTapSetup() {
+  const chooser = screen.getByTestId("screen-chooser");
+  if (!chooser.hasAttribute("hidden")) {
+    await userEvent.click(
+      within(chooser).getByRole("button", { name: /Tap Rhythm/ })
+    );
+  }
+  await waitFor(() =>
+    expect(screen.getByTestId("screen-setup").hasAttribute("hidden")).toBe(
+      false
+    )
+  );
+}
+
 async function openExercise(mode: "Chơi thử" | "Chấm điểm" = "Chơi thử") {
+  await openTapSetup();
   await userEvent.click(
     screen.getByRole("button", { name: new RegExp(`^${mode}`) })
   );
@@ -133,9 +150,142 @@ async function openPracticeWorkspace(
 }
 
 describe("Rhythm learner page: three screens and real controller integration", () => {
+  it("starts at a dedicated chooser and projects setup, practice, and results for both selected flows", async () => {
+    const user = userEvent.setup();
+    showPage();
+    const chooser = screen.getByTestId("screen-chooser");
+    expect(chooser.hasAttribute("hidden")).toBe(false);
+    expect(within(chooser).getAllByRole("button")).toHaveLength(2);
+    expect(
+      within(chooser).getByText("Luyện gõ tiết tấu theo ký âm.")
+    ).not.toBeNull();
+    expect(
+      within(chooser).getByText("Trắc nghiệm kiến thức nhịp điệu.")
+    ).not.toBeNull();
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+    expect(within(chooser).queryByLabelText("Tempo (BPM)")).toBeNull();
+    expect(
+      within(chooser).queryByRole("button", { name: /^Level 1 —/ })
+    ).toBeNull();
+
+    await user.click(
+      within(chooser).getByRole("button", { name: /Tap Rhythm/ })
+    );
+    expect(screen.getByTestId("screen-setup").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("setup");
+    expect(
+      within(screen.getByTestId("screen-setup")).queryByRole("button", {
+        name: /Rhythm Quiz/,
+      })
+    ).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Chọn hoạt động" }));
+    expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+
+    await user.click(
+      within(screen.getByTestId("screen-chooser")).getByRole("button", {
+        name: /Rhythm Quiz/,
+      })
+    );
+    const quiz = screen.getByTestId("screen-quiz");
+    expect(quiz.hasAttribute("hidden")).toBe(false);
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("setup");
+    expect(within(quiz).queryByLabelText(/BPM|metronome|Tap/i)).toBeNull();
+    await user.click(
+      within(quiz).getByRole("button", { name: "Bắt đầu Quiz" })
+    );
+    const quizPracticeState = window.history.state;
+    expect(quizPracticeState.rhythmTrainingScreen).toBe("quiz");
+    expect(quizPracticeState.rhythmTrainingQuizScreen).toBe("quiz");
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("practice");
+    expect(
+      within(quiz).getByRole("progressbar", { name: "Tiến độ câu hỏi" })
+    ).not.toBeNull();
+
+    const available = QUIZ_QUESTION_BANK["1"];
+    const seen = new Set<string>();
+    const plannedCount = Math.min(10, available.length);
+    for (let index = 0; index < plannedCount; index += 1) {
+      const prompt =
+        quiz.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+      const question = available.find(item => item.prompt === prompt);
+      expect(question).toBeTruthy();
+      expect(seen.has(question!.id)).toBe(false);
+      seen.add(question!.id);
+      const correctButton = Array.from(
+        quiz.querySelectorAll<HTMLButtonElement>(".rhythm-quiz-option")
+      ).find(
+        button =>
+          button.getAttribute("data-option-id") === question!.correctOptionId
+      );
+      expect(correctButton).toBeTruthy();
+      await user.click(correctButton!);
+      await user.click(
+        within(quiz).getByRole("button", {
+          name: index === plannedCount - 1 ? "Xem tổng kết" : "Câu tiếp theo",
+        })
+      );
+    }
+    expect(
+      within(quiz).getByRole("heading", { name: "Tổng kết Quiz" })
+    ).not.toBeNull();
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("result");
+    const quizSummaryState = window.history.state;
+    expect(quizSummaryState.rhythmTrainingQuizScreen).toBe("summary");
+
+    window.dispatchEvent(
+      new PopStateEvent("popstate", { state: quizPracticeState })
+    );
+    await waitFor(() =>
+      expect(
+        screen
+          .getByTestId("rhythm-step-progress")
+          .getAttribute("data-current-step")
+      ).toBe("practice")
+    );
+    window.dispatchEvent(
+      new PopStateEvent("popstate", { state: quizSummaryState })
+    );
+    await waitFor(() =>
+      expect(
+        screen
+          .getByTestId("rhythm-step-progress")
+          .getAttribute("data-current-step")
+      ).toBe("result")
+    );
+    await user.click(
+      within(quiz).getByRole("button", { name: "Chọn hoạt động" })
+    );
+    expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+  });
+
   it("blocks invalid BPM rather than silently opening an old tempo, and accepts both global endpoints", async () => {
     const user = userEvent.setup();
     showPage();
+    await openTapSetup();
     const input = screen.getByRole("spinbutton", { name: "Nhập tempo BPM" });
     const play = screen.getByRole("button", {
       name: /^Chơi thử/,
@@ -171,6 +321,11 @@ describe("Rhythm learner page: three screens and real controller integration", (
   it("offers Tap in Levels 1/2, keeps Bonus practice-only, and exposes no Lesson selector", async () => {
     const user = userEvent.setup();
     showPage();
+    expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+    await openTapSetup();
     expect(
       (screen.getByRole("button", { name: /^Level 1 —/ }) as HTMLButtonElement)
         .disabled
@@ -238,7 +393,7 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(screen.queryByLabelText("Phần học")).toBeNull();
   });
 
-  it("opens the independent visual-only Rhythm Quiz from Setup and returns without entering Tap practice", async () => {
+  it("opens the independent visual-only Rhythm Quiz from the chooser and returns without entering Tap practice", async () => {
     const user = userEvent.setup();
     showPage();
     await user.click(screen.getByRole("button", { name: /Rhythm Quiz/ }));
@@ -255,8 +410,12 @@ describe("Rhythm learner page: three screens and real controller integration", (
     await user.click(
       within(quiz).getByRole("button", { name: "Quay lại Rhythm Training" })
     );
-    expect(screen.getByTestId("screen-setup").hasAttribute("hidden")).toBe(
+    expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
       false
+    );
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+    expect(screen.getByTestId("screen-setup").hasAttribute("hidden")).toBe(
+      true
     );
     expect(screen.getByTestId("screen-practice").hasAttribute("hidden")).toBe(
       true
@@ -266,6 +425,7 @@ describe("Rhythm learner page: three screens and real controller integration", (
   it("opens one real canonical practice exercise using the selected meter, four bars, practice gate, and explicit BPM", async () => {
     const user = userEvent.setup();
     showPage();
+    await openTapSetup();
     expect((screen.getByLabelText("Độ dài") as HTMLSelectElement).value).toBe(
       "2"
     );
@@ -292,9 +452,11 @@ describe("Rhythm learner page: three screens and real controller integration", (
         .getByTestId("rhythm-step-progress")
         .getAttribute("data-current-step")
     ).toBe("practice");
-    expect(screen.getByTestId("rhythm-status").textContent).toContain(
-      "Chơi thử"
-    );
+    expect(
+      within(screen.getByTestId("screen-practice")).getByText(
+        "Chế độ: Chơi thử"
+      )
+    ).not.toBeNull();
     expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
       "ready"
     );
@@ -333,9 +495,11 @@ describe("Rhythm learner page: three screens and real controller integration", (
     showPage();
     await openPracticeWorkspace("Chấm điểm");
     expect(screen.queryByTestId("practice-mode-chooser")).toBeNull();
-    expect(screen.getByTestId("rhythm-status").textContent).toContain(
-      "Chấm điểm"
-    );
+    expect(
+      within(screen.getByTestId("screen-practice")).getByText(
+        "Chế độ: Chấm điểm"
+      )
+    ).not.toBeNull();
     expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
       "ready"
     );
@@ -365,6 +529,14 @@ describe("Rhythm learner page: three screens and real controller integration", (
       "technical-abort"
     );
     expect(
+      within(screen.getByTestId("screen-result")).getByTestId(
+        "rhythm-total-points"
+      ).textContent
+    ).toBe("0");
+    expect(
+      within(screen.getByTestId("screen-result")).getByText("Chế độ: Chấm điểm")
+    ).not.toBeNull();
+    expect(
       screen
         .getByTestId("rhythm-step-progress")
         .getAttribute("data-current-step")
@@ -379,12 +551,9 @@ describe("Rhythm learner page: three screens and real controller integration", (
     await user.click(screen.getByRole("button", { name: "Quay lại practice" }));
     const workspace = screen.getByTestId("rhythm-workspace");
     expect(
-      (
-        within(workspace).getByRole("button", {
-          name: "Chấm điểm",
-        }) as HTMLButtonElement
-      ).disabled
-    ).toBe(true);
+      within(workspace).queryByRole("button", { name: "Chấm điểm" })
+    ).toBeNull();
+    expect(within(workspace).getByText("Chế độ: Chấm điểm")).not.toBeNull();
 
     const originalExerciseId = screen
       .getByTestId("rhythm-workspace")
@@ -406,6 +575,140 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(screen.getByTestId("tap-result")).not.toBeNull();
   });
 
+  it("retimes the written Practice pattern within 30–300 BPM and blocks invalid values without clamping", async () => {
+    const user = userEvent.setup();
+    showPage();
+    await openPracticeWorkspace("Chơi thử");
+
+    const workspace = screen.getByTestId("rhythm-workspace");
+    const originalExerciseId = workspace.getAttribute("data-exercise-id");
+    const originalPatternId = screen
+      .getByTestId("notation-jsdom-placeholder")
+      .getAttribute("data-pattern-id");
+    const bpmInput = screen.getByRole("spinbutton", {
+      name: "BPM trong Practice",
+    }) as HTMLInputElement;
+    const bpmRange = screen.getByRole("slider", {
+      name: "Tempo Practice (BPM)",
+    }) as HTMLInputElement;
+
+    expect(bpmInput.min).toBe("30");
+    expect(bpmInput.max).toBe("300");
+    expect(bpmRange.min).toBe("30");
+    expect(bpmRange.max).toBe("300");
+    expect(
+      (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).disabled
+    ).toBe(false);
+
+    fireEvent.change(bpmInput, { target: { value: "120" } });
+    await waitFor(() => expect(bpmInput.value).toBe("120"));
+    expect(bpmRange.value).toBe("120");
+    expect(workspace.getAttribute("data-exercise-id")).not.toBe(
+      originalExerciseId
+    );
+    expect(
+      screen
+        .getByTestId("notation-jsdom-placeholder")
+        .getAttribute("data-pattern-id")
+    ).not.toBe(originalPatternId);
+    expect(screen.getByLabelText("Tempo hiện tại").textContent).toContain(
+      "120"
+    );
+
+    fireEvent.change(bpmInput, { target: { value: "301" } });
+    expect(bpmInput.value).toBe("301");
+    expect(bpmInput.getAttribute("aria-invalid")).toBe("true");
+    expect(bpmRange.value).toBe("120");
+    expect(
+      (screen.getByRole("button", { name: "Bắt đầu" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(screen.getByRole("alert").textContent).toContain(
+      "không được tự điều chỉnh"
+    );
+
+    fireEvent.change(bpmRange, { target: { value: "300" } });
+    await waitFor(() => expect(bpmInput.value).toBe("300"));
+    expect(bpmInput.getAttribute("aria-invalid")).toBe("false");
+    expect(screen.getByLabelText("Tempo hiện tại").textContent).toContain(
+      "300"
+    );
+    expect(screen.queryByLabelText("Tổng điểm chính thức")).toBeNull();
+
+    const currentExerciseId = workspace.getAttribute("data-exercise-id");
+    const skipButton = screen.getByRole("button", { name: "Bỏ qua bài" });
+    await user.click(skipButton);
+    let dialog = screen.getByRole("dialog", { name: "Xác nhận bỏ qua bài" });
+    expect(dialog.textContent).toContain("0 điểm phạt");
+    await user.click(within(dialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(document.activeElement).toBe(skipButton);
+    expect(workspace.getAttribute("data-exercise-id")).toBe(currentExerciseId);
+
+    await user.click(skipButton);
+    dialog = screen.getByRole("dialog", { name: "Xác nhận bỏ qua bài" });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Xác nhận bỏ qua" })
+    );
+    await waitFor(() =>
+      expect(workspace.getAttribute("data-exercise-id")).not.toBe(
+        currentExerciseId
+      )
+    );
+    expect(bpmInput.value).toBe("300");
+    expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
+      "ready"
+    );
+    expect(
+      (screen.getByRole("button", { name: "Bắt đầu" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    expect(screen.queryByTestId("tap-result")).toBeNull();
+  });
+
+  it("confirms a graded unanswered Skip separately, floors official shared total at zero, and leaves mode locked", async () => {
+    const user = userEvent.setup();
+    showPage();
+    await openPracticeWorkspace("Chấm điểm");
+
+    const workspace = screen.getByTestId("rhythm-workspace");
+    const originalExerciseId = workspace.getAttribute("data-exercise-id");
+    expect(
+      within(screen.getByTestId("screen-practice")).getByTestId(
+        "rhythm-total-points"
+      ).textContent
+    ).toBe("0");
+    expect(within(workspace).getByText("Chế độ: Chấm điểm")).not.toBeNull();
+    expect(
+      within(workspace).queryByRole("button", { name: "Chấm điểm" })
+    ).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Bỏ qua bài" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Xác nhận bỏ qua bài",
+    });
+    expect(dialog.textContent).toMatch(
+      /Chấm điểm chưa nộp\?.*trừ 5 điểm.*max\(0, tổng điểm hiện tại − 5\)/
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Xác nhận bỏ qua" })
+    );
+    await waitFor(() =>
+      expect(workspace.getAttribute("data-exercise-id")).not.toBe(
+        originalExerciseId
+      )
+    );
+    expect(
+      within(screen.getByTestId("screen-practice")).getByTestId(
+        "rhythm-total-points"
+      ).textContent
+    ).toBe("0");
+    expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
+      "ready"
+    );
+    expect(screen.queryByTestId("tap-result")).toBeNull();
+    expect(within(workspace).getByText("Chế độ: Chấm điểm")).not.toBeNull();
+  });
   it("does not start when notation failed and keeps generator errors actionable", async () => {
     scenario.mode = "notation-error";
     showPage();

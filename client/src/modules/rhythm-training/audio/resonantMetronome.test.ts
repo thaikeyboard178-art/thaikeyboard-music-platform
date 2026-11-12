@@ -119,8 +119,9 @@ describe("opt-in resonant metronome voice", () => {
     const output = { name: "metronome-output" } as unknown as AudioNode;
     const settings = experienceVoiceSettings({} as AudioBuffer, output);
     expect(settings.metronome.resonantKnock).toBe(true);
-    expect(settings.metronome.durationSeconds).toBe(0.22);
-    expect(settings.metronome.durationSeconds).toBeLessThanOrEqual(0.25);
+    expect(settings.metronome.durationSeconds).toBe(0.18);
+    expect(settings.metronome.durationSeconds).toBeLessThan(60 / 300);
+    expect(settings.metronome.edgeSeconds).toBeLessThanOrEqual(0.001);
 
     const modalFrequencies: number[][] = [];
     const profilePeaks: number[] = [];
@@ -140,10 +141,10 @@ describe("opt-in resonant metronome voice", () => {
       expect(voiceGains).toHaveLength(4);
       expect(voices.map(voice => voice.starts)).toEqual([[2], [2], [2], [2]]);
       expect(voices.map(voice => voice.stops)).toEqual([
-        [2.22],
-        [2.22],
-        [2.22],
-        [2.22],
+        [2.18],
+        [2.18],
+        [2.18],
+        [2.18],
       ]);
       expect(voiceGains.every(gain => gain.connections[0] === output)).toBe(
         true
@@ -166,17 +167,17 @@ describe("opt-in resonant metronome voice", () => {
           return (
             decay[1] > 0 &&
             decay[1] < attack[1] &&
-            decay[2] < 2.22 &&
+            decay[2] < 2.18 &&
             terminalFade[1] === 0 &&
-            terminalFade[2] === 2.22
+            terminalFade[2] === 2.18
           );
         })
       ).toBe(true);
     }
     expect(modalFrequencies).toEqual([
-      [620, 1480, 2720, 3880],
-      [480, 1117, 2050, 3110],
-      [350, 835, 1540, 2450],
+      [560, 1423, 2705, 3689],
+      [446, 1127, 2119, 2963],
+      [342, 879, 1613, 2457],
     ]);
     expect(
       new Set(modalFrequencies.map(frequencies => frequencies.join(","))).size

@@ -54,11 +54,15 @@ describe("complete canonical rhythm validation", () => {
     const over = validateRhythmPattern(INVALID_FIXTURES[4].input);
     if (under.valid || over.valid)
       throw new Error("Invalid bars unexpectedly passed");
-    expect(under.issues[0]).toMatchObject({
+    expect(
+      under.issues.find(issue => issue.code === "MEASURE_UNDERFILLED")
+    ).toMatchObject({
       expectedTicks: 1920,
       actualTicks: 1440,
     });
-    expect(over.issues[0]).toMatchObject({
+    expect(
+      over.issues.find(issue => issue.code === "MEASURE_OVERFILLED")
+    ).toMatchObject({
       expectedTicks: 1440,
       actualTicks: 1920,
     });

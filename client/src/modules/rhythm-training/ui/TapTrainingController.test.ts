@@ -147,7 +147,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const state = h.controller.getSnapshot();
     expect(state.exercise?.kind).toBe("tap-rhythm");
     expect(state.session?.mode).toBe("free");
-    expect(state.session?.plannedQuestions).toBe(1);
+    expect(state.session?.plannedQuestions).toBeNull();
     expect(state.session?.questionsAnswered).toBe(0);
     expect(h.inputTargetCalls()).toBe(0);
     expect(h.engines).toHaveLength(0);
@@ -190,6 +190,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(h.controller.getSnapshot().referenceUsed).toBe(true);
     expect(h.controller.getSnapshot().phase).toBe("reference");
     expect(h.controller.getSnapshot().busy).toBe(true);
+    expect(h.controller.canSkipCurrentExercise).toBe(false);
 
     await h.controller.start();
     await h.controller.continue();
@@ -253,7 +254,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(state.phase).toBe("completed");
   });
 
-  it("keeps the strict +0 gate for a near miss and does not fabricate a percentage", async () => {
+  it("keeps strict correctness for a near miss while awarding weighted timing points", async () => {
     const h = harness();
     await prepared(h);
     await h.controller.start();
@@ -261,11 +262,12 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const state = h.controller.getSnapshot();
     expect(state.result?.status).toBe("completed");
     expect(state.result?.accuracyPercent).toBeLessThan(100);
-    expect(state.points).toBe(0);
-    expect(state.originalPoints).toBe(0);
+    expect(state.points).toBe(5);
+    expect(state.originalPoints).toBe(5);
     expect(state.session?.questionsAnswered).toBe(1);
     expect(state.session?.correctAnswers).toBe(0);
     expect(state.session?.incorrectAnswers).toBe(1);
+    expect(state.session?.totalScore).toBe(5);
   });
 
   it("retries with a new idle engine in practice and preserves the original graded result and points", async () => {
@@ -283,9 +285,10 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(retryEngine).not.toBe(originalEngine);
     expect(originalEngine.state).toBe("disposed");
     expect(retryEngine.state).toBe("idle");
+    expect(retryEngine.hasPendingWakeup).toBe(false);
     expect(h.controller.getSnapshot().phase).toBe("ready");
     expect(h.controller.getSnapshot().trialNumber).toBe(1);
-    expect(h.controller.getSnapshot().practice).toBe(true);
+    expect(h.controller.getSnapshot().practice).toBe(false);
     expect(h.controller.getSnapshot().result).toBeNull();
     expect(h.controller.getSnapshot().gradedResult).toBe(original);
     expect(h.controller.getSnapshot().originalPoints).toBe(10);
@@ -307,7 +310,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(finalState.session?.totalScore).toBe(10);
   });
 
-  it("Continue disposes the prior engine and creates a different exercise with a fresh shared session", async () => {
+  it("Continue disposes the prior engine and advances within the same shared session", async () => {
     let count = 0;
     const h = harness({
       createExercise: (configuration, seed) => {
@@ -336,9 +339,11 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const state = h.controller.getSnapshot();
     expect(state.phase).toBe("ready");
     expect(state.exercise?.id).not.toBe(oldExerciseId);
-    expect(state.session?.sessionId).not.toBe(oldSessionId);
-    expect(state.session?.plannedQuestions).toBe(1);
-    expect(state.session?.questionsAnswered).toBe(0);
+    expect(state.session?.sessionId).toBe(oldSessionId);
+    expect(state.session?.plannedQuestions).toBeNull();
+    expect(state.session?.questionsAnswered).toBe(1);
+    expect(state.session?.correctAnswers).toBe(1);
+    expect(state.session?.totalScore).toBe(10);
     expect(state.gradedResult).toBeNull();
     expect(state.originalPoints).toBeNull();
     expect(h.engines[0].state).toBe("disposed");
@@ -360,6 +365,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     await h.controller.prepare(CONFIG);
     expect(h.controller.getSnapshot().phase).toBe("empty");
     expect(h.controller.getSnapshot().exercise?.targets).toHaveLength(0);
+    expect(h.controller.canSkipCurrentExercise).toBe(false);
     await h.controller.start();
     await h.controller.reference();
     expect(h.engines).toHaveLength(0);
@@ -368,7 +374,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(h.controller.getSnapshot().points).toBeNull();
   });
 
-  it("Continue from a defensive empty result creates a fresh playable exercise and session", async () => {
+  it("Continue from a defensive empty result creates a playable exercise in the same session", async () => {
     let count = 0;
     const canonical = createTapRhythmExercise({
       track: 3,
@@ -394,7 +400,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(state.phase).toBe("ready");
     expect(state.exercise?.targets.length).toBeGreaterThan(0);
     expect(state.exercise?.id).toBe("controller-playable-after-empty");
-    expect(state.session?.sessionId).not.toBe(emptySessionId);
+    expect(state.session?.sessionId).toBe(emptySessionId);
     expect(state.session?.questionsAnswered).toBe(0);
     expect(state.trialNumber).toBe(1);
     expect(h.engines).toHaveLength(0);
@@ -429,7 +435,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     await h.controller.continue();
     state = h.controller.getSnapshot();
     expect(state.phase).toBe("ready");
-    expect(state.session?.sessionId).not.toBe(unansweredSessionId);
+    expect(state.session?.sessionId).toBe(unansweredSessionId);
     expect(state.session?.questionsAnswered).toBe(0);
 
     const another = harness();
@@ -457,8 +463,10 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     });
     const preparing = h.controller.prepare(CONFIG);
     expect(h.controller.getSnapshot().phase).toBe("preparing");
+    expect(h.controller.canSkipCurrentExercise).toBe(false);
     await h.controller.prepare(CONFIG);
     expect(h.controller.getSnapshot().phase).toBe("preparing");
+    expect(h.controller.canSkipCurrentExercise).toBe(false);
     releasePreparation!(generated);
     await preparing;
     expect(h.controller.getSnapshot().phase).toBe("ready");
@@ -470,5 +478,329 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(h.engines).toHaveLength(1);
     expect(h.controller.getSnapshot().trialNumber).toBe(1);
     expect(h.controller.getSnapshot().phase).toMatch(/^(count-in|collecting)$/);
+  });
+});
+
+describe("approved Tap controller session lifecycle", () => {
+  it("accumulates two graded answers in one run, ignores stale receipts, and resets only on fresh prepare", async () => {
+    let generated = 0;
+    const h = harness({
+      createExercise: (configuration, seed) =>
+        createTapRhythmExercise({
+          track: configuration.track as RhythmTrack,
+          section: configuration.section,
+          pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
+          id: `${seed}-question-${++generated}`,
+        }),
+    });
+    await prepared(h);
+    const sessionId = h.controller.getSnapshot().session?.sessionId;
+
+    await h.controller.start();
+    await finishAttempt(h);
+    const firstState = h.controller.getSnapshot();
+    expect(firstState.session?.sessionId).toBe(sessionId);
+    expect(firstState.session?.questionsAnswered).toBe(1);
+    expect(firstState.session?.correctAnswers).toBe(1);
+    expect(firstState.session?.totalScore).toBe(10);
+    const oldReceipt = firstState.result!;
+    const oldCallback = h.engineOptions[0].onResult!;
+
+    await h.controller.continue();
+    const secondExerciseId = h.controller.getSnapshot().exercise?.id;
+    expect(secondExerciseId).not.toBe(oldReceipt.exerciseId);
+    expect(h.controller.getSnapshot().session?.sessionId).toBe(sessionId);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(10);
+
+    oldCallback(oldReceipt);
+    expect(h.controller.getSnapshot().result).toBeNull();
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(10);
+
+    await h.controller.start();
+    await finishAttempt(h);
+    const secondState = h.controller.getSnapshot();
+    expect(secondState.session?.sessionId).toBe(sessionId);
+    expect(secondState.session?.questionsAnswered).toBe(2);
+    expect(secondState.session?.correctAnswers).toBe(2);
+    expect(secondState.session?.incorrectAnswers).toBe(0);
+    expect(secondState.session?.totalScore).toBe(20);
+    expect(secondState.points).toBe(10);
+
+    await h.controller.prepare(CONFIG);
+    const freshState = h.controller.getSnapshot();
+    expect(freshState.session?.sessionId).not.toBe(sessionId);
+    expect(freshState.session?.mode).toBe("free");
+    expect(freshState.session?.plannedQuestions).toBeNull();
+    expect(freshState.session?.questionsAnswered).toBe(0);
+    expect(freshState.session?.totalScore).toBe(0);
+    expect(freshState.selectedMode).toBe("graded");
+    expect(freshState.lastSkipPenalty).toBeNull();
+  });
+
+  it("retimes the same immutable written pattern at inclusive 30/300 BPM and rejects invalid values", async () => {
+    const captured: TapUiConfiguration[] = [];
+    const h = harness({
+      createExercise: (configuration, seed) => {
+        captured.push(configuration);
+        return createTapRhythmExercise({
+          track: configuration.track as RhythmTrack,
+          section: configuration.section,
+          pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
+          id: seed,
+        });
+      },
+    });
+    const original = await prepared(h);
+    const originalSessionId = h.controller.getSnapshot().session?.sessionId;
+    expect(h.controller.canAdjustPracticeBpm).toBe(true);
+
+    expect(await h.controller.setPracticeBpm(30)).toBe(true);
+    const atThirty = h.controller.getSnapshot();
+    expect(atThirty.exercise?.pattern.tempo.pulseBpm).toBe(30);
+    expect(atThirty.configuration?.pulseBpm).toBe(30);
+    expect(atThirty.exercise?.pattern.measures).toEqual(
+      original.pattern.measures
+    );
+    expect(atThirty.exercise?.targets.map(target => target.tick)).toEqual(
+      original.targets.map(target => target.tick)
+    );
+    expect(atThirty.exercise?.targets.at(-1)?.offsetMs).not.toBe(
+      original.targets.at(-1)?.offsetMs
+    );
+    expect(Object.isFrozen(atThirty.exercise?.pattern)).toBe(true);
+    expect(Object.isFrozen(atThirty.exercise?.pattern.measures[0])).toBe(true);
+    expect(h.controller.getSnapshot().session?.sessionId).toBe(
+      originalSessionId
+    );
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(0);
+
+    expect(await h.controller.setPracticeBpm(300)).toBe(true);
+    const atThreeHundred = h.controller.getSnapshot();
+    expect(atThreeHundred.exercise?.pattern.tempo.pulseBpm).toBe(300);
+    expect(atThreeHundred.configuration?.pulseBpm).toBe(300);
+    expect(atThreeHundred.exercise?.pattern.measures).toEqual(
+      original.pattern.measures
+    );
+    expect(atThreeHundred.exercise?.targets.at(-1)?.offsetMs).not.toBe(
+      atThirty.exercise?.targets.at(-1)?.offsetMs
+    );
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(0);
+
+    const unchangedExercise = h.controller.getSnapshot().exercise;
+    for (const invalid of [29, 301, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(await h.controller.setPracticeBpm(invalid)).toBe(false);
+      expect(h.controller.getSnapshot().exercise).toBe(unchangedExercise);
+    }
+
+    const previewPromise = h.controller.previewMetronome(CONFIG);
+    await flushMicrotasks();
+    expect(captured.at(-1)?.pulseBpm).toBe(300);
+    h.controller.stopPreview();
+    await previewPromise;
+  });
+
+  it("preserves a consumed graded reference allowance when idle BPM retimes the same written exercise", async () => {
+    const h = harness();
+    const original = await prepared(h);
+    expect(h.controller.chooseMode("graded")).toBe(true);
+    const reference = h.controller.reference();
+    await finishReference(h);
+    await reference;
+    expect(h.controller.getSnapshot().phase).toBe("ready");
+    expect(h.controller.getSnapshot().referenceUsed).toBe(true);
+    expect(await h.controller.setPracticeBpm(120)).toBe(true);
+    expect(h.controller.getSnapshot().exercise?.pattern.measures).toEqual(
+      original.pattern.measures
+    );
+    expect(h.controller.getSnapshot().referenceUsed).toBe(true);
+    expect(h.controller.canReference).toBe(false);
+    const engines = h.engines.length;
+    await h.controller.reference();
+    expect(h.engines).toHaveLength(engines);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(0);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(0);
+  });
+
+  it("locks mode and tempo after Play through collection/drain and graded replay, without autoplay", async () => {
+    const h = harness();
+    await prepared(h);
+    expect(h.controller.canAdjustPracticeBpm).toBe(true);
+    await h.controller.start();
+    expect(h.controller.canAdjustPracticeBpm).toBe(false);
+    expect(h.controller.chooseMode("practice")).toBe(false);
+    expect(await h.controller.setPracticeBpm(120)).toBe(false);
+
+    const engine = h.engines.at(-1)!;
+    const timing = engine.snapshot!;
+    h.clock.at(timing.collectionStartAudioTime + 0.01);
+    expect(engine.state).toBe("collecting");
+    expect(h.controller.canAdjustPracticeBpm).toBe(false);
+    h.clock.at(timing.collectionEndAudioTime + 0.01);
+    h.clock.advance(0.05);
+    expect(engine.state).toBe("draining");
+    expect(h.controller.canAdjustPracticeBpm).toBe(false);
+    h.clock.at(timing.drainEndAudioTime + 0.03);
+    h.clock.advance(0.05);
+    await flushMicrotasks();
+    expect(h.controller.getSnapshot().result?.status).toBe("completed");
+
+    await h.controller.retry();
+    const replayEngine = h.engines.at(-1)!;
+    const replayState = h.controller.getSnapshot();
+    expect(replayState.phase).toBe("ready");
+    expect(replayState.selectedMode).toBe("graded");
+    expect(replayState.replayOnly).toBe(true);
+    expect(replayState.practice).toBe(false);
+    expect(replayState.gradedResult?.status).toBe("completed");
+    expect(replayEngine.state).toBe("idle");
+    expect(replayEngine.snapshot).toBeNull();
+    expect(replayEngine.hasPendingWakeup).toBe(false);
+    expect(h.controller.canAdjustPracticeBpm).toBe(false);
+    expect(h.controller.chooseMode("practice")).toBe(false);
+    expect(h.controller.canSkipCurrentExercise).toBe(false);
+  });
+
+  it("applies a graded skip once during collection after caller confirmation and never fakes an answer", async () => {
+    let generated = 0;
+    let disposedBeforeSkipGeneration = false;
+    let h!: Harness;
+    h = harness({
+      createExercise: (configuration, seed) => {
+        generated++;
+        if (generated === 3)
+          disposedBeforeSkipGeneration = h.engines.at(-1)?.state === "disposed";
+        return createTapRhythmExercise({
+          track: configuration.track as RhythmTrack,
+          section: configuration.section,
+          pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
+          id: `${seed}-skip-${generated}`,
+        });
+      },
+    });
+    await prepared(h);
+    await h.controller.start();
+    await finishAttempt(h);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(10);
+    const previousReceipt = h.controller.getSnapshot().result!;
+    await h.controller.continue();
+    const beforeSkip = h.controller.getSnapshot();
+    const beforeQuestions = beforeSkip.session?.questionsAnswered;
+
+    await h.controller.start();
+    const engine = h.engines.at(-1)!;
+    const staleCallback = h.engineOptions.at(-1)!.onResult!;
+    h.clock.at(engine.snapshot!.collectionStartAudioTime + 0.01);
+    expect(engine.state).toBe("collecting");
+    expect(h.controller.canSkipCurrentExercise).toBe(true);
+
+    const firstSkip = h.controller.skipCurrentExercise();
+    const duplicateSkip = h.controller.skipCurrentExercise();
+    expect(await duplicateSkip).toBe(false);
+    expect(await firstSkip).toBe(true);
+    const skipped = h.controller.getSnapshot();
+    expect(disposedBeforeSkipGeneration).toBe(true);
+    expect(engine.state).toBe("disposed");
+    expect(skipped.exercise?.id).not.toBe(beforeSkip.exercise?.id);
+    expect(skipped.session?.sessionId).toBe(beforeSkip.session?.sessionId);
+    expect(skipped.session?.questionsAnswered).toBe(beforeQuestions);
+    expect(skipped.session?.correctAnswers).toBe(1);
+    expect(skipped.session?.incorrectAnswers).toBe(0);
+    expect(skipped.session?.totalScore).toBe(5);
+    expect(skipped.lastSkipPenalty).toBe(-5);
+    expect(skipped.points).toBeNull();
+    expect(skipped.result).toBeNull();
+    expect(skipped.session?.hasAnsweredCurrent).toBe(false);
+    expect(skipped.gradedResult).toBeNull();
+    staleCallback(previousReceipt);
+    expect(h.controller.getSnapshot().result).toBeNull();
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(5);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+  });
+
+  it("applies a cumulative graded Skip penalty from 20 to 15 without adding an answer", async () => {
+    let generated = 0;
+    const h = harness({
+      createExercise: (configuration, seed) =>
+        createTapRhythmExercise({
+          track: configuration.track as RhythmTrack,
+          section: configuration.section,
+          pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
+          id: `${seed}-cumulative-${++generated}`,
+        }),
+    });
+    await prepared(h);
+
+    await h.controller.start();
+    await finishAttempt(h);
+    await h.controller.continue();
+    await h.controller.start();
+    await finishAttempt(h);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(20);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(2);
+    await h.controller.continue();
+
+    expect(await h.controller.skipCurrentExercise()).toBe(true);
+    const state = h.controller.getSnapshot();
+    expect(state.session?.totalScore).toBe(15);
+    expect(state.lastSkipPenalty).toBe(-5);
+    expect(state.session?.questionsAnswered).toBe(2);
+    expect(state.session?.correctAnswers).toBe(2);
+    expect(state.session?.incorrectAnswers).toBe(0);
+    expect(state.session?.hasAnsweredCurrent).toBe(false);
+    expect(state.result).toBeNull();
+    expect(state.points).toBeNull();
+  });
+
+  it("floors a graded Skip at zero without recording an answer", async () => {
+    const h = harness();
+    await prepared(h);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(0);
+    expect(await h.controller.skipCurrentExercise()).toBe(true);
+    const state = h.controller.getSnapshot();
+    expect(state.session?.totalScore).toBe(0);
+    expect(state.lastSkipPenalty).toBe(0);
+    expect(state.session?.questionsAnswered).toBe(0);
+    expect(state.session?.correctAnswers).toBe(0);
+    expect(state.session?.incorrectAnswers).toBe(0);
+    expect(state.session?.hasAnsweredCurrent).toBe(false);
+    expect(state.result).toBeNull();
+    expect(state.points).toBeNull();
+  });
+
+  it("allows a Practice skip with no answer, no penalty, and no duplicate advance", async () => {
+    const h = harness();
+    await prepared(h);
+    expect(h.controller.chooseMode("practice")).toBe(true);
+    const originalId = h.controller.getSnapshot().exercise?.id;
+    expect(h.controller.canSkipCurrentExercise).toBe(true);
+
+    const first = h.controller.skipCurrentExercise();
+    const duplicate = h.controller.skipCurrentExercise();
+    expect(await duplicate).toBe(false);
+    expect(await first).toBe(true);
+    const state = h.controller.getSnapshot();
+    expect(state.exercise?.id).not.toBe(originalId);
+    expect(state.session?.questionsAnswered).toBe(0);
+    expect(state.session?.correctAnswers).toBe(0);
+    expect(state.session?.incorrectAnswers).toBe(0);
+    expect(state.session?.totalScore).toBe(0);
+    expect(state.lastSkipPenalty).toBe(0);
+    expect(state.result).toBeNull();
+    expect(state.points).toBeNull();
+    expect(state.session?.hasAnsweredCurrent).toBe(false);
+    expect(h.engines).toHaveLength(0);
+  });
+
+  it("keeps metronome volume isolated from the canonical exercise and tap reference", async () => {
+    const h = harness();
+    const exercise = await prepared(h);
+    const targets = exercise.targets;
+    h.controller.setMetronomeVolume(0.27);
+    expect(h.controller.getMetronomeVolume()).toBe(0.27);
+    expect(h.controller.getSnapshot().exercise).toBe(exercise);
+    expect(h.controller.getSnapshot().exercise?.targets).toBe(targets);
+    expect(h.engines).toHaveLength(0);
   });
 });

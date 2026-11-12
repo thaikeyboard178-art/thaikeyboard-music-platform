@@ -207,3 +207,79 @@ export function mixedRuntimePattern(
     ],
   };
 }
+
+/**
+ * Mixed 6/8 or 9/8 production-pipeline fixture. Each dotted-quarter tie
+ * component is exactly one structural group; the second bar combines a dotted
+ * rest, sixteenth subdivision, eighths, quarter notes and rests without a
+ * component crossing a group line.
+ */
+export function groupedMixedCompoundPattern(meter: RhythmMeter): RhythmPattern {
+  if (
+    meter.denominator !== 8 ||
+    (meter.numerator !== 6 && meter.numerator !== 9)
+  ) {
+    throw new RangeError("Grouped mixed fixture requires 6/8 or 9/8.");
+  }
+  const groupCount = meter.numerator / 3;
+  const tieGroupId = "group-sustain";
+  const tiedGroups: RhythmSegment[] = Array.from(
+    { length: groupCount },
+    (_, index) => ({
+      id: `tie-group-${index + 1}`,
+      kind: "note",
+      duration: { denominator: 4, dots: 1 },
+      tieGroupId,
+    })
+  );
+  const mixedSegments: RhythmSegment[] = [
+    {
+      id: "dotted-rest",
+      kind: "rest",
+      duration: { denominator: 8, dots: 1 },
+    },
+    {
+      id: "subdivision-rest",
+      kind: "rest",
+      duration: { denominator: 16, dots: 0 },
+    },
+    {
+      id: "group-one-eighth",
+      kind: "note",
+      duration: { denominator: 8, dots: 0 },
+    },
+    {
+      id: "group-two-quarter",
+      kind: "note",
+      duration: { denominator: 4, dots: 0 },
+    },
+    {
+      id: "group-two-rest",
+      kind: "rest",
+      duration: { denominator: 8, dots: 0 },
+    },
+  ];
+  if (groupCount === 3) {
+    mixedSegments.push(
+      {
+        id: "group-three-eighth",
+        kind: "note",
+        duration: { denominator: 8, dots: 0 },
+      },
+      {
+        id: "group-three-rest",
+        kind: "rest",
+        duration: { denominator: 4, dots: 0 },
+      }
+    );
+  }
+  return {
+    id: `grouped-mixed-${meter.numerator}-8`,
+    meter: Object.freeze({ ...meter }),
+    tempo: { pulseBpm: 60 },
+    measures: [
+      { id: "grouped-ties", segments: tiedGroups },
+      { id: "grouped-mixed-values", segments: mixedSegments },
+    ],
+  };
+}

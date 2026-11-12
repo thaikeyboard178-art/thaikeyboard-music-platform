@@ -108,6 +108,9 @@ describe("recorded piano loading and reference plan", () => {
     expect(settings.metronome.brightClick).toBeUndefined();
     expect(settings.metronome.output).toBe(output);
     expect(settings.metronome.level).toBeLessThanOrEqual(0.4);
+    expect(settings.metronome.durationSeconds).toBe(0.18);
+    expect(settings.metronome.durationSeconds).toBeLessThan(60 / 300);
+    expect(settings.metronome.edgeSeconds).toBeLessThanOrEqual(0.001);
     expect(defaults.metronome.output).toBeUndefined();
     expect(Object.isFrozen(settings)).toBe(true);
     expect(Object.isFrozen(settings.pattern)).toBe(true);

@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "../audio/tapEngine";
 import { TapFakeClock, TEST_TAP_VOICES } from "../audio/tapTestHelpers";
+import { sealTapAttempt } from "./tapCompletion";
 import { createTapRhythmExercise } from "./tapRhythm";
 import {
+  advanceRhythmSession,
   createRhythmTrainingSession,
+  skipRhythmExercise,
   submitRhythmExerciseAnswer,
+  type RhythmGradedExercise,
 } from "./scoring";
-import { toTrainingResult } from "@/features/training/session";
+import {
+  submitSessionAnswer,
+  toTrainingResult,
+} from "@/features/training/session";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 
 async function setup(name: string) {
@@ -104,7 +111,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
     await firstEngine.engine.dispose();
     await secondEngine.engine.dispose();
   });
-  it("one near-miss awards +0 while Formula B stays 75%, not shared accuracy", async () => {
+  it("one near-miss keeps strict correctness false while Formula B stays separate from shared accuracy", async () => {
     const h = await setup("tap-score-near");
     const attempt = complete(h, [65]);
     const result = submitRhythmExerciseAnswer(h.session, h.exercise, {
@@ -115,10 +122,51 @@ describe("Tap runtime to existing shared scoring integration", () => {
     expect(attempt.accuracyPercent).toBe(75);
     expect(result.status).toBe("graded");
     expect(result.correct).toBe(false);
-    expect(result.scoreDelta).toBe(0);
+    expect(result.scoreDelta).toBe(8);
     expect(result.session.incorrectAnswers).toBe(1);
     expect(toTrainingResult(result.session)!.accuracy).toBe(0);
     expect(toTrainingResult(result.session)!.averageResponseTimeMs).toBe(2200);
+    await h.engine.dispose();
+  });
+  it("rounds Timing Accuracy half-up into shared Tap awards independently of strict correctness", async () => {
+    const h = await setup("tap-score-accuracy-awards");
+    const completed = complete(h, [65]);
+    const cases = [
+      [100, 10],
+      [99, 10],
+      [95, 10],
+      [94, 9],
+      [90, 9],
+      [84, 8],
+      [75, 8],
+      [0, 0],
+    ] as const;
+
+    for (const [accuracyPercent, expectedAward] of cases) {
+      const attempt = sealTapAttempt({ ...completed, accuracyPercent });
+      const session = createRhythmTrainingSession(
+        {
+          mode: "challenge",
+          plannedQuestions: 1,
+          sessionId: `tap-score-accuracy-${accuracyPercent}`,
+        },
+        h.exercise
+      );
+      const result = submitRhythmExerciseAnswer(session, h.exercise, {
+        type: "answer",
+        answer: attempt,
+        responseTimeMs: 2200,
+      });
+
+      expect(result.status).toBe("graded");
+      expect(result.correct).toBe(false);
+      expect(result.scoreDelta).toBe(expectedAward);
+      expect(result.session.totalScore).toBe(expectedAward);
+      expect(result.session.questionsAnswered).toBe(1);
+      expect(result.session.correctAnswers).toBe(0);
+      expect(result.session.incorrectAnswers).toBe(1);
+      expect(result.session.accuracy).toBe(0);
+    }
     await h.engine.dispose();
   });
   it("physical extra tap defeats strict gate despite passing all expected onsets", async () => {
@@ -135,7 +183,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
     expect(attempt.evaluation!.tp).toBe(4);
     expect(attempt.evaluation!.k).toBe(5);
     expect(attempt.accuracyPercent).toBeCloseTo(800 / 9);
-    expect(result.scoreDelta).toBe(0);
+    expect(result.scoreDelta).toBe(9);
     expect(result.correct).toBe(false);
     await h.engine.dispose();
   });
@@ -190,5 +238,163 @@ describe("Tap runtime to existing shared scoring integration", () => {
     expect(unanswered.status).toBe("practice");
     expect(unanswered.session.questionsAnswered).toBe(0);
     await h.engine.dispose();
+  });
+  it("never awards a stale completed attempt after its question was explicitly skipped", async () => {
+    const h = await setup("tap-skip-before-answer");
+    const attempt = complete(h);
+    const next = createTapRhythmExercise({
+      track: 3,
+      pattern: h.exercise.pattern,
+      id: "tap-skip-before-answer-next",
+    });
+    const stale = { ...h.session };
+    const skipped = skipRhythmExercise(stale, h.exercise, next, "graded");
+    expect(skipped.status).toBe("skipped");
+    expect(skipped.session.questionsAnswered).toBe(0);
+    const submitted = submitRhythmExerciseAnswer(stale, h.exercise, {
+      type: "answer",
+      answer: attempt,
+      responseTimeMs: 2000,
+    });
+    expect(submitted.status).toBe("duplicate");
+    expect(submitted.scoreDelta).toBe(0);
+    expect(submitted.session.questionsAnswered).toBe(0);
+    await h.engine.dispose();
+  });
+  it("never applies Skip to a cloned stale snapshot of an already answered Tap question", async () => {
+    const h = await setup("tap-answer-before-skip");
+    const attempt = complete(h);
+    const answered = submitRhythmExerciseAnswer(h.session, h.exercise, {
+      type: "answer",
+      answer: attempt,
+      responseTimeMs: 2000,
+    });
+    expect(answered.scoreDelta).toBe(10);
+    const next = createTapRhythmExercise({
+      track: 3,
+      pattern: h.exercise.pattern,
+      id: "tap-answer-before-skip-next",
+    });
+    const stale = { ...h.session };
+    const skipped = skipRhythmExercise(stale, h.exercise, next, "graded");
+    expect(skipped.status).toBe("duplicate");
+    expect(skipped.scoreDelta).toBe(0);
+    expect(skipped.session).toBe(stale);
+    expect(answered.session.totalScore).toBe(10);
+    await h.engine.dispose();
+  });
+  it("excludes invalid sealed Accuracy from awards rather than exceeding ten points or fabricating a grade", async () => {
+    const h = await setup("tap-invalid-accuracy");
+    const attempt = complete(h);
+    for (const accuracyPercent of [NaN, Infinity, -1, 101]) {
+      const submitted = submitRhythmExerciseAnswer(h.session, h.exercise, {
+        type: "answer",
+        answer: sealTapAttempt({ ...attempt, accuracyPercent }),
+        responseTimeMs: 2000,
+      });
+      expect(submitted.status).toBe("technical-abort");
+      expect(submitted.session).toBe(h.session);
+      expect(submitted.scoreDelta).toBe(0);
+    }
+    await h.engine.dispose();
+  });
+});
+
+describe("Rhythm skip and advance integration", () => {
+  function exercise(id: string): RhythmGradedExercise {
+    return { id, kind: "multiple-choice" } as RhythmGradedExercise;
+  }
+
+  it.each([
+    [20, 15],
+    [5, 0],
+    [2, 0],
+    [0, 0],
+  ])(
+    "graded skip clamps score %i to %i, adds no answer, and is idempotent",
+    (score, expectedScore) => {
+      const current = exercise(`graded-skip-${score}`);
+      const next = exercise(`graded-next-${score}`);
+      const initial = createRhythmTrainingSession(
+        {
+          mode: "challenge",
+          plannedQuestions: null,
+          sessionId: `graded-skip-session-${score}`,
+        },
+        current
+      );
+      const session = { ...initial, totalScore: score };
+      const skipped = skipRhythmExercise(session, current, next, "graded", 123);
+
+      expect(skipped.status).toBe("skipped");
+      expect(skipped.scoreDelta).toBe(expectedScore - score);
+      expect(skipped.session.currentExercise.id).toBe(next.id);
+      expect(skipped.session.sessionId).toBe(session.sessionId);
+      expect(skipped.session.totalScore).toBe(expectedScore);
+      expect(skipped.session.questionsAnswered).toBe(0);
+      expect(skipped.session.correctAnswers).toBe(0);
+      expect(skipped.session.incorrectAnswers).toBe(0);
+      expect(skipped.session.accuracy).toBe(0);
+      expect(skipped.session.responseTimeTotalMs).toBe(0);
+      expect(skipped.session.completedAt).toBeNull();
+      expect(skipped.session.hasAnsweredCurrent).toBe(false);
+
+      const duplicate = skipRhythmExercise(
+        skipped.session,
+        current,
+        next,
+        "graded"
+      );
+      expect(duplicate.status).toBe("duplicate");
+      expect(duplicate.scoreDelta).toBe(0);
+      expect(duplicate.session).toBe(skipped.session);
+    }
+  );
+
+  it("practice skip preserves score, and stale or same-item skips do not advance", () => {
+    const current = exercise("practice-skip-current");
+    const next = exercise("practice-skip-next");
+    const initial = createRhythmTrainingSession(
+      {
+        mode: "free",
+        plannedQuestions: null,
+        sessionId: "practice-skip-session",
+      },
+      current
+    );
+    const session = { ...initial, totalScore: 20 };
+    const sameItem = skipRhythmExercise(session, current, current, "graded");
+    expect(sameItem.status).toBe("stale-exercise");
+    expect(sameItem.session).toBe(session);
+    const skipped = skipRhythmExercise(session, current, next, "practice");
+    expect(skipped.status).toBe("skipped");
+    expect(skipped.scoreDelta).toBe(0);
+    expect(skipped.session.totalScore).toBe(20);
+    expect(skipped.session.questionsAnswered).toBe(0);
+
+    const stale = skipRhythmExercise(session, next, current, "graded");
+    expect(stale.status).toBe("stale-exercise");
+    expect(stale.session).toBe(session);
+  });
+
+  it("advances through the answer-aware wrapper without inventing an answer", () => {
+    const current = exercise("advance-current");
+    const next = exercise("advance-next");
+    const initial = createRhythmTrainingSession(
+      { mode: "free", plannedQuestions: null, sessionId: "advance-session" },
+      current
+    );
+    const unansweredNext = advanceRhythmSession(initial, next);
+    expect(unansweredNext.currentExercise.id).toBe(next.id);
+    expect(unansweredNext.sessionId).toBe(initial.sessionId);
+    expect(unansweredNext.questionsAnswered).toBe(0);
+    expect(unansweredNext.totalScore).toBe(0);
+
+    const answered = submitSessionAnswer(initial, true, 100, 10, 10);
+    const answeredNext = advanceRhythmSession(answered, next);
+    expect(answeredNext.currentExercise.id).toBe(next.id);
+    expect(answeredNext.questionsAnswered).toBe(1);
+    expect(answeredNext.totalScore).toBe(10);
+    expect(answeredNext.hasAnsweredCurrent).toBe(false);
   });
 });

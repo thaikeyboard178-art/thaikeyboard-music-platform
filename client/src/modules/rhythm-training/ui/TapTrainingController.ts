@@ -1,9 +1,12 @@
 import {
+  advanceRhythmSession,
   createRhythmTrainingSession,
+  skipRhythmExercise,
   submitRhythmExerciseAnswer,
   type RhythmTrainingSession,
 } from "../exercises/scoring";
 import {
+  createTapRhythmExercise,
   generateTapRhythmExercise,
   type GenerateTapRhythmExerciseInput,
   type TapRhythmExercise,
@@ -70,6 +73,10 @@ export type TapUiState = Readonly<{
   selectedMode: TapMode;
   /** Replay attempts are rehearsals while preserving the visible mode choice. */
   replayOnly: boolean;
+  /** Actual scorer delta from the most recent skip (negative for a penalty). */
+  lastSkipPenalty: number | null;
+  /** Current controller-owned configuration, including a Practice tempo edit. */
+  configuration: TapUiConfiguration | null;
 }>;
 
 export type TapExerciseFactory = (
@@ -114,6 +121,8 @@ function initialState(): TapUiState {
     session: null,
     selectedMode: "graded",
     replayOnly: false,
+    lastSkipPenalty: null,
+    configuration: null,
   });
 }
 
@@ -179,6 +188,35 @@ function copyConfiguration(
   });
 }
 
+function retimedPattern(
+  exercise: TapRhythmExercise,
+  pulseBpm: number,
+  sequence: number
+): RhythmPattern {
+  const pattern = exercise.pattern;
+  return Object.freeze({
+    ...pattern,
+    id: `${pattern.id}-bpm-${pulseBpm}-${sequence}`,
+    meter: Object.freeze({ ...pattern.meter }),
+    tempo: Object.freeze({ ...pattern.tempo, pulseBpm }),
+    measures: Object.freeze(
+      pattern.measures.map(measure =>
+        Object.freeze({
+          ...measure,
+          segments: Object.freeze(
+            measure.segments.map(segment =>
+              Object.freeze({
+                ...segment,
+                duration: Object.freeze({ ...segment.duration }),
+              })
+            )
+          ),
+        })
+      )
+    ),
+  });
+}
+
 function toGenerateInput(
   configuration: TapUiConfiguration,
   seed: string
@@ -239,6 +277,9 @@ export class TapTrainingController {
   private previewGeneration: number | null = null;
   private previewBusy = false;
   private disposed = false;
+  private modeLocked = false;
+  private skipInFlight = false;
+  private retimeSequence = 0;
 
   constructor(options: TapTrainingControllerOptions) {
     this.getInputTarget = options.getInputTarget;
@@ -278,6 +319,48 @@ export class TapTrainingController {
       : !this.practiceAttemptStarted;
   }
 
+  /** Tempo edits are limited to an unplayed, idle, non-replay exercise. */
+  get canAdjustPracticeBpm(): boolean {
+    const { exercise, session, phase } = this.snapshot;
+    return (
+      !this.disposed &&
+      !this.snapshot.busy &&
+      !this.previewBusy &&
+      !this.hasStartedAttempt &&
+      !this.snapshot.replayOnly &&
+      (phase === "ready" || phase === "idle") &&
+      exercise !== null &&
+      session !== null &&
+      !session.hasAnsweredCurrent &&
+      session.currentExercise.id === exercise.id &&
+      (this.engine === null || this.engine.state === "idle")
+    );
+  }
+
+  /** Skip is an explicit unanswered-item transition, including active collection. */
+  get canSkipCurrentExercise(): boolean {
+    const { exercise, session, phase } = this.snapshot;
+    const activeAttemptState =
+      this.engine !== null &&
+      ["count-in", "collecting", "draining"].includes(this.engine.state) &&
+      ["count-in", "collecting", "draining"].includes(phase);
+    const stablePhase = ["ready", "idle", "aborted", "completed"].includes(
+      phase
+    );
+    return (
+      !this.disposed &&
+      (!this.snapshot.busy || activeAttemptState) &&
+      !this.previewBusy &&
+      !this.skipInFlight &&
+      (stablePhase || activeAttemptState) &&
+      exercise !== null &&
+      session !== null &&
+      !session.hasAnsweredCurrent &&
+      session.completedAt === null &&
+      session.currentExercise.id === exercise.id
+    );
+  }
+
   /** References repeat in practice mode; the graded-mode slot is limited to one. */
   get canReference(): boolean {
     if (
@@ -293,7 +376,8 @@ export class TapTrainingController {
       return false;
     if (
       this.snapshot.exercise.section === "lessons" ||
-      this.snapshot.selectedMode === "practice"
+      this.snapshot.selectedMode === "practice" ||
+      this.snapshot.replayOnly
     )
       return true;
     return !this.gradedReferenceUsed && !this.gradedAttemptUsed;
@@ -305,7 +389,8 @@ export class TapTrainingController {
       this.disposed ||
       this.snapshot.busy ||
       this.previewBusy ||
-      this.isEngineActive()
+      this.isEngineActive() ||
+      this.modeLocked
     )
       return false;
     const selectedMode: TapMode =
@@ -386,6 +471,10 @@ export class TapTrainingController {
       !configuration
     )
       return;
+    const previewConfiguration =
+      this.snapshot.exercise !== null && this.configuration !== null
+        ? this.configuration
+        : copyConfiguration(configuration);
     const token = ++this.previewToken;
     this.previewBusy = true;
     this.publish({ busy: true, error: null });
@@ -393,7 +482,7 @@ export class TapTrainingController {
     let transport: RhythmAudioTransport | null = null;
     try {
       const exercise = await this.createExercise(
-        copyConfiguration(configuration),
+        previewConfiguration,
         `${this.seedPrefix}-metronome-preview-${++this.previewSequence}`
       );
       if (this.disposed || token !== this.previewToken) return;
@@ -608,6 +697,78 @@ export class TapTrainingController {
     return this.metronomeVolume;
   }
 
+  /**
+   * Retimes the same written exercise before Play. The production constructor
+   * rebuilds all target windows from its immutable canonical pattern.
+   */
+  async setPracticeBpm(pulseBpm: number): Promise<boolean> {
+    if (
+      !Number.isFinite(pulseBpm) ||
+      pulseBpm < 30 ||
+      pulseBpm > 300 ||
+      !this.canAdjustPracticeBpm
+    )
+      return false;
+
+    const exercise = this.snapshot.exercise;
+    const session = this.snapshot.session;
+    const currentConfiguration = this.configuration;
+    if (!exercise || !session || !currentConfiguration) return false;
+    if (exercise.pattern.tempo.pulseBpm === pulseBpm) return true;
+    const referenceUsed = this.snapshot.referenceUsed;
+
+    const sequence = ++this.retimeSequence;
+    const configuration = copyConfiguration({
+      ...currentConfiguration,
+      pulseBpm,
+    });
+    let nextExercise: TapRhythmExercise;
+    try {
+      nextExercise = createTapRhythmExercise({
+        track: exercise.track,
+        section: exercise.section,
+        id: `${exercise.id}-bpm-${pulseBpm}-${sequence}`,
+        pattern: retimedPattern(exercise, pulseBpm, sequence),
+      });
+    } catch {
+      return false;
+    }
+
+    this.stopPreview();
+    const token = ++this.operationToken;
+    this.engineEpoch += 1;
+    const oldEngine = this.engine;
+    this.engine = null;
+    this.stopObservation();
+    this.setBusy(true);
+    if (oldEngine) {
+      try {
+        await oldEngine.dispose();
+      } catch {
+        // A stale idle/reference engine has already been epoch-invalidated.
+      }
+    }
+    if (this.disposed || token !== this.operationToken) return false;
+
+    const nextSession = freezeSession(
+      advanceRhythmSession(session, nextExercise)
+    );
+    this.configuration = configuration;
+    // Retiming is not a fresh written exercise or a new reference allowance.
+    this.publish({
+      phase: "ready",
+      exercise: nextExercise,
+      session: nextSession,
+      configuration,
+      result: null,
+      points: null,
+      referenceUsed,
+      busy: false,
+      error: null,
+    });
+    return true;
+  }
+
   /** Engine and its native input listener are created only after the tap DOM exists. */
   private ensureEngine(
     inputTargetOverride?: EventTarget | null
@@ -648,12 +809,10 @@ export class TapTrainingController {
     if (result.status === "technical-abort") {
       error = technicalMessage(result.reason);
     } else if (
-      result.mode === "practice" ||
-      this.snapshot.exercise?.section === "lessons"
-    ) {
-      // Practice and lesson worked examples never invoke the shared scorer.
-      latestPoints = null;
-    } else if (
+      result.status === "completed" &&
+      result.mode === "graded" &&
+      result.accuracyPercent !== null &&
+      this.snapshot.exercise?.section !== "lessons" &&
       gradedResult === null &&
       session !== null &&
       !session.hasAnsweredCurrent
@@ -673,6 +832,9 @@ export class TapTrainingController {
         originalPoints = submission.scoreDelta;
         gradedResult = result;
       }
+    } else {
+      // Practice/replay, technical abort, and accuracy-less receipts are not answers.
+      latestPoints = null;
     }
 
     this.publish({
@@ -689,7 +851,7 @@ export class TapTrainingController {
     });
   }
 
-  /** Prepare exactly one canonical exercise and one FREE shared question. */
+  /** Start a fresh run with one canonical exercise and one unlimited FREE session. */
   async prepare(configuration: TapUiConfiguration): Promise<void> {
     this.stopPreview();
     if (
@@ -717,6 +879,8 @@ export class TapTrainingController {
     this.practiceAttemptStarted = false;
     this.gradedReferenceUsed = false;
     this.modeExplicitlySelected = false;
+    this.modeLocked = false;
+    this.skipInFlight = false;
     this.attemptStartedAt = 0;
     this.publish({
       phase: "preparing",
@@ -732,8 +896,10 @@ export class TapTrainingController {
       practice: false,
       tapVisualSequence: 0,
       session: null,
+      configuration,
       selectedMode: configuration.section === "lessons" ? "practice" : "graded",
       replayOnly: false,
+      lastSkipPenalty: null,
     });
 
     try {
@@ -744,7 +910,7 @@ export class TapTrainingController {
       if (this.disposed || token !== this.operationToken) return;
       const session = freezeSession(
         createRhythmTrainingSession(
-          { mode: "free", plannedQuestions: 1 },
+          { mode: "free", plannedQuestions: null },
           exercise
         )
       );
@@ -752,6 +918,7 @@ export class TapTrainingController {
         phase: exercise.targets.length === 0 ? "empty" : "ready",
         exercise,
         session,
+        configuration,
         busy: false,
         error: null,
       });
@@ -803,6 +970,7 @@ export class TapTrainingController {
     const audioReady = this.beginAudioGesture();
     this.attemptStartedAt = Date.now();
     this.hasStartedAttempt = true;
+    this.modeLocked = true;
     if (effectiveMode === "graded") this.gradedAttemptUsed = true;
     else this.practiceAttemptStarted = true;
     this.publish({
@@ -875,13 +1043,14 @@ export class TapTrainingController {
     this.stopPreview();
     if (!this.canReference) return;
     const lesson = this.snapshot.exercise?.section === "lessons";
-    const mode: TapMode = lesson
-      ? "practice"
-      : this.modeExplicitlySelected
-        ? this.snapshot.selectedMode
-        : this.hasStartedAttempt
-          ? "practice"
-          : "graded";
+    const mode: TapMode =
+      this.snapshot.replayOnly || lesson
+        ? "practice"
+        : this.modeExplicitlySelected
+          ? this.snapshot.selectedMode
+          : this.hasStartedAttempt
+            ? "practice"
+            : "graded";
     const token = ++this.operationToken;
     if (mode === "graded") this.gradedReferenceUsed = true;
     this.publish({
@@ -974,7 +1143,7 @@ export class TapTrainingController {
       error: null,
       result: null,
       points: null,
-      practice: true,
+      practice: false,
       replayOnly: true,
       tapVisualSequence: 0,
     });
@@ -991,7 +1160,7 @@ export class TapTrainingController {
         error: null,
         result: null,
         points: null,
-        practice: true,
+        practice: false,
         replayOnly: true,
         tapVisualSequence: 0,
       });
@@ -1007,13 +1176,16 @@ export class TapTrainingController {
     }
   }
 
-  /** A new exercise always receives a new, one-question shared FREE session. */
+  /** Advance to a real next exercise while preserving this run's shared session. */
   async continue(): Promise<void> {
     this.stopPreview();
+    const exercise = this.snapshot.exercise;
+    const session = this.snapshot.session;
+    const configuration = this.configuration;
     const emptyExerciseReady =
       this.snapshot.phase === "empty" &&
       this.engine === null &&
-      this.snapshot.exercise?.targets.length === 0;
+      exercise?.targets.length === 0;
     if (
       this.disposed ||
       this.snapshot.busy ||
@@ -1021,11 +1193,149 @@ export class TapTrainingController {
       (!emptyExerciseReady &&
         (this.engine === null ||
           !TERMINAL_ATTEMPT_STATES.includes(this.engine.state))) ||
-      this.configuration === null
+      !exercise ||
+      !session ||
+      !configuration ||
+      session.currentExercise.id !== exercise.id
     )
       return;
     const token = ++this.operationToken;
-    await this.loadExercise(this.configuration, token);
+    const oldEngine = this.engine;
+    this.engineEpoch += 1;
+    this.engine = null;
+    this.stopObservation();
+    this.publish({ phase: "preparing", busy: true, error: null });
+
+    try {
+      if (oldEngine) await oldEngine.dispose();
+      if (this.disposed || token !== this.operationToken) return;
+      const seed = `${this.seedPrefix}-${++this.exerciseSequence}`;
+      const nextExercise = await this.createExercise(
+        copyConfiguration(configuration),
+        seed
+      );
+      if (this.disposed || token !== this.operationToken) return;
+      const nextSession = freezeSession(
+        advanceRhythmSession(session, nextExercise)
+      );
+
+      this.hasStartedAttempt = false;
+      this.gradedAttemptUsed = false;
+      this.practiceAttemptStarted = false;
+      this.gradedReferenceUsed = false;
+      this.attemptStartedAt = 0;
+      this.publish({
+        phase: nextExercise.targets.length === 0 ? "empty" : "ready",
+        exercise: nextExercise,
+        session: nextSession,
+        result: null,
+        gradedResult: null,
+        points: null,
+        originalPoints: null,
+        referenceUsed: false,
+        busy: false,
+        error: null,
+        trialNumber: 1,
+        practice: false,
+        tapVisualSequence: 0,
+        replayOnly: false,
+        lastSkipPenalty: null,
+      });
+    } catch {
+      if (this.disposed || token !== this.operationToken) return;
+      this.publish({
+        phase: "error",
+        busy: false,
+        error: preparationErrorMessage(),
+      });
+    }
+  }
+
+  /**
+   * Skip one unanswered exercise. The UI owns any confirmation; this method
+   * invalidates/aborts the current engine before generating and scoring next.
+   * `lastSkipPenalty` is the signed shared-score delta (−5 for a paid skip, 0
+   * for Practice), never the points awarded for an answer.
+   */
+  async skipCurrentExercise(): Promise<boolean> {
+    this.stopPreview();
+    if (!this.canSkipCurrentExercise) return false;
+
+    const exercise = this.snapshot.exercise!;
+    const session = this.snapshot.session!;
+    const configuration = this.configuration;
+    if (!configuration) return false;
+    const kind: "graded" | "practice" =
+      this.snapshot.replayOnly ||
+      this.snapshot.selectedMode === "practice" ||
+      this.snapshot.practice ||
+      exercise.section === "lessons"
+        ? "practice"
+        : "graded";
+    const token = ++this.operationToken;
+    this.skipInFlight = true;
+    this.engineEpoch += 1;
+    const oldEngine = this.engine;
+    this.engine = null;
+    this.stopObservation();
+    this.publish({ phase: "preparing", busy: true, error: null });
+
+    try {
+      if (oldEngine) await oldEngine.dispose();
+      if (this.disposed || token !== this.operationToken) return false;
+
+      const seed = `${this.seedPrefix}-${++this.exerciseSequence}`;
+      const nextExercise = await this.createExercise(
+        copyConfiguration(configuration),
+        seed
+      );
+      if (this.disposed || token !== this.operationToken) return false;
+
+      const skipped = skipRhythmExercise(session, exercise, nextExercise, kind);
+      if (skipped.status !== "skipped") {
+        this.publish({
+          phase: "error",
+          busy: false,
+          error: "Không thể bỏ qua bài tập này. Hãy thử lại hoặc mở bài mới.",
+        });
+        return false;
+      }
+
+      this.hasStartedAttempt = false;
+      this.gradedAttemptUsed = false;
+      this.practiceAttemptStarted = false;
+      this.gradedReferenceUsed = false;
+      this.attemptStartedAt = 0;
+      this.publish({
+        phase: nextExercise.targets.length === 0 ? "empty" : "ready",
+        exercise: nextExercise,
+        session: freezeSession(skipped.session),
+        result: null,
+        gradedResult: null,
+        points: null,
+        originalPoints: null,
+        referenceUsed: false,
+        busy: false,
+        error: null,
+        trialNumber: 1,
+        practice: false,
+        tapVisualSequence: 0,
+        replayOnly: false,
+        lastSkipPenalty: skipped.scoreDelta,
+      });
+      return true;
+    } catch {
+      if (!this.disposed && token === this.operationToken) {
+        this.publish({
+          phase: "error",
+          busy: false,
+          error: preparationErrorMessage(),
+        });
+      }
+      return false;
+    } finally {
+      this.skipInFlight = false;
+    }
   }
 
   /** Stop an active action; its engine receipt is technical/ungraded. */

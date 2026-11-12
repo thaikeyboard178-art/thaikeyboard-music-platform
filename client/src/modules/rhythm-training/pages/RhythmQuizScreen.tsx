@@ -4,6 +4,7 @@ import { RhythmQuizNotation } from "../quiz/RhythmQuizNotation";
 import {
   createQuizRun,
   DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+  QUIZ_QUESTION_BANK,
   QUIZ_TRACKS,
   type QuizQuestion,
   type QuizTrack,
@@ -16,11 +17,36 @@ import {
 } from "../quiz/session";
 import "../quiz/rhythm-quiz.css";
 
-type QuizScreen = "select" | "quiz" | "summary" | "technical-error";
+export type RhythmQuizScreenState =
+  | "select"
+  | "quiz"
+  | "summary"
+  | "technical-error";
 
-export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
+const OPTION_LETTERS = ["A", "B", "C", "D"] as const;
+
+type RhythmQuizScreenProps = {
+  onBack: () => void;
+  screen?: RhythmQuizScreenState;
+  onScreenChange?: (screen: RhythmQuizScreenState) => void;
+};
+
+export default function RhythmQuizScreen({
+  onBack,
+  screen: controlledScreen,
+  onScreenChange,
+}: RhythmQuizScreenProps) {
   const [selectedTrack, setSelectedTrack] = useState<QuizTrack>(1);
-  const [screen, setScreen] = useState<QuizScreen>("select");
+  const [localScreen, setLocalScreen] =
+    useState<RhythmQuizScreenState>("select");
+  const screen = controlledScreen ?? localScreen;
+  const setScreen = useCallback(
+    (nextScreen: RhythmQuizScreenState) => {
+      if (onScreenChange) onScreenChange(nextScreen);
+      else setLocalScreen(nextScreen);
+    },
+    [onScreenChange]
+  );
   const [session, setSession] = useState<RhythmQuizSession | null>(null);
   const [questions, setQuestions] = useState<readonly QuizQuestion[]>([]);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -32,7 +58,7 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
     (track = selectedTrack, nextRun = runNumber + 1) => {
       const deck = createQuizRun(
         track,
-        `rhythm-quiz-${String(track)}-${nextRun}`,
+        undefined,
         DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
       );
       setSelectedTrack(track);
@@ -44,14 +70,17 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
       questionStartedAt.current = Date.now();
       setScreen("quiz");
     },
-    [runNumber, selectedTrack]
+    [runNumber, selectedTrack, setScreen]
   );
 
-  const onNotationFailure = useCallback((message: string) => {
-    setTechnicalError(message);
-    setScreen("technical-error");
-    // Rendering errors terminate the attempt without submitting a learner answer.
-  }, []);
+  const onNotationFailure = useCallback(
+    (message: string) => {
+      setTechnicalError(message);
+      setScreen("technical-error");
+      // Rendering errors terminate the attempt without submitting a learner answer.
+    },
+    [setScreen]
+  );
 
   const chooseAnswer = (optionId: string) => {
     if (!session || selectedOptionId !== null || session.hasAnsweredCurrent)
@@ -90,6 +119,10 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
   const correctOption = currentQuestion?.options.find(
     option => option.id === currentQuestion.correctOptionId
   );
+  const availableQuestionCount = Math.min(
+    DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+    QUIZ_QUESTION_BANK[String(selectedTrack)]?.length ?? 0
+  );
 
   return (
     <div className="rhythm-quiz-app">
@@ -123,8 +156,8 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
               </h1>
               <p className="rhythm-quiz-intro">
                 Nhìn khuông nhạc, đọc câu hỏi và chọn đáp án. Mỗi lượt có tối đa{" "}
-                {DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT} câu. Quiz chỉ dùng hình ảnh
-                — không cần nghe hoặc gõ nhịp.
+                {availableQuestionCount} câu theo ngân hàng hiện có. Quiz chỉ
+                dùng hình ảnh — không cần nghe hoặc gõ nhịp.
               </p>
               <div
                 className="rhythm-quiz-track-list"
@@ -170,7 +203,12 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
           )}
 
           {screen === "quiz" && session && currentQuestion && (
-            <section aria-labelledby="rhythm-quiz-question" aria-live="polite">
+            <section
+              aria-labelledby="rhythm-quiz-question"
+              aria-live="polite"
+              data-question-id={currentQuestion.id}
+              data-question-track={String(currentQuestion.track)}
+            >
               <div className="rhythm-quiz-runline">
                 <span>
                   {QUIZ_TRACKS.find(track => track.id === selectedTrack)?.title}{" "}
@@ -211,8 +249,9 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
                 className="rhythm-quiz-options"
                 aria-label="Các phương án trả lời"
               >
-                {currentQuestion.options.map(option => {
+                {currentQuestion.options.map((option, index) => {
                   const chosen = selectedOptionId === option.id;
+                  const optionLetter = OPTION_LETTERS[index] ?? "?";
                   const isCorrect =
                     option.id === currentQuestion.correctOptionId;
                   const stateClass =
@@ -228,11 +267,21 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
                       <button
                         type="button"
                         className={`rhythm-quiz-option ${stateClass}`}
+                        aria-label={`${optionLetter}. ${option.label}`}
                         aria-pressed={chosen}
+                        data-option-id={option.id}
                         disabled={selectedOptionId !== null}
                         onClick={() => chooseAnswer(option.id)}
                       >
-                        {option.label}
+                        <span
+                          className="rhythm-quiz-option-letter"
+                          aria-hidden="true"
+                        >
+                          {optionLetter}
+                        </span>
+                        <span className="rhythm-quiz-option-copy">
+                          {option.label}
+                        </span>
                       </button>
                     </li>
                   );
@@ -250,7 +299,15 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
                   </strong>
                   <span>{currentQuestion.explanation}</span>
                   {!session.lastAnswerCorrect && correctOption && (
-                    <span> Đáp án đúng: {correctOption.label}.</span>
+                    <span>
+                      Đáp án đúng:{" "}
+                      {OPTION_LETTERS[
+                        currentQuestion.options.findIndex(
+                          option => option.id === correctOption.id
+                        )
+                      ] ?? "?"}
+                      . {correctOption.label}.
+                    </span>
                   )}
                 </div>
               )}
@@ -336,6 +393,13 @@ export default function RhythmQuizScreen({ onBack }: { onBack: () => void }) {
                   onClick={() => setScreen("select")}
                 >
                   Chọn cấp độ khác
+                </button>
+                <button
+                  type="button"
+                  className="rhythm-quiz-secondary"
+                  onClick={onBack}
+                >
+                  Chọn hoạt động
                 </button>
               </div>
             </section>

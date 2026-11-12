@@ -89,6 +89,10 @@ function attemptFor(
   });
 }
 
+function patternSegments(pattern: RhythmPattern) {
+  return pattern.measures.flatMap(measure => measure.segments);
+}
+
 describe("Tap Rhythm canonical exercise and target projection", () => {
   it.each(meterCases)(
     "projects canonical onset references for $meter.numerator/$meter.denominator",
@@ -99,7 +103,7 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         meter: entry.meter,
         pulseBpm: entry.pulseBpm,
       });
-      const timeline = deriveRhythmTimeline(exercise.pattern, entry.gridTicks);
+      const timeline = deriveRhythmTimeline(exercise.pattern);
       const audioReferences = createRhythmAudioPlan(
         exercise.pattern,
         "pattern"
@@ -256,7 +260,7 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(exercise.targets.map(target => target.tick)).not.toContain(1920);
   });
 
-  it("projects a Level 4 dotted-quarter/eighth pattern and a separate Level 5 dotted-eighth/sixteenth stress", () => {
+  it("projects inherited Level 3 dotted values and Level 4/5 sixteenth-family material", () => {
     const dottedQuarter: RhythmPattern = {
       id: "dotted-quarter-and-eighth",
       meter: { numerator: 4, denominator: 4 },
@@ -273,11 +277,45 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         },
       ],
     };
-    const level4 = createTapRhythmExercise({
-      track: 4,
+    const level3 = createTapRhythmExercise({
+      track: 3,
       pattern: dottedQuarter,
     });
-    expect(level4.targets.map(target => target.tick)).toEqual([0, 1200, 1440]);
+    expect(level3.targets.map(target => target.tick)).toEqual([0, 1200, 1440]);
+
+    const sixteenthPattern: RhythmPattern = {
+      id: "level4-sixteenths-and-quarter-notes",
+      meter: { numerator: 4, denominator: 4 },
+      tempo: { pulseBpm: 72 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            { id: "s1", kind: "note", duration: quarter(16) },
+            { id: "s2", kind: "note", duration: quarter(16) },
+            { id: "eighth", kind: "note", duration: quarter(8) },
+            { id: "q1", kind: "note", duration: quarter() },
+            { id: "q2", kind: "note", duration: quarter() },
+            { id: "q3", kind: "note", duration: quarter() },
+          ],
+        },
+      ],
+    };
+    const level4 = createTapRhythmExercise({
+      track: 4,
+      pattern: sixteenthPattern,
+    });
+    expect(level4.gridTicks).toBe(240);
+    expect(level4.targets.map(target => target.tick)).toEqual([
+      0, 120, 240, 480, 960, 1440,
+    ]);
+    const fasterLevel4 = createTapRhythmExercise({
+      track: 4,
+      pattern: { ...sixteenthPattern, tempo: { pulseBpm: 120 } },
+    });
+    expect(fasterLevel4.targets[0].passMs).toBe(37.5);
+    expect(fasterLevel4.targets.at(-1)!.passMs).toBe(50);
+    expect(fasterLevel4.targets.at(-1)!.associationMs).toBe(80);
 
     const dottedEighthAndFine: RhythmPattern = {
       id: "dotted-eighth-sixteenth-stress",
@@ -307,9 +345,107 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(level5.targets.every(target => target.passMs > 0)).toBe(true);
   });
 
-  it("accepts a policy-valid plain Level 4 pattern without forcing a dots/ties generator focus", () => {
-    const plainLevel4: RhythmPattern = {
-      id: "plain-level4-consolidation",
+  it("round-trips generated Level 3 dots, ties, and combined patterns through the Tap factory", () => {
+    const cases = [
+      { focus: "dots", hasDots: true, hasTies: false },
+      { focus: "ties", hasDots: false, hasTies: true },
+      { focus: "combined", hasDots: true, hasTies: true },
+    ] as const;
+
+    for (const entry of cases) {
+      const generated = generateTapRhythmExercise({
+        track: 3,
+        seed: `tap-level3-${entry.focus}-factory`,
+        meter: { numerator: 4, denominator: 4 },
+        focus: entry.focus,
+      });
+      const recreated = createTapRhythmExercise({
+        track: 3,
+        pattern: generated.pattern,
+      });
+      const segments = patternSegments(recreated.pattern);
+
+      expect(recreated.track).toBe(3);
+      expect(segments.some(segment => segment.duration.dots === 1)).toBe(
+        entry.hasDots
+      );
+      expect(segments.some(segment => segment.tieGroupId !== undefined)).toBe(
+        entry.hasTies
+      );
+    }
+
+    const defaultExercise = generateTapRhythmExercise({
+      track: 3,
+      seed: "tap-level3-default-combined-factory",
+      meter: { numerator: 4, denominator: 4 },
+    });
+    expect(
+      patternSegments(defaultExercise.pattern).some(
+        segment => segment.duration.dots === 1
+      )
+    ).toBe(true);
+    expect(
+      patternSegments(defaultExercise.pattern).some(
+        segment => segment.tieGroupId !== undefined
+      )
+    ).toBe(true);
+    expect(
+      createTapRhythmExercise({ track: 3, pattern: defaultExercise.pattern })
+        .targets.length
+    ).toBeGreaterThan(0);
+  });
+
+  it("round-trips Level 4 sixteenths while retaining its taught dots/ties/combined focuses", () => {
+    const defaultSixteenths = generateTapRhythmExercise({
+      track: 4,
+      seed: "tap-level4-default-sixteenths-factory",
+      meter: { numerator: 4, denominator: 4 },
+    });
+    expect(
+      patternSegments(defaultSixteenths.pattern).some(
+        segment => segment.duration.denominator === 16
+      )
+    ).toBe(true);
+    expect(
+      createTapRhythmExercise({
+        track: 4,
+        pattern: defaultSixteenths.pattern,
+      }).targets.length
+    ).toBeGreaterThan(0);
+
+    for (const focus of ["dots", "ties", "combined"] as const) {
+      const generated = generateTapRhythmExercise({
+        track: 4,
+        seed: `tap-level4-retained-${focus}-factory`,
+        meter: { numerator: 4, denominator: 4 },
+        focus,
+      });
+      const recreated = createTapRhythmExercise({
+        track: 4,
+        pattern: generated.pattern,
+      });
+      const segments = patternSegments(recreated.pattern);
+
+      expect(recreated.track).toBe(4);
+      if (focus !== "ties") {
+        expect(segments.some(segment => segment.duration.dots === 1)).toBe(
+          true
+        );
+      }
+      if (focus !== "dots") {
+        expect(segments.some(segment => segment.tieGroupId !== undefined)).toBe(
+          true
+        );
+      }
+      expect(
+        segments.some(segment => segment.duration.denominator === 16)
+      ).toBe(false);
+    }
+  });
+
+  it("accepts a policy-valid neutral Level 4 import using inherited durations", () => {
+    const neutralLevel4: RhythmPattern = {
+      id: "neutral-level4-import",
       meter: { numerator: 4, denominator: 4 },
       tempo: { pulseBpm: 72 },
       measures: [
@@ -326,9 +462,78 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     };
     const exercise = createTapRhythmExercise({
       track: 4,
-      pattern: plainLevel4,
+      pattern: neutralLevel4,
     });
     expect(exercise.targets.map(target => target.tick)).toEqual([0, 960, 1440]);
+  });
+
+  it("accepts valid inherited Level 2 material at Level 3 but rejects Level 4 sixteenths there", () => {
+    const level2Pattern = generateRhythmPattern({
+      level: 2,
+      seed: "tap-level3-inherit-level2-basic",
+    });
+    const inherited = createTapRhythmExercise({
+      track: 3,
+      pattern: level2Pattern,
+    });
+    expect(inherited.pattern).toEqual(level2Pattern);
+    expect(inherited.targets.length).toBeGreaterThan(0);
+
+    const level4Sixteenths = generateRhythmPattern({
+      level: 4,
+      seed: "tap-level3-reject-level4-sixteenths",
+      focus: "sixteenths",
+    });
+    expect(() =>
+      createTapRhythmExercise({ track: 3, pattern: level4Sixteenths })
+    ).toThrow(RangeError);
+  });
+
+  it("does not bypass Level 3 rest-vocabulary or rest-budget audits for neutral imports", () => {
+    const untaughtHalfRest: RhythmPattern = {
+      id: "neutral-level3-untaught-half-rest",
+      meter: { numerator: 4, denominator: 4 },
+      tempo: { pulseBpm: 72 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            { id: "a", kind: "note", duration: quarter() },
+            { id: "r", kind: "rest", duration: quarter(2) },
+            { id: "b", kind: "note", duration: quarter() },
+          ],
+        },
+      ],
+    };
+    expect(() =>
+      createTapRhythmExercise({ track: 3, pattern: untaughtHalfRest })
+    ).toThrow(
+      "Pattern contains a rest value not taught in this curriculum track."
+    );
+
+    const overRestBudget: RhythmPattern = {
+      id: "neutral-level3-over-rest-budget",
+      meter: { numerator: 4, denominator: 4 },
+      tempo: { pulseBpm: 72 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            { id: "a", kind: "note", duration: quarter(8) },
+            { id: "r1", kind: "rest", duration: quarter(8) },
+            { id: "b", kind: "note", duration: quarter(8) },
+            { id: "r2", kind: "rest", duration: quarter(8) },
+            { id: "c", kind: "note", duration: quarter(8) },
+            { id: "r3", kind: "rest", duration: quarter(8) },
+            { id: "d", kind: "note", duration: quarter(8) },
+            { id: "r4", kind: "rest", duration: quarter(8) },
+          ],
+        },
+      ],
+    };
+    expect(() =>
+      createTapRhythmExercise({ track: 3, pattern: overRestBudget })
+    ).toThrow("Pattern exceeds the level rest budget.");
   });
 
   it("keeps target projection ungated but enforces approved Level1/2 and Bonus Tap placements", () => {
@@ -343,15 +548,27 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         level: track,
         seed: `level-${track}-tap-placement`,
       });
-      expect(
-        createTapRhythmExercise({ track, pattern }).targets.length
-      ).toBeGreaterThan(0);
-      expect(
-        generateTapRhythmExercise({ track, seed: `level-${track}-tap-run` })
-          .track
-      ).toBe(track);
+      for (const section of ["practice", "assessment"] as const) {
+        expect(
+          createTapRhythmExercise({ track, section, pattern }).section
+        ).toBe(section);
+        expect(
+          generateTapRhythmExercise({
+            track,
+            section,
+            seed: `level-${track}-tap-${section}`,
+          }).section
+        ).toBe(section);
+      }
       expect(() =>
         createTapRhythmExercise({ track, section: "lessons", pattern })
+      ).toThrow(RangeError);
+      expect(() =>
+        generateTapRhythmExercise({
+          track,
+          section: "lessons",
+          seed: `level-${track}-tap-lessons`,
+        })
       ).toThrow(RangeError);
     }
     const bonusPattern = generateRhythmPattern({

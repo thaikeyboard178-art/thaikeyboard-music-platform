@@ -45,16 +45,20 @@ describe("curriculum-aware Multiple Choice exercise runtime", () => {
       option => option.canonicalIdentity === exercise.correctCanonicalIdentity
     );
     expect(correct).toBeDefined();
-    expect(evaluateMultipleChoice(exercise, {
-      canonicalIdentity: correct!.canonicalIdentity,
-    }).correct).toBe(true);
+    expect(
+      evaluateMultipleChoice(exercise, {
+        canonicalIdentity: correct!.canonicalIdentity,
+      }).correct
+    ).toBe(true);
     const wrong = exercise.options.find(
       option => option.canonicalIdentity !== exercise.correctCanonicalIdentity
     );
     if (wrong) {
-      expect(evaluateMultipleChoice(exercise, {
-        canonicalIdentity: wrong.canonicalIdentity,
-      }).correct).toBe(false);
+      expect(
+        evaluateMultipleChoice(exercise, {
+          canonicalIdentity: wrong.canonicalIdentity,
+        }).correct
+      ).toBe(false);
     }
   });
 
@@ -66,11 +70,52 @@ describe("curriculum-aware Multiple Choice exercise runtime", () => {
       meter: { numerator: 3, denominator: 4 },
     });
     expect(exercise.options).toHaveLength(4);
-    expect(new Set(exercise.options.map(option => option.canonicalIdentity)).size).toBe(4);
+    expect(
+      new Set(exercise.options.map(option => option.canonicalIdentity)).size
+    ).toBe(4);
     for (const option of exercise.options) {
       expect(option.pattern).toBeDefined();
       expect(requireValidRhythmPattern(option.pattern)).toEqual(option.pattern);
     }
+  });
+
+  it("maps Multiple Choice questions to the remapped runtime features", () => {
+    const dottedLevel3 = generateMultipleChoiceExercise({
+      track: 3,
+      seed: "mc-level3-dots",
+      focus: "dot",
+    });
+    expect(
+      dottedLevel3.target.measures
+        .flatMap(measure => measure.segments)
+        .some(segment => segment.duration.dots > 0)
+    ).toBe(true);
+
+    const tiedLevel3 = generateMultipleChoiceExercise({
+      track: 3,
+      seed: "mc-level3-ties",
+      focus: "tie",
+    });
+    expect(
+      tiedLevel3.target.measures
+        .flatMap(measure => measure.segments)
+        .some(segment => segment.tieGroupId !== undefined)
+    ).toBe(true);
+
+    const durationLevel4 = generateMultipleChoiceExercise({
+      track: 4,
+      seed: "mc-level4-sixteenths",
+      focus: "duration",
+    });
+    expect(
+      durationLevel4.target.measures
+        .flatMap(measure => measure.segments)
+        .some(segment => segment.duration.denominator === 16)
+    ).toBe(true);
+    expect(durationLevel4.options.map(option => option.value)).toContainEqual({
+      denominator: 16,
+      dots: 0,
+    });
   });
 
   it("grades by canonical target identity, never label text or rendered choice order", () => {
@@ -83,12 +128,16 @@ describe("curriculum-aware Multiple Choice exercise runtime", () => {
     const relabeled = {
       ...exercise,
       correctCanonicalIdentity: "tampered-display-key",
-      options: [...exercise.options]
-        .reverse()
-        .map(option => ({ ...option, id: "same-id", label: "misleading label" })),
+      options: [...exercise.options].reverse().map(option => ({
+        ...option,
+        id: "same-id",
+        label: "misleading label",
+      })),
     } as MultipleChoiceExercise;
     expect(evaluateMultipleChoice(relabeled, answer).correct).toBe(true);
-    expect(evaluateMultipleChoice(relabeled, { label: "misleading label" }).correct).toBe(false);
+    expect(
+      evaluateMultipleChoice(relabeled, { label: "misleading label" }).correct
+    ).toBe(false);
   });
 
   it("rejects question focuses or meter questions that the current track cannot support", () => {
@@ -101,7 +150,7 @@ describe("curriculum-aware Multiple Choice exercise runtime", () => {
     ).toThrow(RangeError);
     expect(() =>
       generateMultipleChoiceExercise({
-        track: 3,
+        track: 1,
         seed: "unsupported-dot-focus",
         focus: "dot",
       })

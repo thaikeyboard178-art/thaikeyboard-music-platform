@@ -1,5 +1,48 @@
 # Decision Review — THAIKEYBOARD Rhythm Training V1
 
+
+## Latest owner-approved supersession — 2026-11-12 (active; APPROVED)
+
+**APPROVED — latest owner decision.** This is the current controlling policy and supersedes conflicting earlier active-policy summaries below, including prior dated supersession blocks, only where they differ. Earlier Phase 1–5 and Phase 4A.2 technical approvals remain in force; this entry does not reopen or revise matching, clock, collection/drain, technical-validity, or marker policies. The Tap per-question point reward is the explicit scoring change stated below; it replaces the former fixed Tap award only. Other callers retain their existing scoring. Historical text remains for audit and must not be treated as current where superseded here.
+
+### Curriculum mapping
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+### Meter, group boundaries, and BPM
+
+For 3/8, 6/8, and 9/8, one eighth note (240 ticks) is one technical pulse for BPM/counting, giving respectively 3, 6, and 9 pulses per bar. Keep the established bar capacities and serialized meter schema unchanged. Technical pulse semantics are distinct from musical grouping, strong/medium/weak accent hierarchy, and beam presentation: retain 3/8 `Sww`, 6/8 `3+3` / `Sww|Mww`, and 9/8 `3+3+3` / `Sww|Mww|Mww`; the existing eighth-note beam rules remain unchanged. Preserve the already approved X/8 default tempo values. The global Tap BPM range is **30–300**.
+
+In 6/8, each of the two groups is exactly three eighths = 720 ticks; in 9/8, each of the three groups is exactly three eighths = 720 ticks. No individual note, rest, or tie component may cross a group boundary. If sound sustains across a boundary, represent it as valid adjacent tied note components, each wholly within its own group; the tie chain may sustain across groups. Each group and the complete bar must have exact duration. Do not alter meter serialization or pulse mathematics.
+
+### Tap controls, activity selection, and Quiz
+
+Tap BPM may change only while the Tap engine is idle and before Play. Lock BPM controls throughout countdown, collection, and delayed-event drain. An idle tempo change retimes the same canonical written exercise; it does not regenerate or alter its notation. Do not revise approved Timing Accuracy or any Formula B/matching threshold as a consequence.
+
+The activity chooser is a separate screen from setup: Tap Rhythm proceeds to Tap setup; Rhythm Quiz proceeds to its separate setup. Quiz is visual-only (no audio), selects fresh eligible questions by stable unique `questionID` for each run, never inserts duplicate fillers, and presents four real answer options labeled A–D mapped through canonical `optionID`s. If eligible unique questions are insufficient, do not duplicate to fill a requested count; preserve the existing quota status and use the approved existing shortfall behavior.
+
+Mode is selected in setup and locked after leaving setup. A retry/replay after a graded attempt is idle, practice-only, and cannot submit or score again. Preserve the visible original mode/result as already approved; require explicit Play before replay and do not autoplay or count in.
+
+### Tap award, cumulative session, Skip, and protected contracts
+
+A completed graded Tap attempt with valid Timing Accuracy earns the separate integer Tap award `roundHalfUp(10 × TimingAccuracyPercent / 100)`, in the range 0–10, with exact half values rounded up. This reward formula does not alter Formula B or Timing Accuracy. Use one shared cumulative, in-memory Tap session total across continues and skips; reset it only when a new run starts, and do not persist it. Do not create a shadow balance or second score/session subsystem. Practice, replay/retry, Skip, technical abort, and attempts with no applicable accuracy award no positive points.
+
+A graded Skip requires confirmation, applies `−5` at most once, and clamps the cumulative total at zero; the skipped question earns no award and is a Skip event, not an answer (wrong or otherwise) or a technical abort. Practice/replay Skip has no penalty. A technical abort is neither an answer nor a Skip and changes no points. Other platform scoring callers, Rhythm Quiz, and Note Reading retain their existing `+10/+0` contract; Chord Recognition remains unchanged.
+
+The approved primary and supplemental matching rules, Formula B/T2-B and all approved α/β/caps, Wpass/Wassoc, primary DP, clock confidence/bridge, capture, collection/drain, marker and classification policies remain exactly as approved. Do not adjust matching policy or thresholds in this documentation update.
+
+**Status boundary:** these are approved requirements, not evidence of implementation, test completion, release, or physical listening. Human browser/device/headphone listening has not been performed.
+
 > **Presentation APPROVED — 2026-11-11 lúc 03:04:52 +07:00:** chủ sản phẩm đã chốt P-01/P-02/P-03. Quyết định nhạc lý trước đó giữ nguyên; không cần hỏi lại và không cấp quyền triển khai runtime.
 
 **Ngày quyết định owner:** 2026-11-11

@@ -165,18 +165,21 @@ function meterIdentityQuestions(
           option("meter-2-4", "2/4"),
           option("meter-3-4", "3/4"),
           option("meter-4-4", "4/4"),
+          option("meter-5-4", "5/4"),
         ]
       : track === 6
         ? [
             option("meter-3-8", "3/8"),
             option("meter-6-8", "6/8"),
             option("meter-9-8", "9/8"),
+            option("meter-12-8", "12/8"),
           ]
         : track === "bonus"
           ? [
               option("meter-2-2", "2/2"),
               option("meter-2-4", "2/4"),
               option("meter-4-4", "4/4"),
+              option("meter-3-2", "3/2"),
             ]
           : [
               option("meter-2-4", "2/4"),
@@ -496,6 +499,7 @@ const l3: QuizQuestion[] = [
         option("simple-pulses-2", "2 phách"),
         option("simple-pulses-3", "3 phách"),
         option("simple-pulses-4", "4 phách"),
+        option("simple-pulses-5", "5 phách"),
       ],
       `simple-pulses-${derived.pulseCount}`,
       `deriveMeter xác định ${meter.numerator}/4 có ${derived.pulseCount} phách; mỗi phách là nốt đen.`
@@ -572,9 +576,9 @@ const tiedQuarterPair = canonicalPattern("l4-tied-quarter-pair", fourFour, [
   { id: "l4-tie-continuation", denominator: 4, tieGroupId: "l4-tie" },
   { id: "l4-final-half", denominator: 2 },
 ]);
-const l4: QuizQuestion[] = [
+const l3DottedAndTies: QuizQuestion[] = [
   makeQuestion(
-    4,
+    3,
     "l4-dotted-quarter",
     "dot-arithmetic",
     "Nốt đen chấm dôi kéo dài bao nhiêu phách nốt đen?",
@@ -587,7 +591,7 @@ const l4: QuizQuestion[] = [
     "Dấu chấm cộng thêm một nửa giá trị gốc: 1 + ½ = 1½ phách."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dotted-half",
     "dot-arithmetic",
     "Nốt trắng chấm dôi bằng bao nhiêu nốt đen?",
@@ -600,7 +604,7 @@ const l4: QuizQuestion[] = [
     "Nốt trắng dài hai nốt đen; dấu chấm thêm một nốt đen nữa."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dot-extension",
     "dot-arithmetic",
     "Dấu chấm sau nốt cộng thêm bao nhiêu so với trường độ gốc?",
@@ -613,7 +617,7 @@ const l4: QuizQuestion[] = [
     "Một dấu chấm làm tăng trường độ thêm một nửa giá trị của nốt không chấm."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dotted-quarter-eighth",
     "dot-arithmetic",
     "Một nốt đen chấm dôi cộng một móc đơn bằng bao nhiêu nốt đen?",
@@ -626,7 +630,7 @@ const l4: QuizQuestion[] = [
     "1½ phách cộng ½ phách bằng 2 phách."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dotted-quarter-eighths",
     "dot-arithmetic",
     "Một nốt đen chấm dôi có trường độ bằng bao nhiêu móc đơn?",
@@ -639,7 +643,7 @@ const l4: QuizQuestion[] = [
     "Một nốt đen bằng hai móc đơn; dấu chấm cộng thêm một móc đơn nữa."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-tie-no-new-onset",
     "tie-continuation",
     "Khi hai nốt cùng cao độ được nối bằng dấu nối trường độ, nốt thứ hai làm gì?",
@@ -652,7 +656,7 @@ const l4: QuizQuestion[] = [
     "Dấu nối trường độ gộp hai nốt liên tiếp cùng cao độ thành một tiếng kéo dài; nốt sau không có onset mới."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-tied-quarter-total",
     "tie-continuation",
     "Hai nốt đen cùng cao độ được nối với nhau kéo dài tổng cộng bao lâu?",
@@ -665,7 +669,7 @@ const l4: QuizQuestion[] = [
     "Hai trường độ nốt đen nối nhau tạo tiếng kéo dài hai phách nhưng chỉ có onset ở nốt đầu."
   ),
   makeQuestion(
-    4,
+    3,
     "l4-tie-notation",
     "tie-continuation",
     "Nốt ở vị trí thứ hai trong ví dụ được nối có phải là onset mới không?",
@@ -684,7 +688,7 @@ const l4: QuizQuestion[] = [
     }
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dotted-notation",
     "dot-arithmetic",
     "Nốt đen chấm dôi trong ví dụ kéo dài bao nhiêu phách?",
@@ -702,7 +706,7 @@ const l4: QuizQuestion[] = [
     }
   ),
   makeQuestion(
-    4,
+    3,
     "l4-dot-equals-half",
     "dot-arithmetic",
     "Một nốt trắng chấm dôi bằng nốt nào trong trường độ?",
@@ -726,9 +730,9 @@ const l5Sixteenths = canonicalPattern("l5-sixteenths-complete-bar", fourFour, [
     denominator: 4 as const,
   })),
 ]);
-const l5: QuizQuestion[] = [
+const l4: QuizQuestion[] = [
   makeQuestion(
-    5,
+    4,
     "l5-four-sixteenths-quarter",
     "sixteenth-subdivision",
     "Bốn nốt móc kép bằng trường độ của nốt nào?",
@@ -741,7 +745,7 @@ const l5: QuizQuestion[] = [
     "Bốn móc kép bằng một nốt đen."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-one-sixteenth-quarter",
     "sixteenth-subdivision",
     "Một móc kép bằng phần nào của nốt đen?",
@@ -754,7 +758,7 @@ const l5: QuizQuestion[] = [
     "Một nốt đen chia thành bốn móc kép bằng nhau."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-sixteenth-rest",
     "sixteenth-rest",
     "Dấu lặng móc kép chiếm trường độ nào?",
@@ -767,7 +771,7 @@ const l5: QuizQuestion[] = [
     "Dấu lặng móc kép im lặng trong đúng trường độ của một móc kép."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-half-eight-sixteenths",
     "approved-note-values",
     "Một nốt trắng bằng bao nhiêu móc kép?",
@@ -780,7 +784,7 @@ const l5: QuizQuestion[] = [
     "Nốt trắng dài hai nốt đen; mỗi nốt đen bằng bốn móc kép, tổng cộng tám."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-two-eighths-sixteenths",
     "sixteenth-subdivision",
     "Hai nốt móc đơn bằng bao nhiêu móc kép?",
@@ -793,7 +797,7 @@ const l5: QuizQuestion[] = [
     "Mỗi móc đơn bằng hai móc kép; hai móc đơn bằng bốn móc kép."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-sixteenth-quarter-fill",
     "sixteenth-subdivision",
     "Bốn móc kép có tổng trường độ bao nhiêu phách nốt đen?",
@@ -806,7 +810,7 @@ const l5: QuizQuestion[] = [
     "Bốn móc kép bằng một nốt đen, tức một phách."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-rest-duration",
     "sixteenth-rest",
     "Dấu lặng móc kép có chiếm thời gian dù không phát ra âm không?",
@@ -819,7 +823,7 @@ const l5: QuizQuestion[] = [
     "Dấu lặng giữ nguyên trường độ viết; chỉ có âm thanh là im lặng."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-whole-sixteenths",
     "approved-note-values",
     "Một nốt tròn bằng bao nhiêu móc kép?",
@@ -832,7 +836,7 @@ const l5: QuizQuestion[] = [
     "Nốt tròn bằng bốn nốt đen; mỗi nốt đen bằng bốn móc kép: 4 × 4 = 16."
   ),
   makeQuestion(
-    5,
+    4,
     "l5-sixteenth-staff",
     "sixteenth-subdivision",
     "Bốn móc kép đầu tiên trên khuông nhạc có trường độ bằng nốt nào?",
@@ -850,7 +854,7 @@ const l5: QuizQuestion[] = [
     }
   ),
   makeQuestion(
-    5,
+    4,
     "l5-quarter-approved-value",
     "approved-note-values",
     "Một nốt đen bằng bao nhiêu móc kép?",
@@ -861,6 +865,140 @@ const l5: QuizQuestion[] = [
     ],
     "quarter-sixteenths-four",
     "Một nốt đen chia thành bốn móc kép bằng nhau."
+  ),
+];
+
+const l5ComboPatterns = {
+  dottedQuarterEighthHalf: canonicalPattern(
+    "l5-combo-dotted-eighth-half",
+    fourFour,
+    [
+      { id: "l5-combo-dotted-quarter", denominator: 4, dots: 1 },
+      { id: "l5-combo-eighth", denominator: 8 },
+      { id: "l5-combo-half", denominator: 2 },
+    ]
+  ),
+  sixteenthsDottedEighthQuarter: canonicalPattern(
+    "l5-combo-sixteenths-dotted-eighth-quarter",
+    fourFour,
+    [
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `l5-combo-sixteenth-${index + 1}`,
+        denominator: 16 as const,
+      })),
+      { id: "l5-combo-dotted-quarter", denominator: 4, dots: 1 },
+      { id: "l5-combo-eighth", denominator: 8 },
+      { id: "l5-combo-quarter", denominator: 4 },
+    ]
+  ),
+  tiedPairAndSixteenths: canonicalPattern(
+    "l5-combo-tied-pair-sixteenths",
+    fourFour,
+    [
+      { id: "l5-combo-tie-start", denominator: 4, tieGroupId: "l5-combo-tie" },
+      {
+        id: "l5-combo-tie-continuation",
+        denominator: 4,
+        tieGroupId: "l5-combo-tie",
+      },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `l5-combo-tie-sixteenth-${index + 1}`,
+        denominator: 16 as const,
+      })),
+      { id: "l5-combo-final-quarter", denominator: 4 },
+    ]
+  ),
+  restDottedAndSixteenths: canonicalPattern(
+    "l5-combo-rest-dotted-sixteenths",
+    fourFour,
+    [
+      { id: "l5-combo-quarter-rest", kind: "rest", denominator: 4 },
+      { id: "l5-combo-rest-dotted-quarter", denominator: 4, dots: 1 },
+      { id: "l5-combo-rest-eighth", denominator: 8 },
+      ...Array.from({ length: 4 }, (_, index) => ({
+        id: `l5-combo-rest-sixteenth-${index + 1}`,
+        denominator: 16 as const,
+      })),
+    ]
+  ),
+} as const;
+
+const l5: QuizQuestion[] = [
+  makeQuestion(
+    5,
+    "l5-combo-dotted-eighth-half",
+    "complex-rhythm-combinations",
+    "Trong ví dụ 4/4, nốt đen chấm dôi, móc đơn và nốt trắng lấp tổng cộng bao nhiêu phách?",
+    [
+      option("l5-combo-total-3", "3 phách"),
+      option("l5-combo-total-4", "4 phách"),
+      option("l5-combo-total-5", "5 phách"),
+      option("l5-combo-total-6", "6 phách"),
+    ],
+    "l5-combo-total-4",
+    "Nốt đen chấm dôi là 1½ phách, móc đơn là ½ phách, nốt trắng là 2 phách: tổng cộng 4 phách.",
+    {
+      kind: "canonical",
+      pattern: l5ComboPatterns.dottedQuarterEighthHalf,
+      caption: "Tổ hợp chấm dôi, móc đơn và nốt trắng trong ô 4/4.",
+    }
+  ),
+  makeQuestion(
+    5,
+    "l5-combo-sixteenths-dotted-eighth-quarter",
+    "complex-rhythm-combinations",
+    "Trong ví dụ, bốn móc kép, nốt đen chấm dôi và móc đơn đầu tiên chiếm tổng cộng bao nhiêu phách?",
+    [
+      option("l5-combo-part-2", "2 phách"),
+      option("l5-combo-part-2-half", "2½ phách"),
+      option("l5-combo-part-3", "3 phách"),
+      option("l5-combo-part-4", "4 phách"),
+    ],
+    "l5-combo-part-3",
+    "Bốn móc kép bằng 1 phách; nốt đen chấm dôi là 1½; móc đơn là ½. Tổng cộng 3 phách.",
+    {
+      kind: "canonical",
+      pattern: l5ComboPatterns.sixteenthsDottedEighthQuarter,
+      caption: "Bốn móc kép, nốt đen chấm dôi, móc đơn và nốt đen trong ô 4/4.",
+    }
+  ),
+  makeQuestion(
+    5,
+    "l5-combo-tied-pair-sixteenths",
+    "complex-rhythm-combinations",
+    "Trong ví dụ, cặp nốt đen nối trường độ cùng bốn móc kép chiếm bao nhiêu phách?",
+    [
+      option("l5-combo-tie-sixteenths-2", "2 phách"),
+      option("l5-combo-tie-sixteenths-3", "3 phách"),
+      option("l5-combo-tie-sixteenths-4", "4 phách"),
+      option("l5-combo-tie-sixteenths-5", "5 phách"),
+    ],
+    "l5-combo-tie-sixteenths-3",
+    "Hai nốt đen được nối giữ tiếng trong 2 phách; bốn móc kép bằng 1 phách, tổng cộng 3 phách.",
+    {
+      kind: "canonical",
+      pattern: l5ComboPatterns.tiedPairAndSixteenths,
+      caption: "Cặp nốt đen nối trường độ, bốn móc kép và một nốt đen.",
+    }
+  ),
+  makeQuestion(
+    5,
+    "l5-combo-rest-dotted-sixteenths",
+    "complex-rhythm-combinations",
+    "Sau dấu lặng đen, nốt đen chấm dôi, móc đơn và bốn móc kép chiếm thêm bao nhiêu phách?",
+    [
+      option("l5-combo-after-rest-2", "2 phách"),
+      option("l5-combo-after-rest-3", "3 phách"),
+      option("l5-combo-after-rest-4", "4 phách"),
+      option("l5-combo-after-rest-5", "5 phách"),
+    ],
+    "l5-combo-after-rest-3",
+    "Bỏ dấu lặng đầu, phần còn lại là 1½ + ½ + 1 = 3 phách.",
+    {
+      kind: "canonical",
+      pattern: l5ComboPatterns.restDottedAndSixteenths,
+      caption: "Dấu lặng, chấm dôi, móc đơn và móc kép trong ô 4/4.",
+    }
   ),
 ];
 
@@ -890,6 +1028,7 @@ const l6: QuizQuestion[] = [
         option(`eighth-count-${count - 1}`, `${count - 1} tiếng móc đơn`),
         option(`eighth-count-${count}`, `${count} tiếng móc đơn`),
         option(`eighth-count-${count + 1}`, `${count + 1} tiếng móc đơn`),
+        option(`eighth-count-${count + 2}`, `${count + 2} tiếng móc đơn`),
       ],
       `eighth-count-${count}`,
       `deriveMeterStructure xác định có ${count} vị trí móc đơn trong một ô ${meter.numerator}/8.`
@@ -906,6 +1045,7 @@ const l6: QuizQuestion[] = [
         option("groups-1-1-1", "1 + 1 + 1 · ba phách móc đơn riêng biệt"),
         option("groups-3-3", "3 + 3"),
         option("groups-3-3-3", "3 + 3 + 3"),
+        option("groups-2-2-2", "2 + 2 + 2"),
       ],
       `groups-${groups.replaceAll("+", "-")}`,
       `deriveMeter cung cấp cấu trúc nhóm ${groups}.`
@@ -1081,17 +1221,173 @@ const bonus: QuizQuestion[] = [
   ),
 ];
 
-export const QUIZ_QUESTION_BANK: Readonly<
+const FOURTH_OPTION_BY_ID: Readonly<Record<string, QuizOption>> = Object.freeze(
+  {
+    "l1-four-four-quarter-beats": option("quarter-beats-5", "5 phách nốt đen"),
+    "l1-quarter-value": option("quarter-value-three", "3 phách"),
+    "l1-half-value": option("half-as-three-quarters", "3 nốt đen"),
+    "l1-whole-value": option("whole-as-one-quarter", "1 nốt đen"),
+    "l1-quarter-rest-value": option("quarter-rest-three", "3 phách"),
+    "l1-two-half-notes": option("two-halves-six", "6 phách"),
+    "l1-one-whole-fills": option(
+      "fills-with-dotted-quarter",
+      "Nốt đen chấm dôi"
+    ),
+    "l1-two-beat-note": option("two-beats-dotted-half", "Nốt trắng chấm dôi"),
+    "l1-quarter-rest-name": option(
+      "rest-l1-sounds-one",
+      "Một phách có âm thanh"
+    ),
+    "l1-whole-note-staff": option("staff-whole-5", "5 phách nốt đen"),
+    "l2-quarter-two-eighths": option(
+      "quarter-to-three-eighths",
+      "3 nốt móc đơn"
+    ),
+    "l2-eighth-rest": option("eighth-rest-quarter-quarter", "¼ phách nốt đen"),
+    "l2-binary-subdivision": option("binary-five", "5 phần bằng nhau"),
+    "l2-eighth-is-half-quarter": option(
+      "l2-eighth-quarter-third",
+      "Một phần ba"
+    ),
+    "l2-two-eighths-one-beat": option(
+      "two-eighth-dotted-quarter",
+      "Nốt đen chấm dôi"
+    ),
+    "l2-eighth-rest-silence": option(
+      "rest-shortens-next-beat",
+      "Có; phách tiếp theo bị rút ngắn"
+    ),
+    "l2-half-quarter-beat": option(
+      "eighth-quarter-quarter",
+      "Một phần tư phách"
+    ),
+    "l2-pair-completes-quarter": option("pair-half-note", "Một nốt trắng"),
+    "l2-eighth-rest-value": option("rest-value-sixteenth", "Nốt móc kép"),
+    "l2-eighth-split-staff": option("staff-eighths-three", "3 phách"),
+    "l3-three-four-meter": option("meter-5-4", "5/4"),
+    "l3-two-four-meter": option("meter-5-4", "5/4"),
+    "l3-four-four-meter": option("meter-5-4", "5/4"),
+    "l3-pulse-unit": option("l3-unit-whole", "Nốt tròn"),
+    "l4-dotted-quarter": option("dotted-quarter-two-half", "2½ phách"),
+    "l4-dotted-half": option("dotted-half-five", "5 nốt đen"),
+    "l4-dot-extension": option("dot-add-quarter", "Một phần tư giá trị gốc"),
+    "l4-dotted-quarter-eighth": option("dotted-plus-eighth-four", "4 nốt đen"),
+    "l4-dotted-quarter-eighths": option(
+      "dotted-quarter-five-eighths",
+      "5 móc đơn"
+    ),
+    "l4-tie-no-new-onset": option(
+      "tie-restart-first",
+      "Nốt sau phát lại tiếng từ đầu"
+    ),
+    "l4-tied-quarter-total": option("tie-total-three", "3 phách"),
+    "l4-tie-notation": option(
+      "tie-example-new-onset",
+      "Có; nốt thứ hai tạo onset mới"
+    ),
+    "l4-dotted-notation": option("dotted-staff-two-half", "2½ phách"),
+    "l4-dot-equals-half": option("dotted-half-five-quarters", "5 nốt đen"),
+    "l5-four-sixteenths-quarter": option(
+      "four-sixteenths-dotted-quarter",
+      "Nốt đen chấm dôi"
+    ),
+    "l5-one-sixteenth-quarter": option(
+      "one-sixteenth-quarter-sixteenth",
+      "1/16"
+    ),
+    "l5-sixteenth-rest": option("sixteenth-rest-half-quarter", "Nửa nốt đen"),
+    "l5-half-eight-sixteenths": option("half-sixteenths-twelve", "12 móc kép"),
+    "l5-two-eighths-sixteenths": option(
+      "two-eighths-six-sixteenths",
+      "6 móc kép"
+    ),
+    "l5-sixteenth-quarter-fill": option("sixteenth-fill-one-half", "1½ phách"),
+    "l5-rest-duration": option(
+      "sixteenth-rest-eighth",
+      "Có, nó chiếm một móc đơn"
+    ),
+    "l5-whole-sixteenths": option("whole-sixteenths-twenty-four", "24 móc kép"),
+    "l5-sixteenth-staff": option(
+      "staff-sixteenths-dotted-quarter",
+      "Nốt đen chấm dôi"
+    ),
+    "l5-quarter-approved-value": option("quarter-sixteenths-six", "6 móc kép"),
+    "l6-six-eight-medium": option("medium-eighth-5", "Móc đơn thứ 5"),
+    "l6-nine-eight-medium": option("medium-eighths-3-8", "Móc đơn thứ 3 và 8"),
+    "l6-3-8-incomplete-fill": option("partial-add-three-eighths", "Ba móc đơn"),
+    "bonus-two-two-pulse-count": option("bonus-pulses-3", "3 phách"),
+    "bonus-two-two-pulse-unit": option("bonus-unit-eighth", "Nốt móc đơn"),
+    "bonus-whole-two-pulses": option("whole-half-pulses-3", "3 phách"),
+    "bonus-two-halves-fill": option("two-halves-pulses-3", "3 phách"),
+    "bonus-two-two-signature": option("signature-unit-eighth", "Nốt móc đơn"),
+    "bonus-two-two-versus-four": option(
+      "bonus-no-confusion-four-quarters",
+      "Bốn phách nốt đen"
+    ),
+    "bonus-two-two-half-value": option("one-half-note-three", "3 phách"),
+    "bonus-two-two-complete": option("two-two-halves-three", "3 nốt trắng"),
+    "bonus-two-two-pulse-count-derived": option("derived-two-two-three", "3"),
+  }
+);
+
+function addFourthOption(question: QuizQuestion): QuizQuestion {
+  const options =
+    question.options.length === 4
+      ? [...question.options]
+      : question.options.length === 3 && FOURTH_OPTION_BY_ID[question.id]
+        ? [...question.options, FOURTH_OPTION_BY_ID[question.id]]
+        : [];
+  if (options.length !== 4)
+    throw new Error(
+      `Question ${question.id} needs exactly four authored options.`
+    );
+  const optionIds = options.map(candidate => candidate.id);
+  const labels = options.map(candidate =>
+    candidate.label.trim().toLocaleLowerCase()
+  );
+  if (
+    new Set(optionIds).size !== 4 ||
+    new Set(labels).size !== 4 ||
+    !options.some(candidate => candidate.id === question.correctOptionId)
+  )
+    throw new Error(
+      `Question ${question.id} has duplicate or invalid options.`
+    );
+  return Object.freeze({ ...question, options: Object.freeze(options) });
+}
+
+const RAW_QUESTION_BANK: Readonly<Record<string, readonly QuizQuestion[]>> = {
+  "1": l1,
+  "2": l2,
+  "3": [...l3, ...l3DottedAndTies],
+  "4": l4,
+  "5": l5,
+  "6": l6,
+  bonus,
+};
+
+function validateAndFreezeBank(): Readonly<
   Record<string, readonly QuizQuestion[]>
-> = Object.freeze({
-  "1": Object.freeze(l1),
-  "2": Object.freeze(l2),
-  "3": Object.freeze(l3),
-  "4": Object.freeze(l4),
-  "5": Object.freeze(l5),
-  "6": Object.freeze(l6),
-  bonus: Object.freeze(bonus),
-});
+> {
+  const questionIds = new Set<string>();
+  const result: Record<string, readonly QuizQuestion[]> = {};
+  for (const [track, source] of Object.entries(RAW_QUESTION_BANK)) {
+    const bank = source.map(addFourthOption);
+    for (const question of bank) {
+      if (questionIds.has(question.id))
+        throw new Error(`Duplicate Rhythm Quiz question ID: ${question.id}`);
+      if (String(question.track) !== track)
+        throw new Error(
+          `Question ${question.id} is assigned to the wrong track.`
+        );
+      questionIds.add(question.id);
+    }
+    result[track] = Object.freeze(bank);
+  }
+  return Object.freeze(result);
+}
+
+export const QUIZ_QUESTION_BANK = validateAndFreezeBank();
 
 export const QUIZ_TRACKS: readonly Readonly<{
   id: QuizTrack;
@@ -1111,10 +1407,10 @@ export const QUIZ_TRACKS: readonly Readonly<{
   {
     id: 3,
     title: "Level 3",
-    description: "Phách nốt đen trong 2/4, 3/4 và 4/4",
+    description: "Nốt chấm dôi, dấu nối và tổ hợp trường độ trong nhịp đơn",
   },
-  { id: 4, title: "Level 4", description: "Chấm dôi và nối trường độ" },
-  { id: 5, title: "Level 5", description: "Móc kép và giá trị nốt / dấu lặng" },
+  { id: 4, title: "Level 4", description: "Móc kép và chia nhỏ phách" },
+  { id: 5, title: "Level 5", description: "Tổ hợp trường độ phức tạp" },
   {
     id: 6,
     title: "Level 6",
@@ -1155,31 +1451,53 @@ function shuffle<T>(items: readonly T[], random: () => number): T[] {
   return output;
 }
 
-/** Return a finite, deterministically shuffled deck. Option IDs, never labels or positions, remain canonical. */
+function freshCryptographicSeed(): string {
+  const cryptoApi = globalThis.crypto;
+  if (!cryptoApi?.getRandomValues)
+    throw new Error("A cryptographic source is required for a fresh Quiz run.");
+  const words = cryptoApi.getRandomValues(new Uint32Array(4));
+  return `fresh-${Array.from(words, word => word.toString(16).padStart(8, "0")).join("")}`;
+}
+
+/** Return a finite, randomly sampled deck; explicit seeds remain stable for tests and repro. */
 export function createQuizRun(
   track: QuizTrack,
-  seed: string,
+  seed?: string,
   questionCount = DEFAULT_QUESTION_COUNT
 ): readonly QuizQuestion[] {
-  if (!seed.trim())
-    throw new RangeError("A non-empty deterministic quiz seed is required.");
+  if (seed !== undefined && !seed.trim())
+    throw new RangeError("An explicit quiz seed must not be empty.");
   if (!Number.isSafeInteger(questionCount) || questionCount < 1)
     throw new RangeError("Quiz question count must be a positive integer.");
   const bank = QUIZ_QUESTION_BANK[String(track)];
   if (!bank) throw new RangeError("Unknown Rhythm Quiz track.");
+  const bankIds = bank.map(question => question.id);
+  if (
+    new Set(bankIds).size !== bank.length ||
+    bank.some(question => String(question.track) !== String(track))
+  )
+    throw new Error(
+      `Rhythm Quiz track ${String(track)} has invalid bank identities.`
+    );
+  const runSeed =
+    seed ?? `rhythm-quiz-${String(track)}:${freshCryptographicSeed()}`;
+  const selected = shuffle(bank, seededRandom(`${runSeed}:deck`)).slice(
+    0,
+    Math.min(questionCount, bank.length)
+  );
+  if (new Set(selected.map(question => question.id)).size !== selected.length)
+    throw new Error("A Rhythm Quiz run cannot contain duplicate question IDs.");
   return Object.freeze(
-    shuffle(bank, seededRandom(`${seed}:deck`))
-      .slice(0, Math.min(questionCount, bank.length))
-      .map(question =>
-        Object.freeze({
-          ...question,
-          options: Object.freeze(
-            shuffle(
-              question.options,
-              seededRandom(`${seed}:${question.id}:options`)
-            )
-          ),
-        })
-      )
+    selected.map(question =>
+      Object.freeze({
+        ...question,
+        options: Object.freeze(
+          shuffle(
+            question.options,
+            seededRandom(`${runSeed}:${question.id}:options`)
+          )
+        ),
+      })
+    )
   );
 }

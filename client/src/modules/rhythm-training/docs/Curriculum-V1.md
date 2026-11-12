@@ -1,5 +1,24 @@
 # Rhythm Training V1 — Curriculum V1
 
+
+## Latest owner-approved curriculum and Tap-policy supersession — 2026-11-12 (APPROVED)
+
+This is the active curriculum mapping and supersedes older conflicting approved-placement tables and dated active-policy summaries below; retain them only as history. The former simple-meter material is merged into Level 3 with dots, ties, and mixed durations. **Do not** retain the former L4 dots/ties, former L5 sixteenths, or former L6 vocabulary allocations as active mapping.
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+For 3/8, 6/8, and 9/8 each individual eighth (240 ticks) is the technical pulse for BPM/counting (3/6/9 pulses per bar). Preserve meter schema, capacities, established defaults, grouping, accent hierarchy, and eighth-beaming rules. In 6/8 each 3+3 group is exactly 720 ticks; in 9/8 each 3+3+3 group is exactly 720 ticks. No individual note, rest, or tie component can cross a group boundary. A valid tie may sustain across a boundary only by adjacent tied note components, each wholly inside its own group. Groups and bars must exact-fill. Do not change quotas or status. Other approved Phase 1–5/Phase 4A.2 matching, technical-validity, clock, collection/drain, and marker decisions are unchanged; only the Tap per-question point reward is updated by the latest policy. Other callers keep their +10/+0 scoring. This approval is not an implementation or human listening claim; browser/device/headphone listening has not been performed.
+
 ## Owner-approved supersession — 2026-11-12
 
 **APPROVED; active policy.** This supersedes conflicting product-flow, placement, and canonical pulse/BPM wording below while preserving D-07/D-08 as historical audit trail. The only user-facing Rhythm activities are **Tap Rhythm** and a separate **visual-only Rhythm Quiz**; there is no Lesson, Listen & Identify, or Count the Beat user flow. Quiz does not require audio or tapping. No quiz question count or educational-effectiveness claim is approved.

@@ -57,8 +57,9 @@ export function experienceVoiceSettings(
       frequencyHz: 2600,
       level: 0.4,
       waveform: "sine" as OscillatorType,
-      durationSeconds: 0.22,
-      edgeSeconds: 0.002,
+      // The complete ring fits within even the fastest 300 BPM pulse (200ms).
+      durationSeconds: 0.18,
+      edgeSeconds: 0.0008,
       resonantKnock: true as const,
       ...(metronomeOutput === undefined ? {} : { output: metronomeOutput }),
     }),

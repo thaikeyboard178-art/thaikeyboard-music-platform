@@ -1,6 +1,10 @@
 import {
+  advanceSession,
+  advanceSessionWithoutAnswer,
+  applySessionPenalty,
   createTrainingSession,
   submitSessionAnswer,
+  submitSessionAnswerWithAward,
   type SessionConfiguration,
   type TrainingSession,
 } from "@/features/training/session";
@@ -15,6 +19,7 @@ import { isRuntimeTapAttempt } from "./tapCompletion";
 // Ephemeral completion guard; no persistence or changes to shared session state.
 const submittedTapAttempts = new WeakSet<object>();
 const answeredTapQuestions = new Set<string>();
+const skippedRhythmQuestions = new Set<string>();
 
 function tapQuestionKey(
   session: RhythmTrainingSession,
@@ -45,6 +50,12 @@ export type RhythmSubmissionResult = Readonly<{
   scoreDelta: number;
 }>;
 
+export type RhythmSkipResult = Readonly<{
+  status: "skipped" | "duplicate" | "stale-exercise";
+  session: RhythmTrainingSession;
+  scoreDelta: number;
+}>;
+
 export function createRhythmTrainingSession(
   configuration: Omit<SessionConfiguration, "moduleId" | "pointsPerCorrect">,
   exercise: RhythmGradedExercise
@@ -59,10 +70,66 @@ export function createRhythmTrainingSession(
   );
 }
 
+/** Advances after an answer, or passes an unanswered exercise without recording an answer. */
+export function advanceRhythmSession(
+  session: RhythmTrainingSession,
+  nextExercise: RhythmGradedExercise
+): RhythmTrainingSession {
+  return session.hasAnsweredCurrent
+    ? advanceSession(session, nextExercise)
+    : advanceSessionWithoutAnswer(session, nextExercise);
+}
+
+/** Skips one current exercise, applying the graded-only five-point penalty once. */
+export function skipRhythmExercise(
+  session: RhythmTrainingSession,
+  currentExercise: RhythmGradedExercise,
+  nextExercise: RhythmGradedExercise,
+  kind: "graded" | "practice",
+  _completedAt = Date.now()
+): RhythmSkipResult {
+  const skipKey = JSON.stringify([
+    session.sessionId,
+    session.questionsAnswered,
+    currentExercise.id,
+  ]);
+  if (
+    skippedRhythmQuestions.has(skipKey) ||
+    (currentExercise.kind === "tap-rhythm" && answeredTapQuestions.has(skipKey))
+  ) {
+    return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
+  }
+  if (
+    session.currentExercise.id !== currentExercise.id ||
+    nextExercise.id === currentExercise.id
+  ) {
+    return Object.freeze({ status: "stale-exercise", session, scoreDelta: 0 });
+  }
+  if (session.hasAnsweredCurrent || session.completedAt !== null) {
+    return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
+  }
+
+  const penalizedSession =
+    kind === "graded" ? applySessionPenalty(session, 5) : session;
+  const nextSession = advanceSessionWithoutAnswer(
+    penalizedSession,
+    nextExercise
+  );
+  if (nextSession === session) {
+    return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
+  }
+  skippedRhythmQuestions.add(skipKey);
+  return Object.freeze({
+    status: "skipped",
+    session: nextSession,
+    scoreDelta: nextSession.totalScore - session.totalScore,
+  });
+}
+
 /**
- * Technical failures never become learner answers. Grading is delegated to the
- * shared session contract, whose answered-current guard prevents double score
- * submission and whose incorrect-answer delta is always zero.
+ * Technical failures never become learner answers. Tap scoring uses its valid
+ * runtime accuracy receipt for the shared award while strict correctness stays
+ * delegated to the existing evaluator; other exercise kinds keep default scoring.
  */
 export function submitRhythmExerciseAnswer(
   session: RhythmTrainingSession,
@@ -86,7 +153,17 @@ export function submitRhythmExerciseAnswer(
       scoreDelta: 0,
     });
   }
-  if (session.hasAnsweredCurrent || session.completedAt !== null) {
+  if (
+    session.hasAnsweredCurrent ||
+    session.completedAt !== null ||
+    skippedRhythmQuestions.has(
+      JSON.stringify([
+        session.sessionId,
+        session.questionsAnswered,
+        exercise.id,
+      ])
+    )
+  ) {
     return Object.freeze({ status: "duplicate", session, scoreDelta: 0 });
   }
 
@@ -95,7 +172,10 @@ export function submitRhythmExerciseAnswer(
     if (
       !isRuntimeTapAttempt(attempt) ||
       attempt.status === "technical-abort" ||
-      attempt.accuracyPercent === null
+      attempt.accuracyPercent === null ||
+      !Number.isFinite(attempt.accuracyPercent) ||
+      attempt.accuracyPercent < 0 ||
+      attempt.accuracyPercent > 100
     ) {
       return Object.freeze({
         status: "technical-abort",
@@ -136,13 +216,24 @@ export function submitRhythmExerciseAnswer(
   if (evaluation === null) {
     return Object.freeze({ status: "technical-abort", session, scoreDelta: 0 });
   }
-  const next = submitSessionAnswer(
-    session,
-    evaluation.correct,
-    submission.responseTimeMs,
-    10,
-    completedAt
-  );
+  const next =
+    exercise.kind === "tap-rhythm" && isRuntimeTapAttempt(submission.answer)
+      ? submitSessionAnswerWithAward(
+          session,
+          evaluation.correct,
+          Math.floor(
+            ((submission.answer.accuracyPercent ?? 0) * 10) / 100 + 0.5
+          ),
+          submission.responseTimeMs,
+          completedAt
+        )
+      : submitSessionAnswer(
+          session,
+          evaluation.correct,
+          submission.responseTimeMs,
+          10,
+          completedAt
+        );
   if (
     exercise.kind === "tap-rhythm" &&
     isRuntimeTapAttempt(submission.answer)

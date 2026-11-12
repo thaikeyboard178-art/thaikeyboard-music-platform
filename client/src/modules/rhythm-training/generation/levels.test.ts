@@ -41,12 +41,24 @@ describe("curriculum-aligned immutable rhythm policies", () => {
     });
   });
 
-  it("keeps simple meters in Level 3 and approved dot/tie progression in Level 4", () => {
+  it("places dots, ties, and their combinations in Level 3 and introduces sixteenths in Level 4", () => {
     expect(LEVEL_POLICIES[3].allowedMeters).toEqual([
       { numerator: 2, denominator: 4 },
       { numerator: 3, denominator: 4 },
       { numerator: 4, denominator: 4 },
     ]);
+    expect(LEVEL_POLICIES[3].supportedFocus).toEqual([
+      "dots",
+      "ties",
+      "combined",
+    ]);
+    expect(LEVEL_POLICIES[3].allowDots).toBe(true);
+    expect(LEVEL_POLICIES[3].allowTies).toBe(true);
+    expect(LEVEL_POLICIES[3].allowSixteenths).toBe(false);
+    expect(LEVEL_POLICIES[3].durations).toContainEqual({
+      denominator: 4,
+      dots: 1,
+    });
     expect(LEVEL_POLICIES[3].maxRestsPerBar).toBeGreaterThan(
       LEVEL_POLICIES[2].maxRestsPerBar
     );
@@ -54,13 +66,26 @@ describe("curriculum-aligned immutable rhythm policies", () => {
       "dots",
       "ties",
       "combined",
+      "sixteenths",
     ]);
-    expect(LEVEL_POLICIES[4].allowCrossBarTies).toBe(true);
+    expect(LEVEL_POLICIES[4].defaultFocus).toBe("sixteenths");
+    expect(LEVEL_POLICIES[4].allowSixteenths).toBe(true);
+    expect(LEVEL_POLICIES[4].durations).toContainEqual({
+      denominator: 16,
+      dots: 0,
+    });
+    expect(LEVEL_POLICIES[4].allowSyncopation).toBe(false);
   });
 
-  it("places sixteenths and controlled advanced combinations in Level 5", () => {
+  it("keeps controlled multi-duration combinations and syncopation in Level 5", () => {
     expect(LEVEL_POLICIES[5].allowSixteenths).toBe(true);
     expect(LEVEL_POLICIES[5].allowSyncopation).toBe(true);
+    expect(LEVEL_POLICIES[5].defaultFocus).toBe("integrated");
+    expect(LEVEL_POLICIES[5].supportedFocus).toContain("integrated");
+    expect(LEVEL_POLICIES[5].durations).toContainEqual({
+      denominator: 8,
+      dots: 1,
+    });
     expect(LEVEL_POLICIES[5].maxSyncopatedOnsetsPerBar).toBe(1);
     expect(LEVEL_POLICIES[5].maxDifficultySources).toBe(2);
     expect(LEVEL_POLICIES[5].allowCrossBarTies).toBe(false);

@@ -224,16 +224,32 @@ describe("Count the Beat canonical timeline exercise runtime", () => {
     expect(eighthGrid.gridTicks).toBe(240);
     expect(eighthGrid.positions.map(position => position.tick)).toContain(240);
 
-    const sixteenthGrid = generateCountBeatExercise({
+    const level4SixteenthGrid = generateCountBeatExercise({
+      track: 4,
+      seed: "count-grid-level4-sixteenth",
+      focus: "subdivision-positions",
+      meter: { numerator: 4, denominator: 4 },
+    });
+    expect(level4SixteenthGrid.gridTicks).toBe(120);
+    expect(
+      level4SixteenthGrid.positions.map(position => position.tick)
+    ).toContain(120);
+    expect(
+      level4SixteenthGrid.pattern.measures
+        .flatMap(measure => measure.segments)
+        .some(segment => segment.duration.denominator === 16)
+    ).toBe(true);
+
+    const level5SixteenthGrid = generateCountBeatExercise({
       track: 5,
       seed: "count-grid-sixteenth",
       focus: "subdivision-positions",
       meter: { numerator: 4, denominator: 4 },
     });
-    expect(sixteenthGrid.gridTicks).toBe(120);
-    expect(sixteenthGrid.positions.map(position => position.tick)).toContain(
-      120
-    );
+    expect(level5SixteenthGrid.gridTicks).toBe(120);
+    expect(
+      level5SixteenthGrid.positions.map(position => position.tick)
+    ).toContain(120);
   });
 
   it("evaluates onset positions against canonical timeline onsets", () => {

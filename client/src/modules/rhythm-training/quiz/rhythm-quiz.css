@@ -225,8 +225,14 @@
   list-style: none;
 }
 .rhythm-quiz-option {
+  width: 100%;
+  min-width: 0;
   min-height: 52px;
   padding: 11px 13px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
   border: 1px solid #ddded8;
   border-radius: 10px;
   background: #fff;
@@ -236,7 +242,26 @@
     "Segoe UI",
     sans-serif;
   text-align: left;
+  overflow-wrap: anywhere;
   cursor: pointer;
+}
+.rhythm-quiz-option-letter {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e0d1c4;
+  border-radius: 50%;
+  background: #f8f1e9;
+  color: #734331;
+  font:
+    800 13px/1 "Manrope",
+    sans-serif;
+  text-align: center;
+}
+.rhythm-quiz-option-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .rhythm-quiz-option:hover:not(:disabled) {
   border-color: #dd886f;
@@ -327,6 +352,9 @@
   border-radius: 12px;
   background: #fff4ef;
   color: #803b2b;
+}
+.rhythm-quiz-action-row > button {
+  min-height: 44px;
 }
 @media (max-width: 620px) {
   .rhythm-quiz-main {

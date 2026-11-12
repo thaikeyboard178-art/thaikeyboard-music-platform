@@ -1,5 +1,34 @@
 # Rhythm Training V1 — Functional and Technical Specification
 
+
+## Latest owner-approved active policy — 2026-11-12 (APPROVED; supersedes earlier active summaries)
+
+This latest policy supersedes conflicting clauses in every earlier active-policy block below, including the prior dated 2026-11-12 summary. The Tap per-question point reward below replaces the former fixed Tap award and is the only Tap point-schedule change; matching/technical approvals remain protected, and other platform callers retain +10/+0.
+
+The current fixed curriculum is:
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+For all X/8 meters, the individual eighth is the technical BPM/counting pulse (240 ticks; 3/6/9 pulses per bar); established capacities, schema, defaults, grouping/accent hierarchy, and approved beam semantics remain unchanged. 6/8 consists of two exact 720-tick groups and 9/8 of three exact 720-tick groups. No individual note, rest, or tie component may cross a group boundary. Valid adjacent tied note components may sustain across a boundary only with each component contained in its group; exact group and bar fill remain mandatory.
+
+The activity chooser is separate from either setup. Tap and visual-only Quiz have separate setups; Quiz uses fresh random eligible unique question IDs per run, has no duplicate fillers, and provides exactly four real options labeled A–D via canonical option IDs, with no audio. Preserve existing question/assessment quotas and their current approval status. The Tap mode selected in setup locks after leaving setup. Retry/replay after a graded attempt is idle practice-only, preserves the approved original visible result/mode, requires a fresh Play, and creates no second answer or score.
+
+Tap BPM is globally 30–300 and may change only while the engine is idle before Play. Lock it through countdown, collection, and delayed-event drain. An idle BPM adjustment retimes the same canonical written exercise, not a regenerated pattern, and does not revise protected Timing Accuracy.
+
+A valid completed graded Tap attempt awards `roundHalfUp(10 × TimingAccuracyPercent / 100)` integer points (0–10; half-up), separate from Formula B. One in-memory cumulative Tap session total carries through continue/Skip and resets only for a new run; no persistence or shadow balance/session subsystem is added. Practice/replay, Skip, technical abort, and no-accuracy attempts award no positive points. Confirmed graded Skip subtracts 5 once, clamps at zero, and is a Skip event rather than an answer or technical abort; it awards no points for that question. Practice/replay Skip is penalty-free. Technical abort is neither answer nor Skip. Platform callers, Quiz, and Note Reading retain `+10/+0`; Chord Recognition is unchanged.
+
+All existing approved Primary and supplemental matching, Formula B/T2-B values, gates, clocks, Wpass/Wassoc, capture, collection/drain, marker, and classification decisions remain unchanged; do not alter thresholds or matching. Approval is documentation/policy only, not implementation, test, or release completion. Human browser/device/headphone listening has not been performed.
+
 ## Owner-approved active-policy supersession — 2026-11-12
 
 **APPROVED; active policy.** This supersedes only conflicting earlier product-flow/curriculum placement, canonical pulse/BPM/default-tempo, Tap scoring/matching, replay, and implementation-status statements below. Earlier material remains historical audit/design context where it conflicts; unaffected PPQ/tick arithmetic, meter identity, notation/grouping/accent semantics, and unrelated platform contracts are not rewritten.

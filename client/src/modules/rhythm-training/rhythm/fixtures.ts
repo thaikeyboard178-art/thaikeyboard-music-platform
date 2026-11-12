@@ -75,7 +75,14 @@ export const SIX_EIGHT = pattern(
 export const SIX_EIGHT_REST = pattern(
   "six-eight-rest",
   { numerator: 6, denominator: 8 },
-  [[segment("r", 2, { dots: 1, rest: true })]]
+  // Migration: replace the legacy dotted-half rest (1440 ticks) with two
+  // adjacent dotted-quarter rests, one per 720-tick group; silence is unchanged.
+  [
+    [
+      segment("r-first-group", 4, { dots: 1, rest: true }),
+      segment("r-second-group", 4, { dots: 1, rest: true }),
+    ],
+  ]
 );
 export const WHOLE_NOTE = pattern(
   "whole-note",

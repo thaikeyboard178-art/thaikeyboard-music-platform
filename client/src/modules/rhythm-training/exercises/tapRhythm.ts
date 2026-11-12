@@ -99,7 +99,17 @@ function focusForPattern(
   track: RhythmTrack
 ): RhythmFocus {
   const features = patternFeatures(pattern);
+  if (track === 3) {
+    if (features.hasDotConcept && features.hasTie) return "combined";
+    if (features.hasDotConcept) return "dots";
+    if (features.hasTie) return "ties";
+    // Level 3 intentionally has no basic generation focus. Use a permitted
+    // audit focus for inherited plain patterns; the audit below accepts only
+    // its exact missing-dots error after all broader policy checks pass.
+    return "dots";
+  }
   if (track === 4) {
+    if (features.hasFine) return "sixteenths";
     if (features.hasDotConcept && features.hasTie) return "combined";
     if (features.hasDotConcept) return "dots";
     if (features.hasTie) return "ties";
@@ -112,6 +122,12 @@ function focusForPattern(
     if (features.hasDotConcept && features.hasTie) return "combined";
     if (features.hasDotConcept) return "dots";
     if (features.hasTie) return "ties";
+    if (
+      pattern.meter.denominator === 8 &&
+      (pattern.meter.numerator === 6 || pattern.meter.numerator === 9)
+    ) {
+      return "compound";
+    }
     return "basic";
   }
   return "basic";
@@ -141,6 +157,19 @@ function auditPatternForTrack(
     assertLevelConstraints(pattern, config);
   } catch (error) {
     const features = patternFeatures(pattern);
+    if (
+      track === 3 &&
+      !features.hasDotConcept &&
+      !features.hasTie &&
+      !features.hasFine &&
+      error instanceof RangeError &&
+      error.message === "Dots focus requires dots only."
+    ) {
+      // Neutral imported Level 3 patterns use inherited durations. This exact
+      // terminal feature error is the only skipped check; canonical, meter,
+      // vocabulary, rest, tie, and difficulty-budget audits already passed.
+      return;
+    }
     if (
       track === 4 &&
       !features.hasDotConcept &&

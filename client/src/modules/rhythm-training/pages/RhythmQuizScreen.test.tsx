@@ -56,18 +56,21 @@ describe("Rhythm Quiz tiered visual question bank", () => {
       ])
     );
     expect(concepts(3)).toEqual(
-      new Set(["simple-meter-pulses", "meter-identification"])
+      new Set([
+        "simple-meter-pulses",
+        "meter-identification",
+        "dot-arithmetic",
+        "tie-continuation",
+      ])
     );
     expect(concepts(4)).toEqual(
-      new Set(["dot-arithmetic", "tie-continuation"])
-    );
-    expect(concepts(5)).toEqual(
       new Set([
         "sixteenth-subdivision",
         "sixteenth-rest",
         "approved-note-values",
       ])
     );
+    expect(concepts(5)).toEqual(new Set(["complex-rhythm-combinations"]));
     expect(concepts(6)).toEqual(
       new Set([
         "eighth-metronome-count",
@@ -174,7 +177,7 @@ describe("Rhythm Quiz tiered visual question bank", () => {
           )
         ).toBe(true);
       }
-      expect(bank(track)).toHaveLength(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT);
+      expect(bank(track).length).toBeGreaterThan(0);
       const first = createQuizRun(track, "repro-seed", 10);
       const again = createQuizRun(track, "repro-seed", 10);
       expect(
@@ -188,7 +191,12 @@ describe("Rhythm Quiz tiered visual question bank", () => {
           question.options.map(candidate => candidate.id),
         ])
       );
-      expect(first).toHaveLength(Math.min(10, bank(track).length));
+      expect(first).toHaveLength(
+        Math.min(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT, bank(track).length)
+      );
+      expect(new Set(first.map(question => question.id)).size).toBe(
+        first.length
+      );
     }
     const session = createRhythmQuizSession(1, [bank(1)[0]], 1, 10);
     const wrongLabel = submitRhythmQuizAnswer(
@@ -202,8 +210,22 @@ describe("Rhythm Quiz tiered visual question bank", () => {
       100,
       20
     );
-    expect(wrongLabel.incorrectAnswers).toBe(1);
+    expect(wrongLabel).toBe(session);
+    expect(wrongLabel.questionsAnswered).toBe(0);
     expect(wrongLabel.totalScore).toBe(0);
+    const wrongOption = submitRhythmQuizAnswer(
+      session,
+      {
+        questionId: session.currentExercise.id,
+        optionId: session.currentExercise.options.find(
+          option => option.id !== session.currentExercise.correctOptionId
+        )!.id,
+      },
+      100,
+      20
+    );
+    expect(wrongOption.incorrectAnswers).toBe(1);
+    expect(wrongOption.totalScore).toBe(0);
   });
 
   it("ships a separate quiz-specific incomplete 3/8 illustration, never as canonical pattern data", () => {
@@ -400,28 +422,57 @@ describe("RhythmQuizScreen visual-only flow", () => {
     expect(errors).not.toHaveBeenCalled();
   });
 
-  it("completes a finite ten-question run, shows the summary, and retries as a new UI run", () => {
+  it("completes a finite run with unique question IDs, visible A–D labels, canonical option mapping, and a fresh retry", () => {
     const onBack = vi.fn();
-    render(<RhythmQuizScreen onBack={onBack} />);
+    const { container } = render(<RhythmQuizScreen onBack={onBack} />);
     fireEvent.click(screen.getByRole("button", { name: /Level 1/ }));
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
-    const expectedDeck = createQuizRun(
-      1,
-      "rhythm-quiz-1-1",
-      DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
+    const plannedCount = Math.min(
+      DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+      bank(1).length
     );
-    expect(expectedDeck).toHaveLength(10);
-    for (const [index, question] of expectedDeck.entries()) {
-      const correctLabel = question.options.find(
-        option => option.id === question.correctOptionId
-      )!.label;
+    const seenQuestionIds = new Set<string>();
+    for (let index = 0; index < plannedCount; index += 1) {
+      const prompt =
+        container.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+      const question = bank(1).find(candidate => candidate.prompt === prompt);
+      expect(question).toBeTruthy();
+      expect(seenQuestionIds.has(question!.id)).toBe(false);
+      seenQuestionIds.add(question!.id);
+      const answerButtons = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(".rhythm-quiz-option")
+      );
+      expect(answerButtons).toHaveLength(4);
+      expect(question!.options).toHaveLength(4);
+      answerButtons.forEach((button, optionIndex) => {
+        const letter = ["A", "B", "C", "D"][optionIndex];
+        const optionId = button.getAttribute("data-option-id");
+        const option = question!.options.find(
+          candidate => candidate.id === optionId
+        );
+        expect(option).toBeTruthy();
+        expect(
+          button.querySelector(".rhythm-quiz-option-letter")?.textContent
+        ).toBe(letter);
+        expect(button.getAttribute("aria-label")).toBe(
+          `${letter}. ${option!.label}`
+        );
+      });
+      const correctIndex = answerButtons.findIndex(
+        button =>
+          button.getAttribute("data-option-id") === question!.correctOptionId
+      );
+      const correctOption = question!.options.find(
+        option => option.id === question!.correctOptionId
+      )!;
+      const correctLabel = `${["A", "B", "C", "D"][correctIndex]}. ${correctOption.label}`;
       expect(
-        screen.getByText(`Câu ${index + 1} / ${expectedDeck.length}`)
+        screen.getByText(`Câu ${index + 1} / ${plannedCount}`)
       ).toBeTruthy();
-      fireEvent.click(screen.getByRole("button", { name: correctLabel }));
+      fireEvent.click(answerButtons[correctIndex]);
       expect(screen.getByRole("status").textContent).toContain("+10 điểm");
       expect(
-        screen.getByText(`Câu ${index + 1} / ${expectedDeck.length}`)
+        screen.getByText(`Câu ${index + 1} / ${plannedCount}`)
       ).toBeTruthy();
       expect(
         screen.getByRole("progressbar").getAttribute("aria-valuenow")
@@ -431,25 +482,47 @@ describe("RhythmQuizScreen visual-only flow", () => {
         screen.getByRole("progressbar").getAttribute("aria-valuenow")
       ).toBe(String(index + 1));
       const nextName =
-        index === expectedDeck.length - 1 ? "Xem tổng kết" : "Câu tiếp theo";
+        index === plannedCount - 1 ? "Xem tổng kết" : "Câu tiếp theo";
       fireEvent.click(screen.getByRole("button", { name: nextName }));
     }
     expect(screen.getByRole("heading", { name: "Tổng kết Quiz" })).toBeTruthy();
-    expect(screen.getByText("100")).toBeTruthy();
+    expect(screen.getByText(String(plannedCount * 10))).toBeTruthy();
     expect(screen.getByText("Quiz run · chỉ số giao diện")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Làm lại lượt này" }));
-    const secondDeck = createQuizRun(
-      1,
-      "rhythm-quiz-1-2",
-      DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
+    const secondPrompt =
+      container.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+    expect(bank(1).some(candidate => candidate.prompt === secondPrompt)).toBe(
+      true
     );
-    expect(
-      screen.getByRole("heading", { name: secondDeck[0].prompt })
-    ).toBeTruthy();
     expect(screen.getByText(/Quiz run 2/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Thoát Quiz" }));
     expect(
       screen.getByRole("heading", { name: "Trắc nghiệm kiến thức nhịp điệu" })
     ).toBeTruthy();
+  });
+
+  it("reports the correct displayed letter and canonical answer after an incorrect selection", () => {
+    render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    const prompt =
+      document.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+    const question = bank(1).find(candidate => candidate.prompt === prompt)!;
+    const answerButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".rhythm-quiz-option")
+    );
+    const correctIndex = answerButtons.findIndex(
+      button =>
+        button.getAttribute("data-option-id") === question.correctOptionId
+    );
+    const correctLetter = ["A", "B", "C", "D"][correctIndex];
+    const wrongButton =
+      answerButtons[(correctIndex + 1) % answerButtons.length];
+    fireEvent.click(wrongButton);
+    expect(screen.getByRole("status").textContent).toContain("+0 điểm");
+    expect(screen.getByRole("status").textContent).toContain(
+      `Đáp án đúng: ${correctLetter}. ${question.options.find(option => option.id === question.correctOptionId)!.label}`
+    );
+    expect(wrongButton.getAttribute("aria-pressed")).toBe("true");
+    expect(wrongButton.disabled).toBe(true);
   });
 });

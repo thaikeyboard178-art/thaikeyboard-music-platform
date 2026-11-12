@@ -1,5 +1,24 @@
 # Music Education Review Scope — Rhythm Training V1
 
+
+## Latest owner-approved curriculum/pulse supersession — 2026-11-12 (APPROVED)
+
+This active mapping supersedes conflicting D-07/previous placement text and dated active-policy blocks below only where different; older material remains audit history. It does not constitute teacher/educator signoff or runtime approval.
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+For 3/8, 6/8, and 9/8, an eighth is the individual 240-tick technical pulse for BPM/counting (3/6/9 per bar). Preserve schema, existing pulse mathematics/capacity/defaults, plus distinct group/accent/beam semantics. Each 6/8 group is three eighths (720 ticks); each of the three 9/8 groups is three eighths (720 ticks). No individual note, rest, or tie component crosses a group boundary; valid tied note components may sustain across a boundary as adjacent components each contained in a group. Exact-fill applies per group and bar. Do not change approved quotas or their statuses. Tap/Quiz chooser is separate; Quiz is visual-only/no-audio, random unique eligible question IDs per run, no duplicate fillers, four real A–D options mapped by canonical option ID. BPM may change only while Tap is idle before Play (30–300) and locks for countdown/collection/drain; retiming preserves the canonical written exercise. Formula B and the prior approved matching/clock/collection/marker rules remain unchanged; the Tap per-question reward is accuracy-weighted as stated in the current Decision Review, while other callers retain +10/+0. This update does not claim implementation, test pass, or physical listening; human browser/device/headphone listening has not been performed.
+
 > **Presentation APPROVED — 2026-11-11 lúc 03:04:52 +07:00:** chủ sản phẩm đã chốt P-01/P-02/P-03. Quyết định nhạc lý trước đó giữ nguyên; không cần hỏi lại và không cấp quyền triển khai runtime.
 
 > **Nguồn quyết định đã chốt:** đính chính trực tiếp của chủ sản phẩm ngày 2026-11-11. Xem [Decision Review](./Decision-Review.md). Không sử dụng phương án accent hierarchy trước đây của Manus/ChatGPT. Đây là quyết định nội dung, không phải giáo viên signoff do Manus tự nhận hoặc quyền triển khai code.

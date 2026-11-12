@@ -98,11 +98,14 @@ describe("Rhythm Training V1 runtime curriculum", () => {
     expect(isExerciseKindAllowed(3, "assessment", "count-beat")).toBe(true);
   });
 
-  it("preserves existing Multiple Choice focus data independently of Tap placement", () => {
+  it("maps Multiple Choice focuses to the remapped level content independently of Tap placement", () => {
     const expectedFocuses = [
       [1, ["pattern", "note-rest", "duration"]],
       [2, ["pattern", "note-rest", "duration"]],
-      [3, ["pattern", "note-rest", "duration", "meter", "grouping"]],
+      [
+        3,
+        ["pattern", "note-rest", "duration", "meter", "grouping", "dot", "tie"],
+      ],
       [
         4,
         ["pattern", "note-rest", "duration", "meter", "grouping", "dot", "tie"],

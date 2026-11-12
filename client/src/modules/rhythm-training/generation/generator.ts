@@ -7,6 +7,7 @@ import type {
 } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { durationToTicks } from "../rhythm/durations";
+import { compoundGroupAt } from "../rhythm/grouping";
 import {
   deriveMeter,
   getDefaultPulseBpm,
@@ -124,6 +125,41 @@ function meterIsAllowed(policy: LevelPolicy, meter: RhythmMeter): boolean {
   return policy.allowedMeters.some(candidate => sameMeter(candidate, meter));
 }
 
+function isSimpleMeterPolicy(policy: LevelPolicy): boolean {
+  return policy.allowedMeters.every(meter => meter.denominator === 4);
+}
+
+function isDotsAndTiesIntroduction(policy: LevelPolicy): boolean {
+  return (
+    isSimpleMeterPolicy(policy) &&
+    policy.allowDots &&
+    policy.allowTies &&
+    !policy.allowSixteenths &&
+    !policy.allowSyncopation
+  );
+}
+
+function isSixteenthIntroduction(policy: LevelPolicy): boolean {
+  return (
+    isSimpleMeterPolicy(policy) &&
+    policy.allowSixteenths &&
+    !policy.allowSyncopation
+  );
+}
+
+function isControlledComplexPolicy(policy: LevelPolicy): boolean {
+  return policy.allowSixteenths && policy.allowSyncopation;
+}
+
+function enforcesPreIntroductionPulseSustain(policy: LevelPolicy): boolean {
+  return (
+    policy.level !== "bonus" &&
+    !policy.allowDots &&
+    !policy.allowTies &&
+    !policy.allowSixteenths
+  );
+}
+
 function validateBasicConfig(input: RhythmGenerationConfig): void {
   if (!isRecord(input)) fail("Generation config must be an object.");
   if (
@@ -173,32 +209,63 @@ function featureSet(
   random: () => number
 ): Features {
   if (focus === "dots")
-    return { dots: true, ties: false, sixteenths: false, syncopation: false };
-  if (focus === "ties")
-    return { dots: false, ties: true, sixteenths: false, syncopation: false };
-  if (focus === "combined") {
     return {
-      dots: policy.allowDots && policy.level !== 5,
+      dots: policy.allowDots,
+      ties: false,
+      sixteenths: false,
+      syncopation: false,
+    };
+  if (focus === "ties")
+    return {
+      dots: false,
       ties: policy.allowTies,
-      sixteenths: policy.level === 5,
+      sixteenths: false,
+      syncopation: false,
+    };
+  if (focus === "combined") {
+    if (isDotsAndTiesIntroduction(policy)) {
+      return {
+        dots: true,
+        ties: true,
+        sixteenths: false,
+        syncopation: false,
+      };
+    }
+    if (isControlledComplexPolicy(policy)) {
+      return {
+        dots: false,
+        ties: policy.allowTies,
+        sixteenths: policy.allowSixteenths,
+        syncopation: false,
+      };
+    }
+    return {
+      dots: policy.allowDots,
+      ties: policy.allowTies,
+      sixteenths: false,
       syncopation: false,
     };
   }
   if (focus === "sixteenths")
-    return { dots: false, ties: false, sixteenths: true, syncopation: false };
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: policy.allowSixteenths,
+      syncopation: false,
+    };
   if (focus === "syncopation")
     return {
       dots: false,
       ties: policy.allowTies,
       sixteenths: false,
-      syncopation: true,
+      syncopation: policy.allowSyncopation,
     };
   if (focus === "compound")
     return { dots: false, ties: false, sixteenths: false, syncopation: false };
   if (focus === "basic")
     return { dots: false, ties: false, sixteenths: false, syncopation: false };
 
-  // The Level 5 integrated track chooses one or two genuine
+  // Controlled complex tracks choose one or two genuine
   // sources; compound meter's pulse-defining dots are not one of them.
   const sources: Array<keyof Features> = [];
   if (policy.allowDots && (meter.numerator !== 6 || random() > 0.35))
@@ -242,15 +309,12 @@ function chooseMeter(
     choices = choices.filter(
       meter => meter.denominator === 8 && meter.numerator !== 3
     );
-  if (
-    focus === "syncopation" ||
-    focus === "dots" ||
-    focus === "ties" ||
-    focus === "sixteenths"
-  ) {
-    choices = choices.filter(
-      meter => meter.denominator === (policy.level === 6 ? 8 : 4)
-    );
+  const requiresSimpleMeter =
+    (focus === "sixteenths" &&
+      (isSixteenthIntroduction(policy) || isControlledComplexPolicy(policy))) ||
+    (focus === "syncopation" && isControlledComplexPolicy(policy));
+  if (requiresSimpleMeter && !isSimpleMeterPolicy(policy)) {
+    choices = choices.filter(meter => meter.denominator === 4);
   }
   if (choices.length === 0)
     fail("No meter is compatible with the selected focus.");
@@ -352,6 +416,8 @@ function buildBar(
     const eligible = durationRows
       .filter(row => row.ticks <= remaining)
       .filter(row => {
+        const group = compoundGroupAt(resolved.meter, offset);
+        if (group && offset + row.ticks > group.endTicks) return false;
         const offPulse = offset % pulseTicks !== 0;
         if (
           preservePulseBoundaries &&
@@ -363,7 +429,7 @@ function buildBar(
           if ((offset % pulseTicks) + row.ticks > pulseTicks) return false;
           const pulse = Math.floor(offset / pulseTicks);
           if (
-            resolved.policy.level === 5 &&
+            isControlledComplexPolicy(resolved.policy) &&
             !finePulses.includes(pulse) &&
             finePulses.length >= 1
           )
@@ -378,7 +444,7 @@ function buildBar(
     });
     for (const row of orderedRows) {
       const kinds: Array<"note" | "rest"> = ["note", "rest"];
-      if (random() < (resolved.policy.level === 3 ? 0.55 : 0.28))
+      if (random() < (isDotsAndTiesIntroduction(resolved.policy) ? 0.55 : 0.28))
         kinds.reverse();
       for (const kind of kinds) {
         if (
@@ -726,7 +792,7 @@ function assertFeatures(
   }
   if (
     focus === "combined" &&
-    (policy.level === 5
+    (isControlledComplexPolicy(policy)
       ? !flags.hasTie || !flags.hasFine || flags.hasDot
       : !flags.hasDot || !flags.hasTie || flags.hasFine)
   ) {
@@ -861,8 +927,7 @@ export function assertLevelConstraints(
     fail("Pattern exceeds the level rest budget.");
   }
   if (
-    typeof resolved.policy.level === "number" &&
-    resolved.policy.level <= 3 &&
+    enforcesPreIntroductionPulseSustain(resolved.policy) &&
     flags.timeline.segments.some(position => {
       const offPulse =
         position.measureOffsetTicks % flags.meter.pulseTicks !== 0;
@@ -881,7 +946,7 @@ export function assertLevelConstraints(
     );
   }
   if (
-    resolved.policy.level === 5 &&
+    isControlledComplexPolicy(resolved.policy) &&
     flags.finePulsesPerBar.some(count => count > 1)
   ) {
     fail(

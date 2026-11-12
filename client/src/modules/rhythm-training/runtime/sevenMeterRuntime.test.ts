@@ -19,7 +19,11 @@ import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { projectRhythmNotation } from "../notation/projection";
 import { renderRhythmNotation } from "../notation/VexFlowRhythm";
 import type { RhythmMeter, RhythmPattern } from "../types";
-import { mixedRuntimePattern, SEVEN_METER_RUNTIME_FIXTURES } from "./fixtures";
+import {
+  groupedMixedCompoundPattern,
+  mixedRuntimePattern,
+  SEVEN_METER_RUNTIME_FIXTURES,
+} from "./fixtures";
 
 beforeAll(() =>
   Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
@@ -89,6 +93,34 @@ function wrongFill(pattern: RhythmPattern, extra: boolean): RhythmPattern {
           : bar.segments.slice(0, -1),
       },
     ],
+  };
+}
+
+function exactTotalGroupInvalidPattern(meter: RhythmMeter): RhythmPattern {
+  const eighth = (id: string, kind: "note" | "rest" = "note") => ({
+    id,
+    kind,
+    duration: { denominator: 8 as const, dots: 0 as const },
+  });
+  const quarter = (id: string, kind: "note" | "rest" = "note") => ({
+    id,
+    kind,
+    duration: { denominator: 4 as const, dots: 0 as const },
+  });
+  const segments =
+    meter.numerator === 6
+      ? [eighth("a"), eighth("b"), quarter("crossing-note"), quarter("d")]
+      : [
+          eighth("a"),
+          eighth("b"),
+          quarter("crossing-note"),
+          ...Array.from({ length: 5 }, (_, index) => eighth(`tail-${index}`)),
+        ];
+  return {
+    id: `invalid-full-total-${meter.numerator}-8`,
+    meter,
+    tempo: { pulseBpm: 60 },
+    measures: [{ id: "bar-1", segments }],
   };
 }
 
@@ -392,6 +424,155 @@ describe("Seven-meter runtime completion gate", () => {
       expect(
         result.svg.querySelectorAll('[data-canonical-onset="true"]')
       ).toHaveLength(0);
+    });
+  }
+  for (const meter of [
+    { numerator: 6, denominator: 8 },
+    { numerator: 9, denominator: 8 },
+  ] as const) {
+    it(`7M ${meter.numerator}/8 S11 keeps mixed grouped ties, rests, dots, notation and SVG in parity`, () => {
+      const pattern = groupedMixedCompoundPattern(meter);
+      const canonicalResult = validateRhythmPattern(pattern);
+      expect(canonicalResult.valid).toBe(true);
+      if (!canonicalResult.valid)
+        throw new Error(JSON.stringify(canonicalResult.issues));
+      const canonical = canonicalResult.pattern;
+      const info = deriveMeter(meter);
+      const timeline = deriveRhythmTimeline(canonical, 120);
+      expect(timeline.totalTicks).toBe(info.measureTicks * 2);
+      expect(timeline.meter.pulseTicks).toBe(240);
+      expect(timeline.meter.groupStarts).toEqual(info.groupStarts);
+
+      for (
+        let measureIndex = 0;
+        measureIndex < canonical.measures.length;
+        measureIndex += 1
+      ) {
+        const positions = timeline.segments.filter(
+          position => position.measureIndex === measureIndex
+        );
+        const groupTotals = info.groupStarts.map((start, groupIndex) => {
+          const end = info.groupStarts[groupIndex + 1] ?? info.measureTicks;
+          const members = positions.filter(
+            position =>
+              position.measureOffsetTicks >= start &&
+              position.measureOffsetTicks < end
+          );
+          expect(
+            members.every(
+              position =>
+                position.measureOffsetTicks + position.durationTicks <= end
+            )
+          ).toBe(true);
+          return members.reduce(
+            (sum, position) => sum + position.durationTicks,
+            0
+          );
+        });
+        expect(groupTotals).toEqual(
+          Array.from({ length: meter.numerator / 3 }, () => 720)
+        );
+      }
+
+      const groupCount = meter.numerator / 3;
+      const tieMembers = timeline.segments.filter(
+        position => position.tieGroupId === "group-sustain"
+      );
+      expect(tieMembers.map(position => position.durationTicks)).toEqual(
+        Array.from({ length: groupCount }, () => 720)
+      );
+      expect(tieMembers.map(position => position.measureOffsetTicks)).toEqual(
+        Array.from({ length: groupCount }, (_, index) => index * 720)
+      );
+      expect(tieMembers.map(position => position.isOnset)).toEqual([
+        true,
+        ...Array.from({ length: groupCount - 1 }, () => false),
+      ]);
+      expect(
+        timeline.segments
+          .filter(position => position.measureIndex === 0 && position.isOnset)
+          .map(position => position.absoluteStartTicks)
+      ).toEqual([0]);
+      expect(timeline.soundingSpans).toContainEqual(
+        expect.objectContaining({ startTicks: 0, endTicks: info.measureTicks })
+      );
+      const mixedBar = timeline.segments.filter(
+        position => position.measureIndex === 1
+      );
+      expect(mixedBar.some(position => position.kind === "rest")).toBe(true);
+      expect(mixedBar.some(position => position.durationTicks === 360)).toBe(
+        true
+      );
+      expect(mixedBar.some(position => position.durationTicks === 120)).toBe(
+        true
+      );
+      expect(mixedBar.some(position => position.durationTicks === 480)).toBe(
+        true
+      );
+
+      const projection = projectRhythmNotation(canonical);
+      expect(projection.timeline.onsets).toEqual(timeline.onsets);
+      expect(projection.segments.map(item => item.startTicks)).toEqual(
+        timeline.segments.map(item => item.absoluteStartTicks)
+      );
+      expect(projection.tieEdges).toHaveLength(groupCount - 1);
+      for (const edge of projection.tieEdges) {
+        const from = projection.segments.find(
+          segment => segment.segmentId === edge.fromSegmentId
+        )!;
+        const to = projection.segments.find(
+          segment => segment.segmentId === edge.toSegmentId
+        )!;
+        expect(from.endTicks).toBe(to.startTicks);
+        expect(from.endTicks % 720).toBe(0);
+      }
+
+      const rendered = renderRhythmNotation(
+        document.createElement("div"),
+        canonical,
+        { width: 640, measuresPerRow: 1 }
+      );
+      expect(rendered.parity.ok).toBe(true);
+      expect(rendered.parity.segmentReports).toHaveLength(
+        projection.segments.length
+      );
+      expect(
+        rendered.svg.querySelectorAll("[data-rhythm-segment-id]")
+      ).toHaveLength(projection.segments.length);
+      expect(
+        rendered.svg
+          .querySelector('[data-rhythm-segment-id="dotted-rest"]')
+          ?.getAttribute("data-canonical-tick")
+      ).toBe(String(info.measureTicks));
+    });
+
+    it(`7M ${meter.numerator}/8 S12 rejects exact-total group-invalid notes at canonical and render boundaries`, () => {
+      const invalid = exactTotalGroupInvalidPattern(meter);
+      const exactTicks = invalid.measures[0].segments.reduce(
+        (sum, segment) => sum + durationToTicks(segment.duration),
+        0
+      );
+      expect(exactTicks).toBe(deriveMeter(meter).measureTicks);
+      const result = validateRhythmPattern(invalid);
+      expect(result.valid).toBe(false);
+      if (result.valid) throw new Error("Group-invalid full bar was accepted");
+      expect(
+        result.issues.some(
+          issue => issue.code === "GROUP_SEGMENT_CROSSES_BOUNDARY"
+        )
+      ).toBe(true);
+      expect(() => deriveRhythmTimeline(invalid)).toThrow(
+        "GROUP_SEGMENT_CROSSES_BOUNDARY"
+      );
+      expect(() => projectRhythmNotation(invalid)).toThrow(
+        "GROUP_SEGMENT_CROSSES_BOUNDARY"
+      );
+      const host = document.createElement("div");
+      host.innerHTML = "<span>preserve</span>";
+      expect(() => renderRhythmNotation(host, invalid)).toThrow(
+        "GROUP_SEGMENT_CROSSES_BOUNDARY"
+      );
+      expect(host.innerHTML).toBe("<span>preserve</span>");
     });
   }
   it("7M canonical endpoints align validation, duration, audio/count-in/reference and tap targets for 1/2/4 bars", () => {

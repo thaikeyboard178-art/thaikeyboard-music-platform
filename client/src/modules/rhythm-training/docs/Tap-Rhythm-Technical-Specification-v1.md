@@ -1,5 +1,8 @@
 # Tap Rhythm V1 — Technical Specification, Phase 4A
 
+
+> **Current-decision notice — 2026-11-12:** This Phase 4A technical proposal predates the approved Phase 4A.2 record and later owner-approved product policy. Its earlier “pending” status for Formula B, T2-B, Wpass/Wassoc, primary DP, clock bridge/confidence, capture, collection/drain, and strict scoring is historical; use [Phase 4A.2 Owner Decisions](./Tap-Rhythm-V1-Phase-4A.2-Owner-Decisions.md) for those approved values. The latest active curriculum is L1 basic notes/rests; L2 eighth/binary subdivision; L3 simple-meter content with dots/ties/mixed durations; L4 sixteenths/subdivision; L5 controlled complex combinations; L6 3/8, 6/8, 9/8; optional Bonus 2/2 unchanged. The latest Tap point/replay/Skip and idle BPM policy is in [Decision Review](./Decision-Review.md), including the explicit replacement of the former fixed Tap per-question point award; non-Tap callers keep +10/+0. These notices preserve, rather than revise, prior Phase 1–5 and Phase 4A.2 timing approvals. They do not claim implementation or tests; human browser/device/headphone listening has not been performed.
+
 **Trạng thái: Formula B đã được Owner chọn cho phép đo Timing Accuracy; mọi window/threshold/candidate vẫn CHỜ OWNER APPROVAL.** Pilot tại Section 9 chỉ là mô phỏng offline, không phê duyệt thông số hoặc cho phép bắt đầu Phase 4B. Các thông số lịch sử trong specification cũ vẫn là giả thuyết, không phải defaults. Tác giả: Manus AI. Baseline đã audit: `99da0de1a0ff77cfa84ae4acee9be67f447241fd`.
 
 ## 1. Audit và phạm vi tái sử dụng

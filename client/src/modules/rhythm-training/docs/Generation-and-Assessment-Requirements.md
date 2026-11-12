@@ -1,5 +1,30 @@
 # Rhythm Training V1 — Generation and Assessment Requirements
 
+
+## Latest owner-approved generation and assessment policy — 2026-11-12 (APPROVED)
+
+This latest policy supersedes conflicting curriculum placements and point/retry/flow summaries below, including earlier dated active-policy blocks. Preserve prior matching/technical approvals; the Tap per-question award is updated here only, while other callers retain +10/+0.
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+Keep every existing approved quota and its status unchanged. Generation for 6/8 must fill two independent 3-eighth groups of exactly 720 ticks each; 9/8 must fill three independent groups of exactly 720 ticks each. Each individual note, rest, or tie component is wholly contained within one group; a tie can sustain across a boundary only through valid adjacent note components, each wholly in its own group. Validate exact per-group and per-bar totals before publishing an exercise. Preserve serialized meter schema and canonical duration/pulse math. For all X/8, the eighth (240 ticks) is the technical pulse for BPM/counting (3/6/9 per bar); retain existing grouping, accents, beams, and defaults.
+
+Separate the Tap/Quiz chooser from setup. Quiz is visual-only with no audio; every new run randomly selects eligible questions by unique stable `questionID`, never repeats IDs within a run, and never adds duplicate filler questions. Display four real answer options A–D, each mapped to canonical `optionID`; grading follows option identity, not label/position. If the eligible unique pool is short, do not duplicate to satisfy quota; leave approved quota status unchanged and follow existing shortfall behavior.
+
+Tap BPM is 30–300 and changeable only when idle before Play; lock during countdown, collection, and drain. Retiming must preserve the same canonical written exercise and protected Timing Accuracy. Mode locks after setup; post-grade retry/replay is idle practice-only and cannot submit/score again. Graded completed Tap earns `roundHalfUp(10 × TimingAccuracyPercent / 100)` integer 0–10, separate from Formula B, in one non-persistent cumulative in-memory Tap session across continue/skip, reset only for a new run. Confirmed graded Skip deducts 5 once, clamped at 0, is not an answer or technical abort, and produces no award for that question; Practice/replay Skip has no penalty. Technical abort is neither answer nor Skip; Practice/replay, skip, abort, and no-accuracy earn no positive points. Other callers, Quiz, and Note Reading retain `+10/+0`; no shadow balance/session system; Chord Recognition unchanged.
+
+Prior Phase 1–5 and Phase 4A.2 approvals remain intact, including all primary/supplemental matching and timing thresholds, clocks, capture, collection/drain, markers and Formula B. Do not edit matching policy or thresholds. These are not implementation/test-pass claims; human browser/device/headphone listening has not been performed.
+
 ## Owner-approved active-policy supersession — 2026-11-12
 
 **APPROVED; active policy.** This supersedes only conflicting product-flow/curriculum-placement, Tap scoring/matching, retry, and pending-policy statements below. This long requirements document remains a historical proposal where it conflicts; unrelated duration, PPQ, meter identity, notation/grouping/accent, and validated-data guardrails are not rewritten.

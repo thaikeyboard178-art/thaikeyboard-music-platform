@@ -149,61 +149,53 @@ describe("Tap Rhythm curriculum production integration", () => {
     expect([...observedRests]).toEqual(expect.arrayContaining(["4/0", "8/0"]));
   });
 
-  it("generates Level 3 simple 2/4, 3/4 and 4/4 Tap without advanced notation", () => {
+  it("generates Level 3 dots-and-ties combinations in simple meters without sixteenths", () => {
     for (const [index, meter] of simpleMeters.entries()) {
       const exercise = generateTapRhythmExercise({
         track: 3,
         seed: `tap-curriculum-level-3-meter-${index}`,
         meter,
+        focus: "combined",
       });
+      const flat = segments(exercise);
       expect(exercise.pattern.meter).toEqual(meter);
-      expectNoDotsTiesOrSixteenths(exercise);
+      expect(flat.some(segment => segment.duration.dots === 1)).toBe(true);
+      expect(flat.some(segment => segment.tieGroupId !== undefined)).toBe(true);
+      expect(flat.some(segment => segment.duration.denominator === 16)).toBe(
+        false
+      );
     }
   });
 
-  it("generates Level 4 dots and ties, with no sixteenth-family notation", () => {
-    const dotExercise = generateTapRhythmExercise({
+  it("generates Level 4 sixteenth notes on the taught four-part subdivision grid", () => {
+    const defaultExercise = generateTapRhythmExercise({
       track: 4,
-      seed: "tap-curriculum-level-4-dots",
+      seed: "tap-curriculum-level-4-default-sixteenths",
       meter: fourFour,
-      focus: "dots",
     });
-    const tieExercise = generateTapRhythmExercise({
+    const sixteenthExercise = generateTapRhythmExercise({
       track: 4,
-      seed: "tap-curriculum-level-4-ties",
+      seed: "tap-curriculum-level-4-sixteenths",
       meter: fourFour,
-      focus: "ties",
-    });
-    const combinedExercise = generateTapRhythmExercise({
-      track: 4,
-      seed: "tap-curriculum-level-4-combined",
-      meter: fourFour,
-      focus: "combined",
+      focus: "sixteenths",
     });
 
+    for (const exercise of [defaultExercise, sixteenthExercise]) {
+      // Written sixteenth onsets are canonical; the protected tolerance-grid
+      // input stays unchanged and actual-local attack gaps handle finer density.
+      expect(exercise.gridTicks).toBe(240);
+      expect(
+        segments(exercise).some(segment => segment.duration.denominator === 16)
+      ).toBe(true);
+    }
     expect(
-      segments(dotExercise).some(segment => segment.duration.dots === 1)
-    ).toBe(true);
+      segments(sixteenthExercise).some(segment => segment.duration.dots === 1)
+    ).toBe(false);
     expect(
-      segments(tieExercise).some(segment => segment.tieGroupId !== undefined)
-    ).toBe(true);
-    expect(
-      segments(combinedExercise).some(segment => segment.duration.dots === 1)
-    ).toBe(true);
-    expect(
-      segments(combinedExercise).some(
+      segments(sixteenthExercise).some(
         segment => segment.tieGroupId !== undefined
       )
-    ).toBe(true);
-    for (const exercise of [dotExercise, tieExercise, combinedExercise]) {
-      expect(
-        segments(exercise).some(
-          segment =>
-            segment.duration.denominator === 16 ||
-            (segment.duration.denominator === 8 && segment.duration.dots === 1)
-        )
-      ).toBe(false);
-    }
+    ).toBe(false);
   });
 
   it("generates Level 5 approved sixteenth combinations within the one-pulse budget", () => {

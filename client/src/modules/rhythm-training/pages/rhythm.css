@@ -139,6 +139,12 @@
 .rhythm-page .rhythm-activity-card.is-selected span {
   color: #795147;
 }
+.rhythm-page .rhythm-chooser-screen .rhythm-screen-heading {
+  margin-bottom: 12px;
+}
+.rhythm-page .rhythm-choose-activity {
+  margin-top: 8px;
+}
 .rhythm-page .module-kicker,
 .rhythm-page .rhythm-eyebrow {
   color: #766b64;
@@ -446,32 +452,6 @@
 }
 
 /* Practice: one focused working surface; the native input target stays mounted. */
-.rhythm-page .rhythm-inline-modes {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.rhythm-page .rhythm-mode-choice {
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid #cbd0cc;
-  border-radius: 8px;
-  background: #fffefa;
-  color: #33464c;
-  font:
-    700 13px/1.2 "DM Sans",
-    sans-serif;
-  cursor: pointer;
-}
-.rhythm-page .rhythm-mode-choice:hover:not(:disabled) {
-  border-color: #ba6a58;
-  background: #fff6f2;
-}
-.rhythm-page .rhythm-mode-choice.is-selected {
-  border-color: #e9ad9d;
-  background: #fff0eb;
-  color: #873d2f;
-}
 .rhythm-page .rhythm-workspace-shell {
   min-width: 0;
 }
@@ -628,6 +608,39 @@
   color: #6a4b42;
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+.rhythm-page .rhythm-mode-badge {
+  width: fit-content;
+  margin: 5px 0 9px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e1c9b8;
+  border-radius: 7px;
+  background: #faf2e9;
+  color: #664627;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rhythm-page .rhythm-session-score {
+  margin: 9px 0;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e5d8c7;
+  border-radius: 8px;
+  background: #faf7f1;
+  color: #44545a;
+  font-size: 12px;
+}
+.rhythm-page .rhythm-session-score strong {
+  margin-left: auto;
+  color: #2e6545;
+  font:
+    800 18px "Manrope",
+    sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 .rhythm-page .rhythm-tap-surface {
   width: 100%;
@@ -1050,6 +1063,42 @@
   line-height: 1.4;
   text-align: center;
 }
+.rhythm-page .rhythm-skip-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  padding: 18px;
+  display: grid;
+  place-items: center;
+  background: rgb(25 34 39 / 48%);
+}
+.rhythm-page .rhythm-skip-dialog {
+  width: min(480px, 100%);
+  padding: 21px;
+  border: 1px solid #e5d7cc;
+  border-radius: 13px;
+  background: var(--rhythm-paper);
+  box-shadow: 0 18px 70px rgb(21 30 34 / 28%);
+}
+.rhythm-page .rhythm-skip-dialog h3 {
+  margin: 0;
+  color: var(--rhythm-ink);
+  font:
+    800 20px/1.25 "Manrope",
+    sans-serif;
+}
+.rhythm-page .rhythm-skip-dialog p {
+  margin: 10px 0 17px;
+  color: #45575c;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.rhythm-page .rhythm-skip-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+}
 
 @media (max-width: 900px) {
   .rhythm-page .rhythm-tracks {
@@ -1152,14 +1201,6 @@
     width: 100%;
     padding-inline: 9px;
   }
-  .rhythm-page .rhythm-inline-modes {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .rhythm-page .rhythm-mode-choice {
-    width: 100%;
-  }
   .rhythm-page .rhythm-volume-control {
     grid-template-columns: auto minmax(0, 1fr) 42px;
   }
@@ -1195,6 +1236,14 @@
   }
   .rhythm-page .rhythm-screen {
     padding: 12px;
+  }
+  .rhythm-page .rhythm-activity-selector {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rhythm-page .rhythm-activity-card {
+    min-height: 68px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    padding: 11px;
   }
   .rhythm-page .rhythm-controls {
     grid-template-columns: minmax(0, 1fr);

@@ -1,5 +1,6 @@
 import type { RhythmPattern, RhythmSegment } from "../types";
 import { durationToTicks } from "./durations";
+import { compoundGroupAt } from "./grouping";
 import { deriveMeter, ticksToSeconds } from "./meters";
 import { rhythmPatternInputSchema } from "./model";
 import { deriveTieRoles, inspectTies } from "./ties";
@@ -87,6 +88,16 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
         });
       try {
         const ticks = durationToTicks(segment.duration);
+        const group = compoundGroupAt(pattern.meter, sum);
+        if (group && sum + ticks > group.endTicks)
+          issues.push({
+            code: "GROUP_SEGMENT_CROSSES_BOUNDARY",
+            path: `${path}.duration`,
+            message:
+              "Every written note or rest in 6/8 and 9/8 must fit wholly within one three-eighth structural group",
+            expectedTicks: group.endTicks - sum,
+            actualTicks: ticks,
+          });
         sum += ticks;
         if (segment.ticks !== undefined && segment.ticks !== ticks)
           issues.push({

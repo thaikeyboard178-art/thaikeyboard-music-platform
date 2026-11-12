@@ -1,5 +1,8 @@
 # Curriculum Update Report — Rhythm Training V1
 
+
+> **Current-policy note — 2026-11-12:** This report records the earlier curriculum update and is retained as history. The latest owner-approved mapping supersedes its mapping where they conflict: L1 basic notes/rests; L2 eighth/binary subdivision; L3 simple-meter material merged with dots, ties, and mixed durations; L4 sixteenths/subdivision; L5 controlled complex combinations; L6 3/8, 6/8, 9/8; optional Bonus 2/2 unchanged. Existing quota values/statuses and all previously approved Phase 1–5/Phase 4A.2 matching, clock, collection/drain, and marker decisions remain unchanged; Tap points use the approved Timing-Accuracy award, and the older fixed Tap per-question reward is superseded. See [Decision Review](./Decision-Review.md) for the active full contract. This later approval is not an implementation, test-pass, release, or physical listening claim; human browser/device/headphone listening has not been performed.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.

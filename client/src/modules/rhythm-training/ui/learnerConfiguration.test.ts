@@ -8,8 +8,10 @@ import {
   getTapSections,
   getTapTempoBand,
   groupingDescription,
+  LEARNER_TRACK_NOTES,
   meterKey,
   pulseDescription,
+  TRACK_LABELS,
 } from "./learnerConfiguration";
 
 describe("Phase5 learner configuration reads approved runtime gates", () => {
@@ -81,6 +83,29 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
       max: 300,
       pulse: "half",
     });
+  });
+  it("shows the remapped Level 3–5 learner scope and available Tap focuses", () => {
+    expect(TRACK_LABELS[3]).toContain("chấm dôi");
+    expect(TRACK_LABELS[3]).toContain("nối");
+    expect(TRACK_LABELS[4]).toContain("Móc kép");
+    expect(TRACK_LABELS[5]).toContain("phức tạp");
+    expect(LEARNER_TRACK_NOTES[3]).toContain("2/4, 3/4 và 4/4");
+    expect(LEARNER_TRACK_NOTES[4]).toContain("móc kép");
+    expect(LEARNER_TRACK_NOTES[5]).toContain("đảo phách");
+    expect(getTapFocuses(3, { numerator: 4, denominator: 4 })).toEqual([
+      "dots",
+      "ties",
+      "combined",
+    ]);
+    expect(getTapFocuses(4, { numerator: 4, denominator: 4 })).toEqual([
+      "dots",
+      "ties",
+      "combined",
+      "sixteenths",
+    ]);
+    expect(getTapFocuses(4, { numerator: 4, denominator: 4 })).not.toContain(
+      "syncopation"
+    );
   });
   it("executes the real generator for every exposed track/meter/focus/bar endpoint combination", () => {
     for (const track of [3, 4, 5, 6, "bonus"] as const)

@@ -1,5 +1,30 @@
 # Rhythm Training V1 — Test và Release Acceptance
 
+
+## Latest owner-approved acceptance addendum — 2026-11-12 (APPROVED; not executed)
+
+This latest addendum supersedes conflicting expectations in older acceptance matrices and prior dated active-policy blocks below. It states future requirements only and is **not** a test result or release approval. Tap per-question points use the formula below, which replaces the former fixed Tap award; non-Tap callers retain +10/+0.
+
+| Curriculum unit | Approved mapping |
+|---|---|
+| Level 1 | Basic notes and rests |
+| Level 2 | Eighth notes/rests and binary subdivision |
+| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
+| Level 4 | Sixteenth notes and subdivision |
+| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 6 | 3/8, 6/8, and 9/8 |
+| Optional Bonus | 2/2; unchanged and optional |
+
+No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+
+Acceptance must verify 3/8, 6/8, and 9/8 each use an eighth = 240 ticks as technical pulse (3/6/9 per bar), without changing meter schema, capacities, defaults, established group/accent hierarchy, or beam policy. Verify 6/8's two and 9/8's three 720-tick groups independently exact-fill; reject any individual note, rest, or tie component that crosses a group boundary. Accept valid tied sustain across boundaries only as adjacent note components each contained within its own group; verify group and full-bar totals.
+
+Verify a separate Tap/Quiz chooser and separate setup paths; Quiz has no audio, selects only eligible IDs randomly without repeated question IDs in one run or duplicate fillers, and maps four actual A–D options through canonical option IDs. Keep every existing approved quota/status unchanged. Verify Tap BPM 30–300 only changes while idle before Play, is locked throughout countdown/collection/drain, and idle retiming keeps the same canonical written exercise and protected Timing Accuracy.
+
+Verify setup-selected mode locks after leaving setup; graded retry/replay is idle practice-only, requires a fresh Play without autoplay/count-in, and cannot create a second answer/score. Verify the graded Tap award is integer `roundHalfUp(10 × TimingAccuracyPercent / 100)` from 0–10, separate from Formula B, and a single cumulative in-memory session total carries across continue/skips but resets only on new run, with no durable persistence or shadow score system. Confirm exact half values round upward and no decimal points are awarded. Verify confirmed graded Skip subtracts 5 once, clamps at zero, is not an answer or technical abort and grants no skipped-question award; Practice/replay Skip is penalty-free; technical abort is neither answer nor Skip. Practice/replay, skip, abort, and no-accuracy receive no positive award. Verify other platform callers, Quiz and Note Reading remain `+10/+0`, and Chord Recognition is unchanged. Preserve all approved primary/supplemental matching, clock, Wpass/Wassoc, collection/drain, marker and Formula B parameters exactly; no threshold changes.
+
+**Validation status:** this addendum records approved requirements only; no tests are claimed as run or passed by it. Human listening on browser/device/headphones has not been performed; physical listening validation remains outstanding.
+
 ## Owner-approved active policy and timing acceptance — 2026-11-12
 
 **APPROVED; active policy.** This supersedes conflicting legacy activity, pulse/BPM/default, Tap scoring/matching, retry, and release-status language below. The old `AT-*` material remains proposed/historical acceptance text where it conflicts; it is not evidence of tests run or passed.

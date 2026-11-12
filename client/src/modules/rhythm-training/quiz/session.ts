@@ -6,7 +6,11 @@ import {
 } from "@/features/training/session";
 import type { QuizQuestion, QuizTrack } from "./questionBank";
 
-export type RhythmQuizSession = TrainingSession<QuizQuestion>;
+export type RhythmQuizSession = TrainingSession<QuizQuestion> &
+  Readonly<{
+    runQuestionIds: readonly string[];
+    seenQuestionIds: readonly string[];
+  }>;
 export type RhythmQuizAnswer = Readonly<{
   questionId: string;
   optionId: string;
@@ -20,7 +24,15 @@ export function createRhythmQuizSession(
 ): RhythmQuizSession {
   if (questions.length === 0)
     throw new RangeError("A Rhythm Quiz run needs at least one question.");
-  return createTrainingSession(
+  const questionIds = questions.map(question => question.id);
+  if (
+    new Set(questionIds).size !== questionIds.length ||
+    questions.some(question => String(question.track) !== String(track))
+  )
+    throw new RangeError(
+      "A Rhythm Quiz session needs unique questions from its selected track."
+    );
+  const session = createTrainingSession(
     {
       moduleId: "rhythm-quiz",
       mode: "challenge",
@@ -31,6 +43,11 @@ export function createRhythmQuizSession(
     },
     questions[0]
   );
+  return {
+    ...session,
+    runQuestionIds: questionIds,
+    seenQuestionIds: [questions[0].id],
+  };
 }
 
 /** Bind canonical question and option IDs; shared scoring owns +10/+0 and duplicate protection. */
@@ -43,22 +60,43 @@ export function submitRhythmQuizAnswer(
   if (
     session.hasAnsweredCurrent ||
     session.completedAt !== null ||
-    answer.questionId !== session.currentExercise.id
+    answer.questionId !== session.currentExercise.id ||
+    !session.currentExercise.options.some(
+      option => option.id === answer.optionId
+    )
   )
     return session;
   const isCorrect = answer.optionId === session.currentExercise.correctOptionId;
-  return submitSessionAnswer(
+  const submitted = submitSessionAnswer(
     session,
     isCorrect,
     responseTimeMs,
     10,
     completedAt
   );
+  return {
+    ...submitted,
+    runQuestionIds: session.runQuestionIds,
+    seenQuestionIds: session.seenQuestionIds,
+  };
 }
 
 export function advanceRhythmQuizSession(
   session: RhythmQuizSession,
   nextQuestion: QuizQuestion
 ): RhythmQuizSession {
-  return advanceSession(session, nextQuestion);
+  if (
+    !session.hasAnsweredCurrent ||
+    session.completedAt !== null ||
+    String(nextQuestion.track) !== String(session.currentExercise.track) ||
+    !session.runQuestionIds.includes(nextQuestion.id) ||
+    session.seenQuestionIds.includes(nextQuestion.id)
+  )
+    return session;
+  const advanced = advanceSession(session, nextQuestion);
+  return {
+    ...advanced,
+    runQuestionIds: session.runQuestionIds,
+    seenQuestionIds: [...session.seenQuestionIds, nextQuestion.id],
+  };
 }

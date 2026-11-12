@@ -29,14 +29,14 @@ const sevenMeters: readonly Readonly<{
     name: "2/4",
     track: 3,
     meter: { numerator: 2, denominator: 4 },
-    focus: "basic",
+    focus: "combined",
     pulseBpm: 72,
   },
   {
     name: "3/4",
     track: 3,
     meter: { numerator: 3, denominator: 4 },
-    focus: "basic",
+    focus: "combined",
     pulseBpm: 72,
   },
   {

@@ -240,13 +240,14 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
     }),
     unit({
       track: 3,
-      title: "Nhịp đơn: 2/4, 3/4, 4/4",
+      title: "Nhịp đơn, nốt chấm dôi và nối trường độ",
       optional: false,
       overview:
-        "Một unit thống nhất dạy pulse quarter, bar length và chuyển giữa ba simple meters.",
+        "Kết hợp nốt chấm dôi, dấu nối và các trường độ đã học trong nhịp 2/4, 3/4, 4/4.",
       objectives: [
         "Nhận diện 2/4, 3/4, 4/4 và số quarter pulses tương ứng.",
-        "Bắt đầu Tap Rhythm từ Level 3; phân biệt pulse, subdivision, onset và silence.",
+        "Tính trường độ nốt đen chấm dôi và nốt trắng chấm dôi.",
+        "Phân biệt dấu nối với chấm dôi và ghép các trường độ trong một ô nhịp.",
       ],
       knowledge: [
         "simple-meter",
@@ -255,30 +256,36 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
         "4/4",
         "quarter-pulse",
         "eighth-subdivision",
+        "dotted-quarter",
+        "dotted-half",
+        "tie",
+        "tie-continuation",
       ],
       lessons: [
         makeLesson(3, 1, "Read the meter", "So sánh 2/4 và độ dài bar.", [
           "2/4",
           "meter",
         ]),
-        makeLesson(3, 2, "Simple triple", "Đếm ba quarter pulses trong 3/4.", [
-          "3/4",
-          "pulse",
-          "accent",
-        ]),
+        makeLesson(
+          3,
+          2,
+          "Dotted durations",
+          "Tính dotted quarter và dotted half bằng tick arithmetic.",
+          ["dot", "dotted-quarter", "dotted-half"]
+        ),
         makeLesson(
           3,
           3,
-          "Simple quadruple",
-          "Đếm bốn quarter pulses trong 4/4.",
-          ["4/4", "pulse", "accent"]
+          "Ties and continuation",
+          "Nối note segments mà không tạo attack thứ hai.",
+          ["tie", "tie-continuation", "onset"]
         ),
         makeLesson(
           3,
           4,
-          "Transfer and onset practice",
-          "Chuyển binary subdivision qua ba meter.",
-          ["onset", "rest", "tap-rhythm"]
+          "Combined rhythms in simple meter",
+          "Ghép dotted values, ties, notes và rests trong 2/4, 3/4, 4/4.",
+          ["combined-rhythm", "simple-meter", "rest"]
         ),
       ],
       exerciseKinds: {
@@ -289,48 +296,58 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
       optionalExerciseKinds: [],
       requiredAssessmentKinds: fullKinds,
       assessmentAllocation: "unspecified",
-      multipleChoiceFocuses: mcSimple,
-      countBeatFocuses: countSimple,
+      multipleChoiceFocuses: mcDotsAndTies,
+      countBeatFocuses: countWithTies,
     }),
     unit({
       track: 4,
-      title: "Dấu chấm dôi và nối trường độ",
+      title: "Móc kép và chia nhỏ phách",
       optional: false,
       overview:
-        "Dạy dotted half/quarter, ties và việc triệt tiêu attack tại tie continuation.",
+        "Giới thiệu lưới sixteenth và các cách chia nhỏ phách, đồng thời vận dụng trường độ đã học ở Level 3.",
       objectives: [
-        "Tính dot bằng giá trị gốc cộng một nửa giá trị gốc.",
-        "Phân biệt tie continuation với re-attack; dotted eighth deferred đến Level 5.",
+        "Đọc bốn vị trí sixteenth trong một quarter pulse và nhận diện dấu lặng tương ứng.",
+        "Ghép sixteenth với nốt, dấu lặng, dotted values và ties đã học.",
+        "Phân biệt onset mới với tie continuation khi đọc các subdivisions.",
       ],
       knowledge: [
+        "sixteenth",
+        "sixteenth-rest",
+        "four-part-subdivision",
+        "subdivision-grid",
         "dotted-quarter",
         "dotted-half",
         "tie",
         "tie-continuation",
-        "rest",
       ],
       lessons: [
-        makeLesson(4, 1, "Dots", "Tính dotted values bằng tick arithmetic.", [
-          "dot",
-          "duration",
-        ]),
+        makeLesson(
+          4,
+          1,
+          "Four-part grid",
+          "Đọc bốn sixteenth positions trong một quarter.",
+          ["sixteenth", "subdivision"]
+        ),
         makeLesson(
           4,
           2,
-          "Ties in a bar",
-          "Nối note segments mà không tạo attack thứ hai.",
-          ["tie", "onset"]
+          "One-beat subdivisions",
+          "Ghép eighth và sixteenth events trong một pulse.",
+          ["eighth", "sixteenth", "subdivision"]
         ),
-        makeLesson(4, 3, "Cross-bar tie", "Giữ count xuyên qua barline.", [
-          "cross-bar-tie",
-          "barline",
-        ]),
+        makeLesson(
+          4,
+          3,
+          "Sixteenth rests and duration",
+          "Giữ đúng subdivisions và bar fill qua các dấu lặng.",
+          ["sixteenth-rest", "rest", "duration"]
+        ),
         makeLesson(
           4,
           4,
-          "Dot and tie contrast",
-          "So sánh duration giống nhau với onset khác nhau.",
-          ["dot", "tie", "rest"]
+          "Mixed subdivisions",
+          "Đọc subdivisions cùng dotted values và tie continuations.",
+          ["subdivision", "dot", "tie"]
         ),
       ],
       exerciseKinds: {
@@ -346,46 +363,52 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
     }),
     unit({
       track: 5,
-      title: "Móc kép, tổ hợp tiết tấu và tiết tấu nâng cao",
+      title: "Tổ hợp tiết tấu phức tạp",
       optional: false,
       overview:
-        "Đưa sixteenth grid và các tổ hợp nâng cao đã duyệt vào một Level 5; không tạo Level 7/8.",
+        "Luyện các tổ hợp nhiều trường độ có kiểm soát, kết hợp nội dung Level 3–4 và đảo phách phù hợp.",
       objectives: [
-        "Đọc bốn sixteenth positions mỗi quarter pulse và ghép với note/rest đã học.",
-        "Củng cố controlled combinations, dots, ties và syncopation trong vocabulary V1.",
+        "Kết hợp nốt và dấu lặng thuộc nhiều trường độ, gồm dots, ties và sixteenths.",
+        "Đọc tổ hợp phức tạp có kiểm soát và nhận diện các onset đảo phách.",
       ],
       knowledge: [
         "sixteenth",
         "sixteenth-rest",
         "dotted-eighth",
-        "controlled-combination",
+        "dotted-quarter",
+        "dotted-half",
+        "tie",
+        "multi-duration-combination",
         "syncopation",
       ],
       lessons: [
         makeLesson(
           5,
           1,
-          "Four-part grid",
-          "Đọc bốn sixteenth positions trong một quarter.",
-          ["sixteenth", "subdivision"]
+          "Review duration families",
+          "Nhận diện và phân biệt các trường độ đã học.",
+          ["duration", "dot", "tie", "sixteenth"]
         ),
-        makeLesson(5, 2, "One-beat cells", "Ghép eighth và sixteenth events.", [
-          "eighth",
-          "sixteenth",
-        ]),
+        makeLesson(
+          5,
+          2,
+          "Multi-duration cells",
+          "Ghép nhiều note và rest values trong một cell.",
+          ["multi-duration-combination", "rest"]
+        ),
         makeLesson(
           5,
           3,
-          "Rests and duration",
-          "Giữ bar fill qua rests, dots và ties.",
-          ["rest", "dot", "tie"]
+          "Ties and dotted subdivisions",
+          "Kết hợp ties và dotted subdivisions mà không đổi bar length.",
+          ["tie", "dot", "subdivision"]
         ),
         makeLesson(
           5,
           4,
-          "Controlled advanced combinations",
-          "Kết hợp có kiểm soát các kiến thức đã học.",
-          ["advanced-combination", "syncopation"]
+          "Controlled complex rhythms",
+          "Kết hợp trường độ đa dạng và đảo phách có kiểm soát.",
+          ["complex-combination", "syncopation"]
         ),
       ],
       exerciseKinds: {

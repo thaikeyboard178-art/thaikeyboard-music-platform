@@ -170,8 +170,9 @@ describe("Phase2 generator integration regressions", () => {
           id: "m",
           segments: [
             { id: "a", kind: "note", duration: { denominator: 8, dots: 0 } },
-            { id: "b", kind: "note", duration: { denominator: 2, dots: 0 } },
+            { id: "b", kind: "note", duration: { denominator: 4, dots: 0 } },
             { id: "c", kind: "note", duration: { denominator: 8, dots: 0 } },
+            { id: "d", kind: "note", duration: { denominator: 4, dots: 0 } },
           ],
         },
       ],

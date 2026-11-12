@@ -92,7 +92,10 @@ describe("canonical rhythm audio plan", () => {
       },
       {
         meter: { numerator: 6, denominator: 8 },
-        segments: [note("six-eight", 2, 1)],
+        segments: [
+          { ...note("six-eight-start", 4, 1), tieGroupId: "six-eight-sustain" },
+          { ...note("six-eight-end", 4, 1), tieGroupId: "six-eight-sustain" },
+        ],
         pulseTicks: 240,
         pulseCount: 6,
         pulseStarts: [0, 240, 480, 720, 960, 1200],

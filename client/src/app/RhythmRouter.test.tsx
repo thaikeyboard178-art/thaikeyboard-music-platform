@@ -32,6 +32,16 @@ describe("Phase5 real lazy Rhythm learner route integration", () => {
     expect(
       await screen.findByRole("heading", { name: "Luyện tiết tấu" })
     ).not.toBeNull();
+    expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(screen.queryByTestId("rhythm-step-progress")).toBeNull();
+    expect(
+      screen.queryByRole("spinbutton", { name: "Nhập tempo BPM" })
+    ).toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: /Tap Rhythm.*Luyện gõ/ })
+    );
     expect(
       (screen.getByRole("button", { name: /^Level 1 —/ }) as HTMLButtonElement)
         .disabled

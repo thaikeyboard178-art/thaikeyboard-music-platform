@@ -119,19 +119,21 @@ describe("consolidated resonant metronome scheduler", () => {
     const { context, oscillators, gains } = nativeLikeAudioContext();
     const settings = settingsAtLevel(1);
     const startTime = 3.125;
-    const stopTime = startTime + 0.22;
+    const stopTime = startTime + 0.18;
+    expect(settings.metronome.durationSeconds).toBeLessThan(60 / 300);
+    expect(settings.metronome.edgeSeconds).toBeLessThanOrEqual(0.001);
     const expectedProfiles = [
       {
         accent: "strong",
-        frequencies: [620, 1480, 2720, 3880],
+        frequencies: [560, 1423, 2705, 3689],
         totalPeak: 0.4,
       },
       {
         accent: "medium",
-        frequencies: [480, 1117, 2050, 3110],
+        frequencies: [446, 1127, 2119, 2963],
         totalPeak: 0.32,
       },
-      { accent: "weak", frequencies: [350, 835, 1540, 2450], totalPeak: 0.24 },
+      { accent: "weak", frequencies: [342, 879, 1613, 2457], totalPeak: 0.24 },
     ] as const;
 
     for (const profile of expectedProfiles) {

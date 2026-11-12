@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RhythmPattern } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
-import { getDefaultPulseBpm } from "../rhythm/meters";
+import { deriveMeter, getDefaultPulseBpm } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import {
   assertLevelConstraints,
@@ -76,28 +76,95 @@ describe("seeded level-constrained rhythm generation", () => {
     }
   });
 
-  it("uses real dots-only, ties-only, and combined provenance at Level 4", () => {
-    const dots = generateRhythmPattern({
-      seed: "dots",
-      level: 4,
-      focus: "dots",
+  it("generates Level 3 dots, ties, and mixed focus across the approved simple meters", () => {
+    const cases = [
+      { numerator: 2, denominator: 4 },
+      { numerator: 3, denominator: 4 },
+      { numerator: 4, denominator: 4 },
+    ] as const;
+    for (const meter of cases) {
+      for (const focus of ["dots", "ties", "combined"] as const) {
+        for (let seed = 0; seed < 6; seed += 1) {
+          const pattern = generateRhythmPattern({
+            seed: `level3/${meter.numerator}/${focus}/${seed}`,
+            level: 3,
+            meter,
+            focus,
+          });
+          const metrics = patternMetrics(pattern);
+          expect(pattern.meter).toEqual(meter);
+          expect(metrics.hasFine).toBe(false);
+          if (focus === "dots")
+            expect(metrics).toMatchObject({ hasDot: true, hasTie: false });
+          if (focus === "ties")
+            expect(metrics).toMatchObject({ hasDot: false, hasTie: true });
+          if (focus === "combined")
+            expect(metrics).toMatchObject({ hasDot: true, hasTie: true });
+          expect(() =>
+            assertLevelConstraints(pattern, {
+              seed: `level3/${meter.numerator}/${focus}/${seed}`,
+              level: 3,
+              meter,
+              focus,
+            })
+          ).not.toThrow();
+        }
+      }
+    }
+    const defaultPattern = generateRhythmPattern({
+      seed: "level3-default-combined",
+      level: 3,
     });
-    const ties = generateRhythmPattern({
-      seed: "ties",
-      level: 4,
-      focus: "ties",
-    });
-    const combined = generateRhythmPattern({
-      seed: "combined",
-      level: 4,
-      focus: "combined",
-    });
-    expect(patternMetrics(dots)).toMatchObject({ hasDot: true, hasTie: false });
-    expect(patternMetrics(ties)).toMatchObject({ hasDot: false, hasTie: true });
-    expect(patternMetrics(combined)).toMatchObject({
+    expect(patternMetrics(defaultPattern)).toMatchObject({
       hasDot: true,
       hasTie: true,
+      hasFine: false,
     });
+  });
+
+  it("keeps Level 4 dots and ties available and genuinely generates sixteenth notes and rests", () => {
+    for (const focus of ["dots", "ties", "combined"] as const) {
+      const pattern = generateRhythmPattern({
+        seed: `level4/${focus}`,
+        level: 4,
+        focus,
+      });
+      const metrics = patternMetrics(pattern);
+      expect(metrics.hasFine).toBe(false);
+      if (focus === "dots")
+        expect(metrics).toMatchObject({ hasDot: true, hasTie: false });
+      if (focus === "ties")
+        expect(metrics).toMatchObject({ hasDot: false, hasTie: true });
+      if (focus === "combined")
+        expect(metrics).toMatchObject({ hasDot: true, hasTie: true });
+    }
+
+    let sawSixteenthNote = false;
+    let sawSixteenthRest = false;
+    for (let seed = 0; seed < 60; seed += 1) {
+      const pattern = generateRhythmPattern({
+        seed: `level4-sixteenths-${seed}`,
+        level: 4,
+        focus: "sixteenths",
+      });
+      const segments = pattern.measures.flatMap(measure => measure.segments);
+      const sixteenths = segments.filter(
+        segment => segment.duration.denominator === 16
+      );
+      expect(patternMetrics(pattern).hasFine).toBe(true);
+      expect(patternMetrics(pattern).hasDot).toBe(false);
+      expect(patternMetrics(pattern).hasTie).toBe(false);
+      sawSixteenthNote ||= sixteenths.some(segment => segment.kind === "note");
+      sawSixteenthRest ||= sixteenths.some(segment => segment.kind === "rest");
+    }
+    expect(sawSixteenthNote).toBe(true);
+    expect(sawSixteenthRest).toBe(true);
+
+    const defaultPattern = generateRhythmPattern({
+      seed: "level4-default",
+      level: 4,
+    });
+    expect(patternMetrics(defaultPattern).hasFine).toBe(true);
   });
 
   it("keeps Level 5 sixteenth-family notation inside one pulse per bar", () => {
@@ -170,6 +237,72 @@ describe("seeded level-constrained rhythm generation", () => {
     }
   });
 
+  it("builds every Level 6 6/8 and 9/8 focus from complete independent 720-tick groups", () => {
+    for (const meter of [
+      { numerator: 6, denominator: 8 },
+      { numerator: 9, denominator: 8 },
+    ] as const) {
+      const info = deriveMeter(meter);
+      const foci = ["basic", "compound", "dots", "ties", "combined"] as const;
+      for (const focus of foci) {
+        for (let seed = 0; seed < 8; seed += 1) {
+          const pattern = generateRhythmPattern({
+            seed: `groups/${meter.numerator}/${focus}/${seed}`,
+            level: 6,
+            meter,
+            focus,
+            pulseBpm: 72,
+          });
+          const timeline = deriveRhythmTimeline(pattern, 120);
+          expect(timeline.meter.pulseTicks).toBe(240);
+          expect(timeline.meter.groupStarts).toEqual(info.groupStarts);
+          expect(timeline.totalTicks).toBe(info.measureTicks);
+          for (
+            let measureIndex = 0;
+            measureIndex < pattern.measures.length;
+            measureIndex += 1
+          ) {
+            const measure = timeline.segments.filter(
+              position => position.measureIndex === measureIndex
+            );
+            const groupTotals = info.groupStarts.map((start, groupIndex) => {
+              const end = info.groupStarts[groupIndex + 1] ?? info.measureTicks;
+              return measure
+                .filter(
+                  position =>
+                    position.measureOffsetTicks >= start &&
+                    position.measureOffsetTicks < end
+                )
+                .reduce((sum, position) => sum + position.durationTicks, 0);
+            });
+            expect(groupTotals).toEqual(
+              Array.from({ length: meter.numerator / 3 }, () => 720)
+            );
+            for (const position of measure) {
+              const groupIndex = info.groupStarts.findIndex(
+                (start, index) =>
+                  position.measureOffsetTicks >= start &&
+                  position.measureOffsetTicks + position.durationTicks <=
+                    (info.groupStarts[index + 1] ?? info.measureTicks)
+              );
+              expect(groupIndex).toBeGreaterThanOrEqual(0);
+              expect(position.durationTicks).toBeLessThanOrEqual(720);
+            }
+          }
+          expect(() =>
+            assertLevelConstraints(pattern, {
+              seed: `groups/${meter.numerator}/${focus}/${seed}`,
+              level: 6,
+              meter,
+              focus,
+              pulseBpm: 72,
+            })
+          ).not.toThrow();
+        }
+      }
+    }
+  });
+
   it("supports optional 2/2 Bonus as two half-note pulses, not as another numbered level", () => {
     const pattern = generateRhythmPattern({
       seed: "alla-breve",
@@ -187,22 +320,24 @@ describe("seeded level-constrained rhythm generation", () => {
     expect(timeline.totalTicks).toBe(1920);
   });
 
-  it("creates complete two-bar cross-bar ties only when requested", () => {
-    const pattern = generateRhythmPattern({
-      seed: "cross-bar",
-      level: 4,
-      bars: 2,
-      meter: { numerator: 4, denominator: 4 },
-      focus: "ties",
-    });
-    const tied = pattern.measures
-      .flatMap(measure => measure.segments)
-      .filter(segment => segment.tieGroupId === "tie-1");
-    expect(pattern.measures).toHaveLength(2);
-    expect(tied).toHaveLength(2);
-    expect(pattern.measures[0].segments.at(-1)?.tieGroupId).toBe("tie-1");
-    expect(pattern.measures[1].segments[0].tieGroupId).toBe("tie-1");
-    expect(deriveRhythmTimeline(pattern).onsets).not.toContain(1920);
+  it("creates complete two-bar cross-bar ties only when requested at Levels 3 and 4", () => {
+    for (const level of [3, 4] as const) {
+      const pattern = generateRhythmPattern({
+        seed: `cross-bar-${level}`,
+        level,
+        bars: 2,
+        meter: { numerator: 4, denominator: 4 },
+        focus: "ties",
+      });
+      const tied = pattern.measures
+        .flatMap(measure => measure.segments)
+        .filter(segment => segment.tieGroupId === "tie-1");
+      expect(pattern.measures).toHaveLength(2);
+      expect(tied).toHaveLength(2);
+      expect(pattern.measures[0].segments.at(-1)?.tieGroupId).toBe("tie-1");
+      expect(pattern.measures[1].segments[0].tieGroupId).toBe("tie-1");
+      expect(deriveRhythmTimeline(pattern).onsets).not.toContain(1920);
+    }
   });
 
   it("rejects invalid level, meter, seed, bar, focus, and tempo configurations", () => {
@@ -245,7 +380,7 @@ describe("seeded level-constrained rhythm generation", () => {
     expect(() =>
       assertLevelConstraints(dottedLevel3, {
         seed: "audit",
-        level: 3,
+        level: 2,
         meter: { numerator: 4, denominator: 4 },
         pulseBpm: 72,
       })

@@ -1,5 +1,12 @@
 # Rhythm Training V1 — Yêu cầu Nhịp và Ký hiệu
 
+
+## Latest owner-approved active meter/grouping policy — 2026-11-12 (APPROVED)
+
+This update supersedes only conflicting technical-pulse wording in earlier active summaries; meter serialization and established mathematics remain unchanged. For 3/8, 6/8, and 9/8, each eighth is the 240-tick technical pulse counted for BPM, yielding 3, 6, and 9 pulses/bar. Preserve existing defaults, bar capacities, schema, and distinct musical grouping/presentation: 3/8 `Sww`; 6/8 two groups `3+3`, `Sww|Mww`; 9/8 three groups `3+3+3`, `Sww|Mww|Mww`. Strong/medium/weak hierarchy and approved eighth-note beam rules do not change. Global Tap BPM is 30–300.
+
+In 6/8 each group consists of exactly three eighths = 720 ticks; in 9/8 each group consists of exactly three eighths = 720 ticks. Each individual note, rest, or tie component must remain wholly within one group. A valid tie may carry sound across a group boundary only as adjacent tied note components, each wholly within a group; no single written component crosses it. Each group and the entire bar must exact-fill. These are validation/group constraints, not a meter-schema or pulse-math change. Curriculum active mapping: L1 basic notes/rests; L2 eighth/binary subdivision; L3 simple-meter content merged with dots/ties/mixed durations; L4 sixteenths/subdivision; L5 controlled complex combinations; L6 3/8, 6/8, 9/8; optional Bonus 2/2 unchanged. Quotas remain unchanged. Approval does not assert code, test, notation-renderer or audio implementation; human device/headphone listening has not been performed.
+
 ## Owner-approved active timing supersession — 2026-11-12
 
 **APPROVED; active policy.** This supersedes conflicting older technical-pulse/BPM/default wording below, while preserving musical identity, grouping, and accents. PPQ remains 480; each eighth is 240 ticks.

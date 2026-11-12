@@ -61,7 +61,9 @@ export type CountBeatEvaluation = Readonly<{
 }>;
 
 function gridForTrack(track: RhythmTrack): number {
-  if (track === 5) return 120;
+  // Keep this compatibility utility aligned with the taught subdivision:
+  // Levels 4 and 5 both include sixteenth-family notation.
+  if (track === 4 || track === 5) return 120;
   if (track === "bonus") return 240;
   if (track === 1) return 480;
   return 240;

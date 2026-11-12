@@ -303,7 +303,7 @@ function pendingAudioController(
 }
 
 describe("Tap practice and graded controller experience", () => {
-  it("keeps practice unscored, then grades the same exercise once and preserves that receipt through retry", async () => {
+  it("keeps practice unscored and mode-locked until fresh Setup, then preserves one graded receipt through retry", async () => {
     const h = injectedHarness();
     const preparedExercise = await prepared(h.controller);
     expect(h.controller.chooseMode("practice")).toBe(true);
@@ -323,6 +323,9 @@ describe("Tap practice and graded controller experience", () => {
     expect(practiceState.session?.questionsAnswered).toBe(0);
     expect(practiceState.session?.correctAnswers).toBe(0);
 
+    expect(h.controller.chooseMode("graded")).toBe(false);
+    expect(h.controller.getSnapshot().selectedMode).toBe("practice");
+    expect(await prepared(h.controller)).toBe(preparedExercise);
     expect(h.controller.chooseMode("graded")).toBe(true);
     await h.controller.start();
     await finishAttempt(h);
