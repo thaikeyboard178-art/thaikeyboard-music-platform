@@ -89,6 +89,30 @@
   font-size: 13px;
   line-height: 1.5;
 }
+.rhythm-page .rhythm-setup-heading-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.rhythm-page .rhythm-setup-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.rhythm-page .rhythm-setup-title-row h2 {
+  flex: 0 0 auto;
+}
+.rhythm-page .rhythm-setup-title-row .rhythm-top-return {
+  max-width: 100%;
+  margin-left: auto;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.rhythm-page .rhythm-setup-title-row + p {
+  margin-top: 5px;
+}
 .rhythm-page .rhythm-activity-selector {
   margin: 0 0 17px;
   display: grid;

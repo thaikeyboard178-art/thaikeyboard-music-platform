@@ -184,16 +184,22 @@ describe("Rhythm learner page: three screens and real controller integration", (
         name: /Rhythm Quiz/,
       })
     ).toBeNull();
+    const setup = screen.getByTestId("screen-setup");
+    const setupHeading = within(setup).getByRole("heading", {
+      name: "Thiết lập Tap Rhythm",
+    });
     const headingActions = screen.getByTestId("rhythm-heading-actions");
     const setupReturn = screen.getByRole("button", {
       name: "Quay về Rhythm Training",
     });
-    expect(headingActions.lastElementChild).toBe(setupReturn);
+    const setupTitleRow = setup.querySelector(".rhythm-setup-title-row");
     expect(
-      within(screen.getByTestId("screen-setup")).queryByRole("button", {
+      within(headingActions).queryByRole("button", {
         name: "Quay về Rhythm Training",
       })
     ).toBeNull();
+    expect(setupTitleRow?.firstElementChild).toBe(setupHeading);
+    expect(setupTitleRow?.lastElementChild).toBe(setupReturn);
     await user.click(
       setupReturn
     );

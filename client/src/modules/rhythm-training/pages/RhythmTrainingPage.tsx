@@ -721,20 +721,11 @@ export default function RhythmTrainingPage() {
                   : "Nhìn ký âm. Nghe nhịp. Chạm đúng lúc bắt đầu mỗi nốt."}
             </p>
           </div>
-          <div className="rhythm-heading-actions" data-testid="rhythm-heading-actions">
-            <span className="free-pill">
-              <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
-            </span>
-            {screen === "setup" && selectedActivity === "tap" && (
-              <button
-                type="button"
-                className="rhythm-top-return"
-                onClick={() => transitionTo("chooser")}
-              >
-                Quay về Rhythm Training
-              </button>
-            )}
-          </div>
+        <div className="rhythm-heading-actions" data-testid="rhythm-heading-actions">
+          <span className="free-pill">
+            <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
+          </span>
+        </div>
         </div>
 
         {progressStep !== null && <RhythmStepProgress current={progressStep} />}
@@ -788,14 +779,23 @@ export default function RhythmTrainingPage() {
           hidden={screen !== "setup"}
         >
           <div className="rhythm-screen-heading">
-            <div>
+            <div className="rhythm-setup-heading-copy">
               <span className="module-kicker">MÀN HÌNH 1 · THIẾT LẬP</span>
-              <h2 id="rhythm-setup-title">Thiết lập Tap Rhythm</h2>
+              <div className="rhythm-setup-title-row">
+                <h2 id="rhythm-setup-title">Thiết lập Tap Rhythm</h2>
+                <button
+                  type="button"
+                  className="rhythm-top-return"
+                  onClick={() => transitionTo("chooser")}
+                >
+                  Quay về Rhythm Training
+                </button>
+              </div>
               <p>Chọn cấp độ, nhịp, nội dung luyện, số ô nhịp và tempo.</p>
+              <span className="rhythm-note">
+                Level 1–6 và Bonus 2/2 theo vocabulary/generator gate hiện hành.
+              </span>
             </div>
-            <span className="rhythm-note">
-              Level 1–6 và Bonus 2/2 theo vocabulary/generator gate hiện hành.
-            </span>
           </div>
 
           <div className="rhythm-tracks" aria-label="Cấp độ Tap Rhythm">
