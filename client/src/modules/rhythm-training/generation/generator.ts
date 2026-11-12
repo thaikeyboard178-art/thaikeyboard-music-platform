@@ -20,7 +20,7 @@ export type RhythmGenerationConfig = Readonly<{
   readonly seed: string;
   readonly level: RhythmTrack;
   readonly meter?: RhythmMeter;
-  readonly bars?: 1 | 2;
+  readonly bars?: 1 | 2 | 4;
   readonly pulseBpm?: number;
   readonly focus?:
     | "basic"
@@ -48,7 +48,7 @@ type RawSegment = {
 type ResolvedConfig = Readonly<{
   policy: LevelPolicy;
   meter: RhythmMeter;
-  bars: 1 | 2;
+  bars: 1 | 2 | 4;
   pulseBpm: number;
   focus: RhythmFocus;
   features: Features;
@@ -141,8 +141,13 @@ function validateBasicConfig(input: RhythmGenerationConfig): void {
   ) {
     fail("Generation config level must be 1 through 6 or the Bonus track.");
   }
-  if (input.bars !== undefined && input.bars !== 1 && input.bars !== 2) {
-    fail("Generation config bars must be 1 or 2.");
+  if (
+    input.bars !== undefined &&
+    input.bars !== 1 &&
+    input.bars !== 2 &&
+    input.bars !== 4
+  ) {
+    fail("Generation config bars must be 1, 2, or 4.");
   }
   if (input.focus !== undefined && !hasFocus(input.focus)) {
     fail("Generation config focus is unsupported.");
@@ -555,7 +560,11 @@ function applyIntraBarTie(
 }
 
 function applyCrossBarTie(bars: RawSegment[][]): boolean {
-  if (bars.length !== 2 || bars[0].length === 0 || bars[1].length === 0)
+  if (
+    (bars.length !== 2 && bars.length !== 4) ||
+    bars[0].length === 0 ||
+    bars[1].length === 0
+  )
     return false;
   const left = bars[0][bars[0].length - 1];
   const right = bars[1][0];
@@ -919,8 +928,12 @@ export function assertLevelConstraints(
       ) {
         fail("Cross-bar ties are not enabled for this level.");
       }
-      if (firstMeasure !== secondMeasure && canonical.measures.length !== 2) {
-        fail("Cross-bar ties require exactly two bars.");
+      if (
+        firstMeasure !== secondMeasure &&
+        canonical.measures.length !== 2 &&
+        canonical.measures.length !== 4
+      ) {
+        fail("Cross-bar ties require two or four bars.");
       }
     }
   }
@@ -957,7 +970,7 @@ export function generateRhythmPattern(
       (resolved.focus !== "syncopation" || random() < 0.5)
     ) {
       const tied =
-        resolved.bars === 2 &&
+        (resolved.bars === 2 || resolved.bars === 4) &&
         resolved.policy.allowCrossBarTies &&
         !resolved.features.sixteenths
           ? applyCrossBarTie(bars)

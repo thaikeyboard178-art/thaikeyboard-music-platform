@@ -10,6 +10,9 @@ type TapResultPanelProps = Readonly<{
   onContinue: () => void;
   busy?: boolean;
   lesson?: boolean;
+  retryLabel?: string;
+  continueLabel?: string;
+  practiceLabel?: string;
 }>;
 
 type TapStatusCounts = Readonly<{
@@ -131,6 +134,9 @@ export function TapResultPanel({
   onContinue,
   busy = false,
   lesson = false,
+  retryLabel = "Luyện lại",
+  continueLabel = "Tiếp tục",
+  practiceLabel = "Luyện lại — không ghi thêm điểm",
 }: TapResultPanelProps) {
   const summary = summarizeTapResult(result);
   const evaluation = result.evaluation;
@@ -172,9 +178,7 @@ export function TapResultPanel({
           </p>
         )}
         {result.mode === "practice" && !lesson && (
-          <p className="rhythm-practice-label">
-            Luyện lại — không ghi thêm điểm
-          </p>
+          <p className="rhythm-practice-label">{practiceLabel}</p>
         )}
 
         {showStatusDetails && summary.counts && evaluation && (
@@ -289,8 +293,9 @@ export function TapResultPanel({
 
         {result.mode === "practice" && !lesson && (
           <p className="rhythm-original-points">
-            Điểm đã ghi từ bài chấm trước: {formatPoints(originalPoints)}. Điểm
-            này được giữ nguyên, không tính lại ở lượt luyện.
+            {originalPoints === 10 || originalPoints === 0
+              ? `Điểm đã ghi từ bài chấm trước: ${formatPoints(originalPoints)}. Điểm này được giữ nguyên, không tính lại ở lượt luyện.`
+              : "Chơi thử không tạo câu trả lời chấm điểm hoặc điểm chính thức."}
           </p>
         )}
       </div>
@@ -302,7 +307,7 @@ export function TapResultPanel({
           onClick={onRetry}
           disabled={busy}
         >
-          Luyện lại
+          {retryLabel}
         </button>
         <button
           className="rhythm-primary"
@@ -310,7 +315,7 @@ export function TapResultPanel({
           onClick={onContinue}
           disabled={busy}
         >
-          Tiếp tục
+          {continueLabel}
         </button>
       </div>
     </section>

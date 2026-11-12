@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/freepats/upright-piano-KW",
+  "revision": "570f6c60ed2eff67accad3b85d5b452e57a3ad28",
+  "sample": "https://raw.githubusercontent.com/freepats/upright-piano-KW/570f6c60ed2eff67accad3b85d5b452e57a3ad28/samples/C4vL.flac",
+  "license": "CC0-1.0",
+  "originalSha256": "4382a54ffbb731cc8c7d8d88e322b1d669d6d44ccdca71eb17860d3c81967b4f",
+  "bundled": {
+    "path": "client/src/modules/rhythm-training/assets/piano-c4.wav",
+    "bytes": 708606,
+    "rate": 44100,
+    "frames": 354264,
+    "durationSeconds": 8.033197278911565,
+    "channels": 1,
+    "sha256": "3564d010fdd5d42d7c3c6f3b3afc4a51219a373b98c95ac2e5944aa46d610482"
+  },
+  "transformation": "FFmpeg -ac 1 -ar 44100 -af volume=0.8 -c:a pcm_s16le",
+  "recording": "FreePats Kawai upright, C4vL (recorded piano, not synthesized)",
+  "loopFrames": {
+    "start": 199374,
+    "end": 354248
+  }
+}

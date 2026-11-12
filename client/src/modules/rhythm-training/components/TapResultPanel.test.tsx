@@ -58,6 +58,29 @@ function technicalAttempt() {
 afterEach(cleanup);
 
 describe("TapResultPanel", () => {
+  it("shows first play-only feedback without an official score or invented prior graded receipt", () => {
+    render(
+      <TapResultPanel
+        result={completedAttempt("practice")}
+        points={null}
+        originalPoints={null}
+        onRetry={() => undefined}
+        onContinue={() => undefined}
+        retryLabel="Chơi lại"
+        continueLabel="Bài tiếp theo"
+        practiceLabel="Chơi thử — Timing Accuracy tham khảo, không ghi điểm"
+      />
+    );
+    expect(screen.getByTestId("tap-accuracy").textContent).toBe("25%");
+    expect(screen.queryByTestId("tap-points")).toBeNull();
+    expect(screen.queryByText(/Điểm đã ghi từ bài chấm trước/)).toBeNull();
+    expect(
+      screen.getByText(/Chơi thử không tạo câu trả lời chấm điểm/)
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Chơi lại" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Bài tiếp theo" })).toBeTruthy();
+  });
+
   it("presents actual matcher statuses, Formula B accuracy, and the shared exercise points", () => {
     const result = completedAttempt();
     expect(result.evaluation?.targetResults.map(item => item.status)).toEqual([

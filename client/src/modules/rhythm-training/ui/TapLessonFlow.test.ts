@@ -53,7 +53,7 @@ describe("Phase5 approved Lessons are ungraded worked examples", () => {
       expect(state.session?.incorrectAnswers).toBe(0);
       expect(state.session?.hasAnsweredCurrent).toBe(false);
       expect(state.session?.totalScore).toBe(0);
-      expect(state.points).toBe(0);
+      expect(state.points).toBeNull();
       expect(state.originalPoints).toBeNull();
       expect(state.gradedResult).toBeNull();
       await controller.dispose();

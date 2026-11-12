@@ -48,7 +48,7 @@ export type GenerateTapRhythmExerciseInput = Readonly<{
   section?: CurriculumSection;
   seed: string | number;
   meter?: RhythmMeter;
-  bars?: 1 | 2;
+  bars?: 1 | 2 | 4;
   focus?: RhythmFocus;
   pulseBpm?: number;
 }>;
@@ -122,14 +122,18 @@ function auditPatternForTrack(
   track: RhythmTrack,
   focus: RhythmFocus
 ): void {
-  if (pattern.measures.length !== 1 && pattern.measures.length !== 2) {
-    fail("Tap Rhythm exercises must contain one or two bars.");
+  if (
+    pattern.measures.length !== 1 &&
+    pattern.measures.length !== 2 &&
+    pattern.measures.length !== 4
+  ) {
+    fail("Tap Rhythm exercises must contain one, two, or four bars.");
   }
   const config = {
     seed: "tap-level-audit",
     level: track,
     meter: pattern.meter,
-    bars: pattern.measures.length as 1 | 2,
+    bars: pattern.measures.length as 1 | 2 | 4,
     pulseBpm: pattern.tempo.pulseBpm,
     focus,
   } as const;

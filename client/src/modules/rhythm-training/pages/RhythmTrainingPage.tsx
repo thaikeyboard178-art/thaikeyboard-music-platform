@@ -11,17 +11,20 @@ import {
   ChevronRight,
   Headphones,
   Play,
+  RotateCcw,
   Square,
+  Volume2,
   Waves,
 } from "lucide-react";
-import { TrainingHeader, TrainingFooter } from "@/app/TrainingShell";
+import { TrainingFooter, TrainingHeader } from "@/app/TrainingShell";
 import {
   getRhythmCurriculum,
   getCurriculumUnit,
-  type CurriculumSection,
 } from "../curriculum/curriculum";
+import { generateRhythmPattern } from "../generation/generator";
 import { policyForLevel, type RhythmFocus } from "../generation/levels";
-import type { RhythmTrack } from "../types";
+import type { TapAttemptResult } from "../exercises/tapCompletion";
+import type { RhythmMeter, RhythmTrack } from "../types";
 import {
   TapTrainingController,
   type TapUiConfiguration,
@@ -43,32 +46,62 @@ import {
 } from "../ui/learnerConfiguration";
 import { RhythmNotation } from "../components/RhythmNotation";
 import { TapResultPanel } from "../components/TapResultPanel";
+import { TapResultNotation } from "../components/TapResultNotation";
+import { VisualMetronome } from "../components/VisualMetronome";
 import "./rhythm.css";
 
+type PageScreen = "setup" | "practice" | "result";
+type PracticeStage = "mode" | "exercise";
+type ReceiptChoice = "latest" | "graded";
+type TapMode = "practice" | "graded";
+
 const ACTIVE_PHASES = new Set([
+  "preparing",
   "starting",
   "count-in",
   "collecting",
   "draining",
   "reference",
-  "preparing",
 ]);
+
 const PHASE_COPY: Record<string, string> = {
-  setup: "Chọn cấp độ và mở một bài Tap Rhythm.",
+  setup: "Chọn cấu hình bài luyện.",
   preparing: "Đang tạo bài theo curriculum…",
-  ready: "Sẵn sàng — có thể nghe mẫu một lần hoặc bắt đầu.",
-  idle: "Sẵn sàng — có thể nghe mẫu một lần hoặc bắt đầu.",
-  reference: "Đang phát mẫu — chỉ nghe, bài chưa được chấm.",
+  ready: "Sẵn sàng — có thể nghe mẫu hoặc bắt đầu.",
+  idle: "Sẵn sàng — có thể nghe mẫu hoặc bắt đầu.",
+  reference: "Đang phát mẫu — bài chưa được chấm.",
   starting: "Đang mở âm thanh…",
-  "count-in": "Đếm vào 1 ô nhịp — nghe click và chuẩn bị chạm.",
-  collecting: "Đang luyện — chạm ở đầu mỗi nốt, giữ nhịp qua dấu lặng.",
+  "count-in": "Đếm vào một ô nhịp — nghe click và chuẩn bị chạm.",
+  collecting: "Đang thực hiện — chạm ở đầu mỗi nốt, giữ nhịp qua dấu lặng.",
   draining: "Đang hoàn tất bài — vui lòng chờ kết quả.",
-  completed: "Đã hoàn thành — xem phản hồi bên dưới.",
+  completed: "Đã hoàn thành — đang mở kết quả.",
   aborted: "Bài chưa được chấm — đây không phải lỗi của bạn.",
-  empty: "Bài không có onset cần thực hiện. Không chấm điểm bài này.",
+  empty: "Bài không có onset cần thực hiện.",
   error: "Chưa thể mở bài. Hãy kiểm tra cấu hình và thử lại.",
   disposed: "Đã đóng bài luyện.",
 };
+
+function defaultTempo(track: RhythmTrack, meter: RhythmMeter): number {
+  const generated = generateRhythmPattern({
+    level: track,
+    seed: `rhythm-ui-setup-default-${String(track)}-${meterKey(meter)}`,
+    meter,
+    bars: 2,
+    focus: policyForLevel(track).defaultFocus,
+  });
+  return generated.tempo.pulseBpm;
+}
+
+function isFinalReceipt(
+  receipt: TapAttemptResult | null,
+  phase: string
+): receipt is TapAttemptResult {
+  return (
+    receipt !== null &&
+    (receipt.status === "completed" || receipt.status === "technical-abort") &&
+    (phase === "completed" || phase === "aborted")
+  );
+}
 
 export default function RhythmTrainingPage() {
   const tapRef = useRef<HTMLDivElement>(null);
@@ -81,35 +114,39 @@ export default function RhythmTrainingPage() {
   );
   const getSnapshot = useCallback(() => controller.getSnapshot(), [controller]);
   const view = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
   const [track, setTrack] = useState<RhythmTrack>(3);
-  const [section, setSection] = useState<CurriculumSection>("practice");
   const [selectedMeter, setSelectedMeter] = useState(() =>
     meterKey(defaultTapMeter(3))
   );
-  const [bars, setBars] = useState<1 | 2>(1);
+  const [bars, setBars] = useState<1 | 2 | 4>(2);
   const [focus, setFocus] = useState<RhythmFocus>(
     policyForLevel(3).defaultFocus
   );
-  const [tempo, setTempo] = useState("default");
+  const [tempo, setTempo] = useState(() => defaultTempo(3, defaultTapMeter(3)));
+  const [tempoInput, setTempoInput] = useState(() =>
+    String(defaultTempo(3, defaultTapMeter(3)))
+  );
+  const [screen, setScreen] = useState<PageScreen>("setup");
+  const [practiceStage, setPracticeStage] = useState<PracticeStage>("mode");
   const [notationReady, setNotationReady] = useState(false);
   const [tapFlash, setTapFlash] = useState(false);
+  const [metronomeVolume, setMetronomeVolume] = useState(() =>
+    controller.getMetronomeVolume()
+  );
+  const [previewing, setPreviewing] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [receiptChoice, setReceiptChoice] = useState<ReceiptChoice>("latest");
+  const screenRef = useRef<PageScreen>(screen);
+  const phaseRef = useRef(view.phase);
+  const latestAutoReceipt = useRef<TapAttemptResult | null>(null);
   const mountToken = useRef(0);
+  const historyKey = useRef(
+    `rhythm-training-${Math.random().toString(36).slice(2)}`
+  );
 
-  useEffect(() => {
-    const token = ++mountToken.current;
-    return () => {
-      // Effect replay in React StrictMode must not dispose a remounted controller.
-      queueMicrotask(() => {
-        if (mountToken.current === token) void controller.dispose();
-      });
-    };
-  }, [controller]);
-  useEffect(() => {
-    if (view.tapVisualSequence === 0) return;
-    setTapFlash(true);
-    const id = globalThis.setTimeout(() => setTapFlash(false), 140);
-    return () => globalThis.clearTimeout(id);
-  }, [view.tapVisualSequence]);
+  screenRef.current = screen;
+  phaseRef.current = view.phase;
 
   const unit = getCurriculumUnit(track);
   const meter =
@@ -120,54 +157,259 @@ export default function RhythmTrainingPage() {
   const active = ACTIVE_PHASES.has(view.phase);
   const locked = active || view.busy;
   const hasExercise = view.exercise !== null;
-  const canStart =
-    hasExercise && notationReady && !locked && controller.canStart;
   const configuration: TapUiConfiguration = {
     track,
-    section,
+    section: "practice",
     meter,
     bars,
     focus,
-    ...(tempo === "default" ? {} : { pulseBpm: Number(tempo) }),
+    pulseBpm: tempo,
   };
+  const finalLatestReceipt = isFinalReceipt(view.result, view.phase)
+    ? view.result
+    : null;
+  const selectedReceipt =
+    receiptChoice === "graded" && view.gradedResult
+      ? view.gradedResult
+      : finalLatestReceipt;
+  const showResult = screen === "result" && selectedReceipt !== null;
+  const canStart = hasExercise && notationReady && controller.canStart;
+  const screenTransitionBlocked = active;
+
+  useEffect(() => {
+    const token = ++mountToken.current;
+    return () => {
+      // Effect replay in React StrictMode must not dispose a remounted controller.
+      queueMicrotask(() => {
+        if (mountToken.current === token) void controller.dispose();
+      });
+    };
+  }, [controller]);
+
+  useEffect(() => {
+    if (view.tapVisualSequence === 0) return;
+    setTapFlash(true);
+    const id = globalThis.setTimeout(() => setTapFlash(false), 140);
+    return () => globalThis.clearTimeout(id);
+  }, [view.tapVisualSequence]);
+
+  useEffect(() => {
+    if (view.phase === "empty") setPracticeStage("exercise");
+  }, [view.phase]);
+
+  useEffect(() => {
+    if (!view.result || !isFinalReceipt(view.result, view.phase)) return;
+    if (latestAutoReceipt.current === view.result) return;
+    latestAutoReceipt.current = view.result;
+    setReceiptChoice("latest");
+    setScreen("result");
+    screenRef.current = "result";
+    const current = window.history.state ?? {};
+    window.history.pushState(
+      {
+        ...current,
+        rhythmTrainingKey: historyKey.current,
+        rhythmTrainingScreen: "result",
+      },
+      "",
+      window.location.href
+    );
+  }, [view.phase, view.result]);
+
+  useEffect(() => {
+    const current = window.history.state ?? {};
+    if (current.rhythmTrainingKey !== historyKey.current) {
+      window.history.replaceState(
+        {
+          ...current,
+          rhythmTrainingKey: historyKey.current,
+          rhythmTrainingScreen: "setup",
+        },
+        "",
+        window.location.href
+      );
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (ACTIVE_PHASES.has(phaseRef.current)) {
+        const latest = window.history.state ?? {};
+        window.history.pushState(
+          {
+            ...latest,
+            rhythmTrainingKey: historyKey.current,
+            rhythmTrainingScreen: screenRef.current,
+          },
+          "",
+          window.location.href
+        );
+        return;
+      }
+      const nextScreen =
+        event.state?.rhythmTrainingKey === historyKey.current &&
+        ["setup", "practice", "result"].includes(
+          event.state.rhythmTrainingScreen
+        )
+          ? (event.state.rhythmTrainingScreen as PageScreen)
+          : "setup";
+      if (
+        nextScreen === "result" &&
+        !isFinalReceipt(view.result, phaseRef.current)
+      ) {
+        const safeScreen = view.exercise ? "practice" : "setup";
+        screenRef.current = safeScreen;
+        setScreen(safeScreen);
+        return;
+      }
+      screenRef.current = nextScreen;
+      setScreen(nextScreen);
+      if (nextScreen === "result") setReceiptChoice("latest");
+      if (nextScreen === "practice" && view.exercise)
+        setPracticeStage("exercise");
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [view.exercise, view.result]);
+
+  useEffect(() => {
+    if (!previewing) return;
+    return () => controller.stopPreview();
+  }, [controller, previewing]);
+
+  function transitionTo(next: PageScreen) {
+    if (screenTransitionBlocked) return;
+    screenRef.current = next;
+    setScreen(next);
+    const current = window.history.state ?? {};
+    window.history.pushState(
+      {
+        ...current,
+        rhythmTrainingKey: historyKey.current,
+        rhythmTrainingScreen: next,
+      },
+      "",
+      window.location.href
+    );
+  }
 
   function selectTrack(next: RhythmTrack) {
     if (locked || getTapSections(next).length === 0) return;
+    const nextMeter = defaultTapMeter(next);
     setTrack(next);
-    setSection("practice");
-    setSelectedMeter(meterKey(defaultTapMeter(next)));
+    setSelectedMeter(meterKey(nextMeter));
     setFocus(policyForLevel(next).defaultFocus);
-    setTempo("default");
+    const nextTempo = defaultTempo(next, nextMeter);
+    setTempo(nextTempo);
+    setTempoInput(String(nextTempo));
   }
+
   function selectMeter(key: string) {
     const next = unit.allowedMeters.find(item => meterKey(item) === key);
     if (!next || locked) return;
     setSelectedMeter(key);
-    setTempo("default");
+    const nextTempo = defaultTempo(track, next);
+    setTempo(nextTempo);
+    setTempoInput(String(nextTempo));
     if (!getTapFocuses(track, next).includes(focus))
       setFocus(policyForLevel(track).defaultFocus);
   }
-  async function prepare() {
-    if (locked) return;
+
+  function setTempoWithinBand(nextTempo: number) {
+    if (
+      !Number.isInteger(nextTempo) ||
+      nextTempo < band.min ||
+      nextTempo > band.max
+    )
+      return;
+    setTempo(nextTempo);
+    setTempoInput(String(nextTempo));
+  }
+
+  function changeTempoInput(raw: string) {
+    setTempoInput(raw);
+    if (!/^\d+$/.test(raw)) return;
+    const nextTempo = Number(raw);
+    if (
+      Number.isInteger(nextTempo) &&
+      nextTempo >= band.min &&
+      nextTempo <= band.max
+    )
+      setTempo(nextTempo);
+  }
+
+  async function openExercise() {
+    if (locked || getTapSections(track).length === 0) return;
     setNotationReady(false);
+    setPracticeStage("mode");
+    transitionTo("practice");
     await controller.prepare(configuration);
   }
+
+  async function reopenExercise() {
+    if (locked) return;
+    setNotationReady(false);
+    setPracticeStage("mode");
+    await controller.prepare(configuration);
+  }
+
   async function start() {
     if (!canStart) return;
     tapRef.current?.focus({ preventScroll: true });
     await controller.start();
     tapRef.current?.focus({ preventScroll: true });
   }
+
   async function retry() {
     if (locked || !notationReady) return;
+    controller.chooseMode("practice");
+    setPracticeStage("exercise");
+    transitionTo("practice");
     tapRef.current?.focus({ preventScroll: true });
     await controller.retry();
     tapRef.current?.focus({ preventScroll: true });
   }
+
   async function nextExercise() {
     if (locked) return;
     setNotationReady(false);
+    setPracticeStage("mode");
+    transitionTo("practice");
     await controller.continue();
+  }
+
+  function chooseMode(next: TapMode) {
+    if (locked || !view.exercise) return;
+    controller.chooseMode(next);
+    setPracticeStage("exercise");
+  }
+
+  async function playPreview() {
+    if (previewing) {
+      controller.stopPreview();
+      setPreviewing(false);
+      return;
+    }
+    setPreviewError(null);
+    setPreviewing(true);
+    try {
+      await controller.previewMetronome(configuration);
+    } catch {
+      setPreviewError("Không thể phát metronome thử trên thiết bị này.");
+    } finally {
+      setPreviewing(false);
+    }
+  }
+
+  function showReceipt(choice: ReceiptChoice) {
+    if (choice === "graded" && !view.gradedResult) return;
+    setReceiptChoice(choice);
+    transitionTo("result");
+  }
+
+  function returnToPractice() {
+    if (screenTransitionBlocked) return;
+    setPracticeStage("exercise");
+    transitionTo("practice");
   }
 
   return (
@@ -190,16 +432,22 @@ export default function RhythmTrainingPage() {
           </span>
         </div>
 
-        <section className="rhythm-setup" aria-labelledby="rhythm-setup-title">
-          <div className="rhythm-setup-heading">
+        <section
+          className="rhythm-screen rhythm-setup-screen"
+          data-testid="screen-setup"
+          data-screen="setup"
+          aria-labelledby="rhythm-setup-title"
+          hidden={screen !== "setup"}
+        >
+          <div className="rhythm-screen-heading">
             <div>
-              <span className="module-kicker">CHỌN BÀI LUYỆN</span>
-              <h2 id="rhythm-setup-title">
-                Đi từ phách đơn đến tổ hợp nâng cao
-              </h2>
+              <span className="module-kicker">MÀN HÌNH 1 · THIẾT LẬP</span>
+              <h2 id="rhythm-setup-title">Chọn bài tập của bạn</h2>
+              <p>Chọn cấp độ, nhịp, nội dung luyện, số ô nhịp và tempo.</p>
             </div>
             <span className="rhythm-note">Tap Rhythm bắt đầu từ Level 3</span>
           </div>
+
           <div className="rhythm-tracks" aria-label="Cấp độ Tap Rhythm">
             {getRhythmCurriculum().map(item => {
               const allowed = getTapSections(item.track).length > 0;
@@ -223,24 +471,8 @@ export default function RhythmTrainingPage() {
               );
             })}
           </div>
+
           <div className="rhythm-form">
-            <label>
-              Phần học
-              <select
-                aria-label="Phần học"
-                value={section}
-                disabled={locked}
-                onChange={event =>
-                  setSection(event.target.value as CurriculumSection)
-                }
-              >
-                {getTapSections(track).map(value => (
-                  <option key={value} value={value}>
-                    {SECTION_LABELS[value]}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label>
               Nhịp
               <select
@@ -277,49 +509,118 @@ export default function RhythmTrainingPage() {
                 aria-label="Độ dài"
                 value={bars}
                 disabled={locked}
-                onChange={event => setBars(Number(event.target.value) as 1 | 2)}
+                onChange={event =>
+                  setBars(Number(event.target.value) as 1 | 2 | 4)
+                }
               >
                 <option value={1}>1 ô nhịp</option>
                 <option value={2}>2 ô nhịp</option>
+                <option value={4}>4 ô nhịp</option>
               </select>
             </label>
-            <label>
-              Tốc độ theo phách
-              <select
-                aria-label="Tốc độ theo phách"
+          </div>
+
+          <section
+            className="rhythm-tempo-control"
+            aria-labelledby="tempo-heading"
+          >
+            <div className="rhythm-tempo-heading">
+              <div>
+                <span className="module-kicker">
+                  TEMPO · {band.min}–{band.max} BPM
+                </span>
+                <h3 id="tempo-heading">Tốc độ theo phách</h3>
+                <p>
+                  {pulseDescription(meter)} · {groupingDescription(meter)}
+                </p>
+              </div>
+              <output
+                className="rhythm-tempo-value"
+                htmlFor="rhythm-tempo-range"
+              >
+                <strong>{tempo}</strong>
+                <span>BPM</span>
+              </output>
+            </div>
+            <div className="rhythm-tempo-row">
+              <button
+                type="button"
+                className="rhythm-stepper"
+                aria-label="Giảm tempo"
+                disabled={locked || tempo <= band.min}
+                onClick={() => setTempoWithinBand(tempo - 1)}
+              >
+                −
+              </button>
+              <input
+                id="rhythm-tempo-range"
+                aria-label="Tempo (BPM)"
+                type="range"
+                min={band.min}
+                max={band.max}
+                step={1}
                 value={tempo}
                 disabled={locked}
-                onChange={event => setTempo(event.target.value)}
+                onChange={event =>
+                  setTempoWithinBand(Number(event.target.value))
+                }
+              />
+              <button
+                type="button"
+                className="rhythm-stepper"
+                aria-label="Tăng tempo"
+                disabled={locked || tempo >= band.max}
+                onClick={() => setTempoWithinBand(tempo + 1)}
               >
-                <option value="default">Theo cấp độ</option>
-                <option value={band.min}>Chậm · {band.min} BPM</option>
-                <option value={band.max}>Nhanh · {band.max} BPM</option>
-              </select>
-            </label>
+                +
+              </button>
+              <label className="rhythm-bpm-input-label">
+                BPM
+                <input
+                  aria-label="Nhập tempo BPM"
+                  type="number"
+                  inputMode="numeric"
+                  min={band.min}
+                  max={band.max}
+                  step={1}
+                  value={tempoInput}
+                  disabled={locked}
+                  onChange={event => changeTempoInput(event.target.value)}
+                />
+              </label>
+            </div>
+            <p className="rhythm-tempo-hint">
+              Tempo dùng cùng một giá trị cho ký âm, reference, metronome và bài
+              tập.
+            </p>
+          </section>
+
+          <div className="rhythm-setup-actions">
+            <button
+              type="button"
+              className="rhythm-secondary"
+              onClick={() => void playPreview()}
+              disabled={locked}
+              aria-pressed={previewing}
+            >
+              <Headphones size={16} />
+              {previewing ? "Dừng nghe thử" : "Nghe thử metronome"}
+            </button>
             <button
               type="button"
               className="rhythm-primary"
-              onClick={() => void prepare()}
-              disabled={locked}
+              onClick={() => void openExercise()}
+              disabled={locked || getTapSections(track).length === 0}
             >
-              {hasExercise ? "Áp dụng và mở bài mới" : "Mở bài Tap Rhythm"}
-              <ArrowRight size={16} />
+              Áp dụng và mở bài <ArrowRight size={16} />
             </button>
           </div>
+          {previewError && (
+            <p className="rhythm-error" role="alert">
+              {previewError}
+            </p>
+          )}
           <p className="rhythm-note">{LEARNER_TRACK_NOTES[track]}</p>
-          {section === "lessons" && (
-            <p className="rhythm-note">
-              Bài học là ví dụ thực hành không chấm điểm. Bạn có thể nghe mẫu,
-              chạm thử và xem phản hồi; không ghi câu trả lời chấm điểm hoặc
-              cộng +10/+0.
-            </p>
-          )}
-          {section === "assessment" && (
-            <p className="rhythm-note">
-              Đây là một bài Tap riêng theo placement đã duyệt, không phải bộ
-              Assessment tổng hợp hoặc quota hoàn thành Level.
-            </p>
-          )}
           {track === "bonus" && (
             <p className="rhythm-note">
               Bonus 2/2 là luyện tập tùy chọn, không phải điều kiện hoàn thành
@@ -328,58 +629,142 @@ export default function RhythmTrainingPage() {
           )}
         </section>
 
-        {view.phase === "preparing" && (
-          <div className="rhythm-loading" role="status">
-            Đang tạo bài và mở ký âm…
+        <section
+          className="rhythm-screen rhythm-practice-screen"
+          data-testid="screen-practice"
+          data-screen="practice"
+          aria-labelledby="rhythm-practice-title"
+          hidden={screen !== "practice"}
+        >
+          <div className="rhythm-screen-heading">
+            <div>
+              <span className="module-kicker">MÀN HÌNH 2 · THỰC HÀNH</span>
+              <h2 id="rhythm-practice-title">
+                {hasExercise ? "Bài tập tiết tấu" : "Đang mở bài tập"}
+              </h2>
+            </div>
+            {hasExercise && (
+              <button
+                type="button"
+                className="rhythm-tertiary"
+                onClick={() => transitionTo("setup")}
+                disabled={locked}
+              >
+                Đổi bài
+              </button>
+            )}
           </div>
-        )}
-        {view.error && (
-          <div className="rhythm-error" role="alert">
-            <strong>
-              {view.phase === "aborted"
-                ? "Bài chưa được chấm"
-                : "Chưa thể mở bài"}
-            </strong>
-            <p>{view.error}</p>
-            <button
-              className="rhythm-secondary"
-              type="button"
-              disabled={locked}
-              onClick={() => void prepare()}
-            >
-              {hasExercise ? "Mở bài mới" : "Thử mở lại"}
-            </button>
-          </div>
-        )}
-        {!hasExercise && view.phase !== "preparing" && !view.error && (
-          <section className="rhythm-intro">
-            <Headphones size={24} />
-            <h2>Chuẩn bị trước khi chạm</h2>
-            <p>
-              Chọn bài rồi nghe mẫu tối đa một lần. Khi bắt đầu, ứng dụng đếm
-              vào một ô nhịp và giữ metronome liên tục. Chạm ở đầu nốt; không
-              chạm dấu lặng hoặc nốt nối tiếp.
-            </p>
-            <p className="rhythm-note">
-              Hiện mở giao diện Tap Rhythm. Các kind còn lại vẫn giữ trong
-              curriculum, chưa được giả lập thành chức năng UI ở giai đoạn này.
-            </p>
-          </section>
-        )}
 
-        {view.exercise && (
-          <div className="rhythm-layout">
+          {view.phase === "preparing" && (
+            <div className="rhythm-loading" role="status">
+              Đang tạo bài và mở ký âm…
+            </div>
+          )}
+          {view.error && (
+            <div className="rhythm-error-card" role="alert">
+              <strong>
+                {view.phase === "aborted"
+                  ? "Bài chưa được chấm"
+                  : "Chưa thể mở bài"}
+              </strong>
+              <p>{view.error}</p>
+              <button
+                className="rhythm-secondary"
+                type="button"
+                disabled={locked}
+                onClick={() => void reopenExercise()}
+              >
+                {hasExercise ? "Mở bài mới" : "Thử mở lại"}
+              </button>
+            </div>
+          )}
+          {!hasExercise && view.phase !== "preparing" && !view.error && (
+            <div className="rhythm-intro">
+              <Headphones size={22} />
+              <h3>Chuẩn bị trước khi chạm</h3>
+              <p>
+                Chọn Chơi thử để luyện không ghi điểm, hoặc Chấm điểm để thực
+                hiện một lượt được chấm theo chính sách hiện hành.
+              </p>
+            </div>
+          )}
+
+          {view.exercise &&
+            practiceStage === "mode" &&
+            view.phase !== "empty" && (
+              <div
+                className="rhythm-mode-chooser"
+                aria-label="Chọn chế độ thực hành"
+                data-testid="practice-mode-chooser"
+              >
+                <div>
+                  <span className="module-kicker">CHỌN CÁCH THỰC HIỆN</span>
+                  <h3>Bạn muốn chơi thử hay chấm điểm?</h3>
+                  <p>
+                    Hai chế độ dùng cùng bài tập. Chơi thử không tạo answer hay
+                    điểm chính thức.
+                  </p>
+                </div>
+                <div className="rhythm-mode-options">
+                  <button
+                    type="button"
+                    className="rhythm-mode-card"
+                    aria-label="Chơi thử"
+                    onClick={() => chooseMode("practice")}
+                    disabled={locked}
+                  >
+                    <span className="rhythm-mode-icon">
+                      <RotateCcw size={19} />
+                    </span>
+                    <strong>Chơi thử</strong>
+                    <span>
+                      Luyện lại, nghe reference và xem Timing Accuracy tham
+                      khảo. Không cộng điểm.
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="rhythm-mode-card is-graded"
+                    aria-label="Chấm điểm"
+                    onClick={() => chooseMode("graded")}
+                    disabled={
+                      locked ||
+                      (view.gradedResult !== null &&
+                        view.gradedResult.status === "completed")
+                    }
+                  >
+                    <span className="rhythm-mode-icon">
+                      <Play size={19} />
+                    </span>
+                    <strong>Chấm điểm</strong>
+                    <span>
+                      Một lượt chấm cho bài này. Đúng +10, sai +0; lượt dừng do
+                      kỹ thuật không ghi điểm.
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+          {view.exercise && (
             <section
-              className="rhythm-workspace"
+              className={`rhythm-workspace-shell ${practiceStage !== "exercise" ? "is-mode-choice" : ""}`}
               aria-label="Bài tập Tap Rhythm"
               data-exercise-id={view.exercise.id}
               data-track={view.exercise.track}
               data-section={view.exercise.section}
+              data-testid="rhythm-workspace"
+              hidden={practiceStage !== "exercise"}
             >
               <ExerciseMetadata view={view} />
               <RhythmNotation
                 pattern={view.exercise.pattern}
                 onReady={setNotationReady}
+              />
+              <VisualMetronome
+                meter={view.exercise.pattern.meter}
+                pulseBpm={view.exercise.pattern.tempo.pulseBpm}
+                readPlayback={() => controller.getAudioPlayback()}
               />
               <div
                 className={`rhythm-status phase-${view.phase}`}
@@ -389,20 +774,23 @@ export default function RhythmTrainingPage() {
                 data-phase={view.phase}
               >
                 {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
-                {view.practice && (
+                {view.selectedMode && (
                   <span>
-                    {view.exercise.section === "lessons"
-                      ? " · Ví dụ bài học — không ghi điểm"
-                      : " · Luyện lại — không ghi thêm điểm"}
+                    {" "}
+                    · Chế độ:{" "}
+                    {view.selectedMode === "practice"
+                      ? "Chơi thử"
+                      : "Chấm điểm"}
                   </span>
                 )}
+                {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
               </div>
               <div className="rhythm-controls">
                 <button
                   type="button"
                   className="rhythm-primary"
                   onClick={() => void start()}
-                  disabled={!canStart}
+                  disabled={!canStart || locked}
                 >
                   <Play size={16} /> Bắt đầu
                 </button>
@@ -410,14 +798,23 @@ export default function RhythmTrainingPage() {
                   type="button"
                   className="rhythm-secondary"
                   onClick={() => void controller.reference()}
-                  disabled={!canStart || view.referenceUsed}
+                  disabled={!controller.canReference || locked}
                 >
                   <Headphones size={16} />
                   {view.referenceUsed
                     ? "Đã nghe mẫu (1/1)"
                     : "Nghe mẫu (1 lần)"}
                 </button>
-                {active && view.phase !== "preparing" && (
+                {!locked && view.phase !== "preparing" && (
+                  <button
+                    type="button"
+                    className="rhythm-secondary"
+                    onClick={() => setPracticeStage("mode")}
+                  >
+                    Đổi chế độ
+                  </button>
+                )}
+                {active && (
                   <button
                     type="button"
                     className="rhythm-secondary"
@@ -427,18 +824,38 @@ export default function RhythmTrainingPage() {
                   </button>
                 )}
               </div>
+              <label className="rhythm-volume-control">
+                <Volume2 size={16} />
+                <span>Âm lượng metronome</span>
+                <input
+                  type="range"
+                  aria-label="Âm lượng metronome"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={metronomeVolume}
+                  onChange={event => {
+                    const next = Number(event.target.value);
+                    setMetronomeVolume(next);
+                    controller.setMetronomeVolume(next);
+                  }}
+                  disabled={
+                    view.phase === "collecting" || view.phase === "draining"
+                  }
+                />
+                <output>{Math.round(metronomeVolume * 100)}%</output>
+              </label>
+
               <div
                 ref={tapRef}
                 role="button"
                 tabIndex={0}
                 aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
                 aria-disabled={
-                  !active ||
-                  view.phase === "reference" ||
-                  view.phase === "starting"
+                  !["count-in", "collecting", "draining"].includes(view.phase)
                 }
                 aria-describedby="rhythm-tap-help"
-                className={`rhythm-tap-surface ${active && view.phase !== "reference" ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
+                className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
                 data-testid="rhythm-tap-surface"
                 onPointerDown={event => {
                   if (event.isPrimary) controller.acknowledgeTap();
@@ -464,7 +881,7 @@ export default function RhythmTrainingPage() {
                 chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
               </p>
               {view.phase === "empty" && (
-                <div className="rhythm-error" role="status">
+                <div className="rhythm-error-card" role="status">
                   <strong>Không có onset cần chạm</strong>
                   <p>
                     Timing Accuracy không áp dụng. Bài này không tạo câu trả lời
@@ -480,51 +897,139 @@ export default function RhythmTrainingPage() {
                   </button>
                 </div>
               )}
-              {view.result && (
-                <TapResultPanel
-                  result={view.result}
-                  points={view.points}
-                  originalPoints={view.originalPoints}
-                  onRetry={() => void retry()}
-                  onContinue={() => void nextExercise()}
-                  busy={locked || !notationReady}
-                  lesson={view.exercise.section === "lessons"}
-                />
+              {finalLatestReceipt && (
+                <div className="rhythm-receipt-return" role="note">
+                  <span>Kết quả gần nhất vẫn được giữ nguyên.</span>
+                  <button
+                    type="button"
+                    className="rhythm-tertiary"
+                    onClick={() => showReceipt("latest")}
+                  >
+                    Xem kết quả
+                  </button>
+                  {view.gradedResult &&
+                    view.gradedResult !== finalLatestReceipt && (
+                      <button
+                        type="button"
+                        className="rhythm-tertiary"
+                        onClick={() => showReceipt("graded")}
+                      >
+                        Xem kết quả chấm
+                      </button>
+                    )}
+                </div>
               )}
             </section>
-            <aside
-              className="rhythm-side"
-              aria-label="Hướng dẫn luyện tiết tấu"
-            >
-              <span className="module-kicker">GIỮ PHÁCH, KHÔNG ĐẾM SỐ TAP</span>
-              <h2>
-                Một nốt dài,
-                <br />
-                một lần chạm.
-              </h2>
-              <p>
-                Chạm đúng lúc âm bắt đầu. Phần ngân còn lại vẫn chiếm thời gian
-                nhưng không cần chạm thêm.
-              </p>
-              <div className="rhythm-side-step">
-                <strong>1. Nhìn ký âm</strong>
-                <span>Chú ý dấu lặng, chấm dôi và nối trường độ.</span>
-              </div>
-              <div className="rhythm-side-step">
-                <strong>2. Nghe click đếm vào</strong>
-                <span>Một ô nhịp chuẩn bị trước khi thực hiện.</span>
-              </div>
-              <div className="rhythm-side-step">
-                <strong>3. Chạm và xem phản hồi</strong>
-                <span>Timing Accuracy khác với Exercise Points +10/+0.</span>
-              </div>
+          )}
+
+          {!hasExercise &&
+            view.error === null &&
+            view.phase !== "preparing" && (
               <p className="rhythm-note">
-                Nếu âm thanh hoặc clock không đáng tin cậy, bài được ghi là chưa
-                chấm — không tính bạn làm sai.
+                Hiện chỉ mở giao diện Tap Rhythm; các kind khác vẫn giữ trong
+                curriculum.
               </p>
-            </aside>
-          </div>
-        )}
+            )}
+        </section>
+
+        <section
+          className="rhythm-screen rhythm-result-screen"
+          data-testid="screen-result"
+          data-screen="result"
+          aria-labelledby="rhythm-result-screen-title"
+          hidden={!showResult}
+        >
+          {selectedReceipt && view.exercise && (
+            <>
+              <div className="rhythm-screen-heading">
+                <div>
+                  <span className="module-kicker">MÀN HÌNH 3 · KẾT QUẢ</span>
+                  <h2 id="rhythm-result-screen-title">
+                    {selectedReceipt.status === "technical-abort"
+                      ? "Lượt chưa được chấm"
+                      : "Kết quả lượt gõ nhịp"}
+                  </h2>
+                  <p>
+                    Phản hồi của lượt đã hoàn tất; nội dung bài gốc không bị
+                    thay đổi.
+                  </p>
+                </div>
+              </div>
+              <TapResultPanel
+                result={selectedReceipt}
+                points={
+                  selectedReceipt.mode === "graded"
+                    ? (view.originalPoints ?? view.points)
+                    : view.points
+                }
+                originalPoints={view.originalPoints}
+                onRetry={() => void retry()}
+                onContinue={() => void nextExercise()}
+                busy={locked || !notationReady}
+                retryLabel="Chơi lại"
+                continueLabel="Bài tiếp theo"
+                practiceLabel="Chơi thử — Timing Accuracy tham khảo, không ghi điểm"
+              />
+              <TapResultNotation
+                exercise={view.exercise}
+                result={selectedReceipt}
+              />
+              {view.gradedResult && selectedReceipt !== view.gradedResult && (
+                <button
+                  type="button"
+                  className="rhythm-secondary"
+                  onClick={() => showReceipt("graded")}
+                >
+                  Xem kết quả chấm
+                </button>
+              )}
+              {view.result &&
+                selectedReceipt === view.gradedResult &&
+                view.result !== view.gradedResult && (
+                  <button
+                    type="button"
+                    className="rhythm-secondary"
+                    onClick={() => showReceipt("latest")}
+                  >
+                    Xem lượt gần nhất
+                  </button>
+                )}
+              {selectedReceipt.mode === "practice" &&
+                selectedReceipt.status === "completed" &&
+                view.gradedResult === null && (
+                  <button
+                    type="button"
+                    className="rhythm-secondary"
+                    onClick={() => {
+                      controller.chooseMode("graded");
+                      setPracticeStage("exercise");
+                      transitionTo("practice");
+                    }}
+                    disabled={locked}
+                  >
+                    Chấm điểm bài này
+                  </button>
+                )}
+              <div className="rhythm-result-navigation">
+                <button
+                  type="button"
+                  className="rhythm-secondary"
+                  onClick={returnToPractice}
+                >
+                  Quay lại practice
+                </button>
+                <button
+                  type="button"
+                  className="rhythm-tertiary"
+                  onClick={() => transitionTo("setup")}
+                >
+                  Đổi bài
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
         <TrainingFooter />
       </main>
     </div>

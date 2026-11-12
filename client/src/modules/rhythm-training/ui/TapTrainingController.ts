@@ -10,6 +10,11 @@ import {
 } from "../exercises/tapRhythm";
 import type { TapAttemptResult } from "../exercises/tapCompletion";
 import {
+  RhythmAudioTransport,
+  type RhythmScheduledEvent,
+} from "../audio/transport";
+import { createRhythmAudioPlan } from "../audio/plan";
+import {
   TapRhythmEngine,
   type TapEngineOptions,
   type TapEngineState,
@@ -17,14 +22,21 @@ import {
 import type { RhythmTransportOptions } from "../audio/transport";
 import type { CurriculumSection } from "../curriculum/curriculum";
 import type { RhythmFocus } from "../generation/levels";
-import type { RhythmMeter, RhythmTrack } from "../types";
+import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
+import type { RhythmVoiceSettings } from "../audio/voices";
 import { TAP_UI_VOICE_SETTINGS } from "./voiceSettings";
+import {
+  experienceVoiceSettings,
+  loadPianoBuffer,
+} from "../audio/experienceAudio";
+
+export type TapMode = "practice" | "graded";
 
 export type TapUiConfiguration = Readonly<{
   track: RhythmTrack;
   section: CurriculumSection;
   meter?: RhythmMeter;
-  bars?: 1 | 2;
+  bars?: 1 | 2 | 4;
   pulseBpm?: number;
   focus?: RhythmFocus;
 }>;
@@ -42,7 +54,7 @@ export type TapUiState = Readonly<{
   exercise: TapRhythmExercise | null;
   result: TapAttemptResult | null;
   gradedResult: TapAttemptResult | null;
-  /** Points for the latest completed attempt (practice is always 0). */
+  /** Official points for the latest attempt; practice attempts have no score. */
   points: number | null;
   /** Points from the first graded result; retries never change this value. */
   originalPoints: number | null;
@@ -55,6 +67,7 @@ export type TapUiState = Readonly<{
   /** UI-only acknowledgement sequence; never passed to the engine/scorer. */
   tapVisualSequence: number;
   session: RhythmTrainingSession | null;
+  selectedMode: TapMode;
 }>;
 
 export type TapExerciseFactory = (
@@ -97,6 +110,7 @@ function initialState(): TapUiState {
     practice: false,
     tapVisualSequence: 0,
     session: null,
+    selectedMode: "graded",
   });
 }
 
@@ -144,6 +158,13 @@ function targetErrorMessage(): string {
   return "Chưa tìm thấy vùng chạm của bài tập. Hãy đợi bài hiển thị đầy đủ rồi thử lại.";
 }
 
+function engineStartErrorMessage(error: unknown): string {
+  return error instanceof Error &&
+    error.message === "Tap input target is unavailable."
+    ? targetErrorMessage()
+    : audioStartErrorMessage();
+}
+
 function copyConfiguration(
   configuration: TapUiConfiguration
 ): TapUiConfiguration {
@@ -187,21 +208,39 @@ export class TapTrainingController {
   private readonly createExercise: TapExerciseFactory;
   private readonly engineFactory: TapEngineFactory;
   private readonly seedPrefix: string;
+  private readonly usesInjectedAudio: boolean;
   private readonly listeners = new Set<() => void>();
   private snapshot: TapUiState = initialState();
   private configuration: TapUiConfiguration | null = null;
   private engine: TapRhythmEngine | null = null;
   private observationTimer: ReturnType<typeof setInterval> | null = null;
   private operationToken = 0;
+  private previewToken = 0;
   private engineEpoch = 0;
   private exerciseSequence = 0;
+  private previewSequence = 0;
   private attemptStartedAt = 0;
   private hasStartedAttempt = false;
+  private gradedAttemptUsed = false;
+  private practiceAttemptStarted = false;
+  private gradedReferenceUsed = false;
+  private modeExplicitlySelected = false;
+  private audioContext: AudioContext | null = null;
+  private pianoBuffer: AudioBuffer | null = null;
+  private pianoBufferPromise: Promise<AudioBuffer> | null = null;
+  private metronomeOutput: GainNode | null = null;
+  private metronomeVolume = 0.8;
+  private previewTransport: RhythmAudioTransport | null = null;
+  private previewContext: BaseAudioContext | null = null;
+  private previewEvents: RhythmScheduledEvent[] = [];
+  private previewGeneration: number | null = null;
+  private previewBusy = false;
   private disposed = false;
 
   constructor(options: TapTrainingControllerOptions) {
     this.getInputTarget = options.getInputTarget;
     this.transportOverrides = options.transport ?? {};
+    this.usesInjectedAudio = options.transport !== undefined;
     this.createExercise =
       options.createExercise ??
       ((configuration, seed) =>
@@ -215,17 +254,87 @@ export class TapTrainingController {
   /** Stable arrow methods are directly compatible with useSyncExternalStore. */
   readonly getSnapshot = (): TapUiState => this.snapshot;
 
-  /** Start remains available after an unused failed reference, never after an attempt. */
+  /** Start permits one graded attempt after any number of practice attempts. */
   get canStart(): boolean {
-    return (
-      !this.disposed &&
-      !this.snapshot.busy &&
-      !this.hasStartedAttempt &&
-      this.snapshot.exercise !== null &&
-      this.snapshot.exercise.targets.length > 0 &&
-      this.snapshot.session !== null &&
-      (this.engine === null || ["idle", "aborted"].includes(this.engine.state))
-    );
+    if (
+      this.disposed ||
+      this.snapshot.busy ||
+      this.previewBusy ||
+      this.snapshot.exercise === null ||
+      this.snapshot.exercise.targets.length === 0 ||
+      this.snapshot.session === null ||
+      (this.engine !== null &&
+        !["idle", ...TERMINAL_ATTEMPT_STATES].includes(this.engine.state))
+    )
+      return false;
+    if (this.snapshot.exercise.section === "lessons")
+      return !this.practiceAttemptStarted;
+    return this.snapshot.selectedMode === "graded"
+      ? !this.gradedAttemptUsed
+      : !this.practiceAttemptStarted;
+  }
+
+  /** References repeat in practice mode; the graded-mode slot is limited to one. */
+  get canReference(): boolean {
+    if (
+      this.disposed ||
+      this.snapshot.busy ||
+      this.previewBusy ||
+      !this.snapshot.exercise ||
+      this.snapshot.exercise.targets.length === 0 ||
+      this.snapshot.session === null ||
+      (this.engine !== null &&
+        !["idle", ...TERMINAL_ATTEMPT_STATES].includes(this.engine.state))
+    )
+      return false;
+    if (
+      this.snapshot.exercise.section === "lessons" ||
+      this.snapshot.selectedMode === "practice"
+    )
+      return true;
+    return !this.gradedReferenceUsed && !this.gradedAttemptUsed;
+  }
+
+  /** Select the mode for Start; selection is locked during playback/finalization. */
+  chooseMode(mode: TapMode): boolean {
+    if (
+      this.disposed ||
+      this.snapshot.busy ||
+      this.previewBusy ||
+      this.isEngineActive()
+    )
+      return false;
+    const selectedMode: TapMode =
+      this.snapshot.exercise?.section === "lessons" ? "practice" : mode;
+    if (selectedMode === "graded" && this.gradedAttemptUsed) {
+      this.modeExplicitlySelected = true;
+      this.publish({ selectedMode: "practice" });
+      return false;
+    }
+    this.modeExplicitlySelected = true;
+    this.publish({ selectedMode });
+    return true;
+  }
+
+  /** Alias for consumers that model mode controls as setters. */
+  setMode(mode: TapMode): boolean {
+    return this.chooseMode(mode);
+  }
+
+  /** Exact audio-clock time plus scheduler intent; never advances a musical clock. */
+  getAudioPlayback(): Readonly<{
+    audioTime: number;
+    scheduledEvents: readonly RhythmScheduledEvent[];
+    state: string;
+  }> | null {
+    const enginePlayback = this.engine?.getAudioPlayback();
+    if (enginePlayback) return enginePlayback;
+    if (!this.previewContext || !this.previewTransport) return null;
+    return Object.freeze({
+      audioTime: this.previewContext.currentTime,
+      scheduledEvents: Object.freeze([...this.previewEvents]),
+      state: this.previewTransport.state,
+    });
   }
 
   readonly subscribe = (listener: () => void): (() => void) => {
@@ -241,6 +350,117 @@ export class TapTrainingController {
 
   private setBusy(busy: boolean): void {
     if (this.snapshot.busy !== busy) this.publish({ busy });
+  }
+
+  /** Stop preview playback without disposing or closing the shared context. */
+  stopPreview(): void {
+    ++this.previewToken;
+    const wasBusy = this.previewBusy;
+    this.previewBusy = false;
+    if (
+      this.previewTransport &&
+      ["starting", "playing", "paused"].includes(this.previewTransport.state)
+    ) {
+      try {
+        this.previewTransport.stop();
+      } catch {
+        // Preview cancellation is best-effort; the scheduler generation is invalidated.
+      }
+    }
+    this.previewEvents = [];
+    this.previewGeneration = null;
+    if (wasBusy) this.setBusy(false);
+  }
+
+  /** Play exactly one canonical measure of metronome-only preview. */
+  async previewMetronome(configuration: TapUiConfiguration): Promise<void> {
+    this.stopPreview();
+    if (
+      this.disposed ||
+      this.snapshot.busy ||
+      this.isEngineActive() ||
+      !configuration
+    )
+      return;
+    const token = ++this.previewToken;
+    this.previewBusy = true;
+    this.publish({ busy: true, error: null });
+    const audioReady = this.beginAudioGesture();
+    let transport: RhythmAudioTransport | null = null;
+    try {
+      const exercise = await this.createExercise(
+        copyConfiguration(configuration),
+        `${this.seedPrefix}-metronome-preview-${++this.previewSequence}`
+      );
+      if (this.disposed || token !== this.previewToken) return;
+      if (audioReady !== null) await audioReady;
+      if (this.disposed || token !== this.previewToken) return;
+      const firstMeasure = exercise.pattern.measures[0];
+      if (!firstMeasure) throw new Error("Preview pattern has no measure.");
+      const oneBarPattern: RhythmPattern = Object.freeze({
+        ...exercise.pattern,
+        measures: Object.freeze([firstMeasure]),
+      });
+
+      if (!this.previewTransport) {
+        const baseOptions = this.engineTransport();
+        const baseFactory =
+          baseOptions.contextFactory ??
+          (() => {
+            const host = globalThis as typeof globalThis & {
+              webkitAudioContext?: typeof AudioContext;
+            };
+            const Constructor = host.AudioContext ?? host.webkitAudioContext;
+            if (!Constructor) throw new Error("Web Audio is unavailable.");
+            return new Constructor({ latencyHint: "interactive" });
+          });
+        this.previewTransport = new RhythmAudioTransport({
+          ...baseOptions,
+          contextFactory: () => {
+            const context = baseFactory();
+            this.previewContext = context;
+            return context;
+          },
+          onScheduled: event => {
+            if (this.previewGeneration === null)
+              this.previewGeneration = event.generation;
+            if (event.generation !== this.previewGeneration) return;
+            this.previewEvents.push(event);
+            baseOptions.onScheduled?.(event);
+          },
+        });
+      }
+      transport = this.previewTransport;
+      this.previewEvents = [];
+      this.previewGeneration = null;
+      await transport.start(createRhythmAudioPlan(oneBarPattern, "metronome"));
+      if (this.disposed || token !== this.previewToken) return;
+      // This timer only observes the scheduler's state; all musical timing stays
+      // on the AudioContext and RhythmAudioTransport timeline.
+      await new Promise<void>(resolve => {
+        const inspect = () => {
+          if (
+            this.disposed ||
+            token !== this.previewToken ||
+            !["starting", "playing"].includes(transport!.state)
+          ) {
+            resolve();
+            return;
+          }
+          globalThis.setTimeout(inspect, 25);
+        };
+        inspect();
+      });
+    } catch {
+      if (!this.disposed && token === this.previewToken) {
+        this.publish({ error: audioStartErrorMessage() });
+      }
+    } finally {
+      if (!this.disposed && token === this.previewToken) {
+        this.previewBusy = false;
+        this.setBusy(false);
+      }
+    }
   }
 
   private stopObservation(): void {
@@ -285,20 +505,117 @@ export class TapTrainingController {
           ? null
           : document
         : this.transportOverrides.visibilitySource;
+    const contextFactory =
+      this.transportOverrides.contextFactory ??
+      (this.usesInjectedAudio ? undefined : () => this.requireAudioContext());
     return {
       ...this.transportOverrides,
-      voices: this.transportOverrides.voices ?? TAP_UI_VOICE_SETTINGS,
+      ...(contextFactory === undefined ? {} : { contextFactory }),
+      voices: this.transportOverrides.voices ?? this.experienceVoices(),
       visibilitySource,
     };
   }
 
+  private requireAudioContext(): AudioContext {
+    if (this.audioContext?.state === "closed") {
+      this.audioContext = null;
+      this.metronomeOutput = null;
+    }
+    if (this.audioContext) return this.audioContext;
+    const host = globalThis as typeof globalThis & {
+      webkitAudioContext?: typeof AudioContext;
+    };
+    const Constructor = host.AudioContext ?? host.webkitAudioContext;
+    if (!Constructor) throw new Error("Web Audio is unavailable.");
+    this.audioContext = new Constructor({ latencyHint: "interactive" });
+    return this.audioContext;
+  }
+
+  private getMetronomeOutput(context: AudioContext): GainNode {
+    if (!this.metronomeOutput || this.metronomeOutput.context !== context) {
+      this.metronomeOutput = context.createGain();
+      this.metronomeOutput.gain.setValueAtTime(
+        this.metronomeVolume,
+        context.currentTime
+      );
+      this.metronomeOutput.connect(context.destination);
+    }
+    return this.metronomeOutput;
+  }
+
+  private experienceVoices(): RhythmVoiceSettings {
+    if (this.pianoBuffer && !this.usesInjectedAudio) {
+      return experienceVoiceSettings(
+        this.pianoBuffer,
+        this.audioContext
+          ? this.getMetronomeOutput(this.audioContext)
+          : undefined
+      );
+    }
+    return TAP_UI_VOICE_SETTINGS;
+  }
+
+  /** Starts resume synchronously from the caller's gesture, then lazily decodes. */
+  private beginAudioGesture(): Promise<AudioBuffer> | null {
+    if (this.usesInjectedAudio) return null;
+    let context: AudioContext;
+    try {
+      context = this.requireAudioContext();
+      this.getMetronomeOutput(context);
+    } catch {
+      // Let the engine's actual start path seal audio-unavailable consistently.
+      return null;
+    }
+    if (context.state !== "running") {
+      try {
+        void context.resume().catch(() => undefined);
+      } catch {
+        // The engine will retry/resolution-fail through its technical receipt.
+      }
+    }
+    if (this.pianoBuffer) return Promise.resolve(this.pianoBuffer);
+    if (!this.pianoBufferPromise) {
+      this.pianoBufferPromise = loadPianoBuffer(context)
+        .then(buffer => {
+          this.pianoBuffer = buffer;
+          return buffer;
+        })
+        .catch(error => {
+          this.pianoBufferPromise = null;
+          throw error;
+        });
+    }
+    return this.pianoBufferPromise;
+  }
+
+  setMetronomeVolume(volume: number): void {
+    if (!Number.isFinite(volume))
+      throw new RangeError("Volume must be finite.");
+    this.metronomeVolume = Math.max(0, Math.min(1, volume));
+    if (this.metronomeOutput && this.audioContext) {
+      this.metronomeOutput.gain.setValueAtTime(
+        this.metronomeVolume,
+        this.audioContext.currentTime
+      );
+    }
+  }
+
+  getMetronomeVolume(): number {
+    return this.metronomeVolume;
+  }
+
   /** Engine and its native input listener are created only after the tap DOM exists. */
-  private ensureEngine(): TapRhythmEngine {
+  private ensureEngine(
+    inputTargetOverride?: EventTarget | null
+  ): TapRhythmEngine {
     if (this.engine) return this.engine;
     const exercise = this.snapshot.exercise;
     if (!exercise || exercise.targets.length === 0)
       throw new Error("There is no playable Tap Rhythm exercise.");
-    const inputTarget = this.getInputTarget();
+    const inputTarget =
+      inputTargetOverride === undefined
+        ? this.getInputTarget()
+        : inputTargetOverride;
     if (!inputTarget) throw new Error("Tap input target is unavailable.");
 
     const epoch = ++this.engineEpoch;
@@ -307,6 +624,7 @@ export class TapTrainingController {
       exercise,
       inputTarget,
       transport: this.engineTransport(),
+      disposeAudioContext: false,
       onResult: result => this.acceptEngineResult(epoch, result),
     });
     this.engine = engine;
@@ -331,7 +649,7 @@ export class TapTrainingController {
       this.snapshot.exercise?.section === "lessons"
     ) {
       // Practice and lesson worked examples never invoke the shared scorer.
-      latestPoints = 0;
+      latestPoints = null;
     } else if (
       gradedResult === null &&
       session !== null &&
@@ -370,6 +688,7 @@ export class TapTrainingController {
 
   /** Prepare exactly one canonical exercise and one FREE shared question. */
   async prepare(configuration: TapUiConfiguration): Promise<void> {
+    this.stopPreview();
     if (
       this.disposed ||
       this.snapshot.busy ||
@@ -391,6 +710,10 @@ export class TapTrainingController {
     this.engine = null;
     this.stopObservation();
     this.hasStartedAttempt = false;
+    this.gradedAttemptUsed = false;
+    this.practiceAttemptStarted = false;
+    this.gradedReferenceUsed = false;
+    this.modeExplicitlySelected = false;
     this.attemptStartedAt = 0;
     this.publish({
       phase: "preparing",
@@ -406,6 +729,7 @@ export class TapTrainingController {
       practice: false,
       tapVisualSequence: 0,
       session: null,
+      selectedMode: configuration.section === "lessons" ? "practice" : "graded",
     });
 
     try {
@@ -438,50 +762,94 @@ export class TapTrainingController {
   }
 
   /** Must be invoked directly from the learner's Start gesture. */
-  async start(): Promise<void> {
+  async start(mode?: TapMode): Promise<void> {
+    if (mode !== undefined && !this.chooseMode(mode)) return;
+    this.stopPreview();
     if (!this.canStart) return;
 
     const token = ++this.operationToken;
-    this.publish({ busy: true, error: null });
+    const lesson = this.snapshot.exercise?.section === "lessons";
+    const explicit = this.modeExplicitlySelected;
+    const selectedMode: TapMode | undefined = lesson
+      ? "practice"
+      : explicit
+        ? this.snapshot.selectedMode
+        : undefined;
+    const effectiveMode =
+      selectedMode ?? (this.hasStartedAttempt ? "practice" : "graded");
+    const trialNumber = this.hasStartedAttempt
+      ? this.snapshot.trialNumber + 1
+      : 1;
+
+    let inputTarget: EventTarget | null | undefined;
+    if (!this.usesInjectedAudio) {
+      inputTarget = this.getInputTarget();
+      if (!inputTarget) {
+        this.publish({
+          phase: "error",
+          busy: false,
+          error: targetErrorMessage(),
+        });
+        return;
+      }
+    }
+
+    // Resume is invoked synchronously while the caller still has user activation.
+    const audioReady = this.beginAudioGesture();
+    this.attemptStartedAt = Date.now();
+    this.hasStartedAttempt = true;
+    if (effectiveMode === "graded") this.gradedAttemptUsed = true;
+    else this.practiceAttemptStarted = true;
+    this.publish({
+      busy: true,
+      result: null,
+      points: null,
+      practice: effectiveMode === "practice",
+      trialNumber,
+      error: null,
+    });
 
     let engine: TapRhythmEngine;
+    if (audioReady !== null) {
+      try {
+        await audioReady;
+      } catch {
+        if (this.disposed || token !== this.operationToken) return;
+        try {
+          engine = this.ensureEngine(inputTarget);
+          engine.failBeforeStart(effectiveMode, "audio-unavailable");
+          this.observeEngine(engine);
+          this.syncEngineState(engine);
+        } catch {
+          this.publish({
+            phase: "error",
+            busy: false,
+            error: audioStartErrorMessage(),
+          });
+        } finally {
+          if (!this.disposed && token === this.operationToken)
+            this.setBusy(false);
+        }
+        return;
+      }
+      if (this.disposed || token !== this.operationToken) return;
+    }
+
     let startup: Promise<void>;
     try {
-      engine = this.ensureEngine();
+      engine = this.ensureEngine(inputTarget);
+      // Preserve legacy inference for old callers; explicit modes are passed through.
+      startup =
+        selectedMode === undefined
+          ? engine.start()
+          : engine.start(selectedMode);
+      this.observeEngine(engine);
+      this.syncEngineState(engine);
     } catch (error) {
       this.publish({
         phase: "error",
         busy: false,
-        error:
-          error instanceof Error &&
-          error.message === "Tap input target is unavailable."
-            ? targetErrorMessage()
-            : audioStartErrorMessage(),
-      });
-      return;
-    }
-    this.attemptStartedAt = Date.now();
-    this.hasStartedAttempt = true;
-    this.publish({
-      result: null,
-      points: null,
-      practice: this.snapshot.exercise?.section === "lessons",
-      trialNumber: 1,
-    });
-    try {
-      // Lessons use the existing practice-only path, not a new grading mechanism.
-      // Invocation still occurs synchronously within the learner's user gesture.
-      startup =
-        this.snapshot.exercise?.section === "lessons"
-          ? engine.retry()
-          : engine.start();
-      this.observeEngine(engine);
-      this.syncEngineState(engine);
-    } catch {
-      this.publish({
-        phase: "error",
-        busy: false,
-        error: audioStartErrorMessage(),
+        error: engineStartErrorMessage(error),
       });
       return;
     }
@@ -498,34 +866,51 @@ export class TapTrainingController {
     }
   }
 
-  /** Play the single pre-attempt reference; a failure still consumes its slot. */
+  /** Graded reference consumes one slot; practice references are repeatable. */
   async reference(): Promise<void> {
-    if (
-      this.disposed ||
-      this.snapshot.busy ||
-      this.snapshot.referenceUsed ||
-      this.hasStartedAttempt ||
-      !this.snapshot.exercise ||
-      this.snapshot.exercise.targets.length === 0 ||
-      this.snapshot.session === null ||
-      (this.engine !== null && !["idle", "aborted"].includes(this.engine.state))
-    )
-      return;
-
+    this.stopPreview();
+    if (!this.canReference) return;
+    const lesson = this.snapshot.exercise?.section === "lessons";
+    const mode: TapMode = lesson
+      ? "practice"
+      : this.modeExplicitlySelected
+        ? this.snapshot.selectedMode
+        : this.hasStartedAttempt
+          ? "practice"
+          : "graded";
     const token = ++this.operationToken;
+    if (mode === "graded") this.gradedReferenceUsed = true;
     this.publish({
-      referenceUsed: true,
+      ...(mode === "graded" ? { referenceUsed: true } : {}),
       busy: true,
       phase: "reference",
       error: null,
     });
 
+    const audioReady = this.beginAudioGesture();
     let engine: TapRhythmEngine;
+    try {
+      if (audioReady !== null) {
+        await audioReady;
+        if (this.disposed || token !== this.operationToken) return;
+      }
+      engine = this.ensureEngine();
+    } catch {
+      if (!this.disposed && token === this.operationToken) {
+        this.publish({
+          phase: "error",
+          busy: false,
+          error:
+            "Không thể phát mẫu âm thanh. Lượt tham khảo đã được dùng; bạn vẫn có thể bắt đầu bài tập.",
+        });
+      }
+      return;
+    }
+
     let playback: Promise<void>;
     try {
-      engine = this.ensureEngine();
-      // Invocation itself is synchronous, before awaiting any parent/controller work.
-      playback = engine.playReference();
+      // Call the scheduler directly in the gesture handler when using test/legacy audio.
+      playback = engine.playReference(mode);
       this.observeEngine(engine);
       this.syncEngineState(engine);
     } catch {
@@ -556,6 +941,7 @@ export class TapTrainingController {
 
   /** Reuse the same engine/exercise; the engine itself enforces practice mode. */
   async retry(): Promise<void> {
+    this.stopPreview();
     if (
       this.disposed ||
       this.snapshot.busy ||
@@ -567,6 +953,8 @@ export class TapTrainingController {
     const token = ++this.operationToken;
     const engine = this.engine;
     this.hasStartedAttempt = true;
+    this.practiceAttemptStarted = true;
+    this.modeExplicitlySelected = true;
     this.attemptStartedAt = Date.now();
     this.publish({
       busy: true,
@@ -574,6 +962,7 @@ export class TapTrainingController {
       result: null,
       points: null,
       practice: true,
+      selectedMode: "practice",
       trialNumber: this.snapshot.trialNumber + 1,
     });
 
@@ -606,6 +995,7 @@ export class TapTrainingController {
 
   /** A new exercise always receives a new, one-question shared FREE session. */
   async continue(): Promise<void> {
+    this.stopPreview();
     const emptyExerciseReady =
       this.snapshot.phase === "empty" &&
       this.engine === null &&
@@ -626,12 +1016,19 @@ export class TapTrainingController {
 
   /** Stop an active action; its engine receipt is technical/ungraded. */
   stop(): void {
-    if (this.disposed || !this.engine) return;
-    const engine = this.engine;
+    if (this.disposed) return;
+    this.stopPreview();
     ++this.operationToken;
     this.setBusy(false);
+    const engine = this.engine;
+    if (!engine) return;
     if (ACTIVE_ENGINE_STATES.includes(engine.state)) engine.stop();
     this.syncEngineState(engine);
+  }
+
+  /** Return/back invalidates pending setup without erasing a sealed result. */
+  back(): void {
+    this.stop();
   }
 
   /** UI flash only. No event, timestamp, count, or scoring data is accepted. */
@@ -647,6 +1044,7 @@ export class TapTrainingController {
   /** Invalidate result callbacks before abort/disposal can emit a technical receipt. */
   async dispose(): Promise<void> {
     if (this.disposed) return;
+    this.stopPreview();
     this.disposed = true;
     ++this.operationToken;
     ++this.engineEpoch;
@@ -659,6 +1057,19 @@ export class TapTrainingController {
         await oldEngine.dispose();
       } catch {
         // Disposal is best-effort cleanup; no result is allowed to escape it.
+      }
+    }
+    if (!this.usesInjectedAudio && this.audioContext) {
+      const context = this.audioContext;
+      this.audioContext = null;
+      this.metronomeOutput?.disconnect();
+      this.metronomeOutput = null;
+      if (context.state !== "closed") {
+        try {
+          await context.close();
+        } catch {
+          // Controller teardown is best-effort and must remain idempotent.
+        }
       }
     }
     this.listeners.clear();

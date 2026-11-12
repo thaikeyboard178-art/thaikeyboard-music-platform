@@ -2,9 +2,10 @@ import {
   RhythmAudioTransport,
   type RhythmTransportOptions,
   type RhythmReferenceTiming,
+  type RhythmScheduledEvent,
 } from "./transport";
 import { createListenPlaybackPlan } from "./plan";
-import { createTapAttemptPlan } from "./tapPlan";
+import { createTapReferencePlan, createTapAttemptPlan } from "./tapPlan";
 import { OutputClockBridge } from "./tapClock";
 import { NativeTapCapture, type CapturedTap } from "./tapInput";
 import { matchTapRhythm, type TapMatchInput } from "../exercises/tapMatcher";
@@ -32,6 +33,8 @@ export type TapEngineOptions = Readonly<{
   inputTarget?: EventTarget;
   blurSource?: EventTarget | null;
   onResult?: (result: TapAttemptResult) => void;
+  /** Set false only when an owning controller will close its shared context. */
+  disposeAudioContext?: boolean;
 }>;
 export type TapCollectionSnapshot = Readonly<{
   generation: number;
@@ -58,8 +61,11 @@ export class TapRhythmEngine {
   private timer: unknown = null;
   private token = 0;
   private startedOnce = false;
-  private referenceUsed = false;
+  private gradedAttemptStarted = false;
+  private gradedReferenceUsed = false;
   private mode: "graded" | "practice" = "graded";
+  private playbackEvents: RhythmScheduledEvent[] = [];
+  private playbackGeneration: number | null = null;
   private stateValue: TapEngineState = "idle";
   private resultValue: TapAttemptResult | null = null;
   private snapshotValue: TapCollectionSnapshot | null = null;
@@ -87,6 +93,13 @@ export class TapRhythmEngine {
           throw new Error("Tap AudioContext is closed.");
         if (!this.context) this.context = factory();
         return this.context;
+      },
+      onScheduled: event => {
+        if (this.playbackGeneration === null)
+          this.playbackGeneration = event.generation;
+        if (event.generation !== this.playbackGeneration) return;
+        this.playbackEvents.push(event);
+        options.transport.onScheduled?.(event);
       },
     });
     this.capture = new NativeTapCapture({
@@ -126,6 +139,28 @@ export class TapRhythmEngine {
   get hasPendingWakeup(): boolean {
     return this.timer !== null;
   }
+  get canStartGraded(): boolean {
+    return !this.gradedAttemptStarted;
+  }
+
+  /** A frozen scheduler snapshot for rendering; it is not a second clock. */
+  getAudioPlayback(): Readonly<{
+    audioTime: number;
+    scheduledEvents: readonly RhythmScheduledEvent[];
+    state: string;
+  }> | null {
+    if (!this.context) return null;
+    return Object.freeze({
+      audioTime: this.context.currentTime,
+      scheduledEvents: Object.freeze([...this.playbackEvents]),
+      state: this.transport.state,
+    });
+  }
+
+  private clearPlaybackEvents(): void {
+    this.playbackEvents = [];
+    this.playbackGeneration = null;
+  }
 
   /** Native handlers call this method; captured timestamps, not handler time, grade. */
   handleEvent(event: Event, generation = this.token): void {
@@ -159,18 +194,25 @@ export class TapRhythmEngine {
         : "clock-invalid";
   }
 
-  /** One ungraded reference at most; never available inside or after a graded attempt. */
-  async playReference(): Promise<void> {
-    if (this.stateValue !== "idle" || this.startedOnce || this.referenceUsed)
-      throw new Error(
-        "Reference is available at most once before the graded attempt."
-      );
-    this.referenceUsed = true;
+  /** Graded reference is limited to one; practice references may be repeated. */
+  async playReference(mode?: "practice" | "graded"): Promise<void> {
+    const legacyReference = mode === undefined;
+    const selectedMode = mode ?? "graded";
+    if (
+      !["idle", "completed", "aborted"].includes(this.stateValue) ||
+      (selectedMode === "graded" &&
+        (this.gradedAttemptStarted || this.gradedReferenceUsed))
+    )
+      throw new Error("Reference is unavailable during this engine state.");
+    if (selectedMode === "graded") this.gradedReferenceUsed = true;
+    this.clearPlaybackEvents();
     this.stateValue = "reference";
     const token = ++this.token;
     try {
       await this.transport.start(
-        createListenPlaybackPlan(this.options.exercise.pattern)
+        legacyReference
+          ? createListenPlaybackPlan(this.options.exercise.pattern)
+          : createTapReferencePlan(this.options.exercise)
       );
     } catch (error) {
       this.stateValue = "aborted";
@@ -184,13 +226,18 @@ export class TapRhythmEngine {
     });
   }
 
-  async start(): Promise<void> {
+  async start(mode?: "practice" | "graded"): Promise<void> {
     if (this.stateValue === "disposed")
       throw new Error("Tap engine is disposed.");
     if (this.active() || this.stateValue === "reference")
       throw new Error("Cannot start or replay inside an active attempt.");
-    this.mode = this.startedOnce ? "practice" : "graded";
+    const selectedMode = mode ?? (this.startedOnce ? "practice" : "graded");
+    if (selectedMode === "graded" && this.gradedAttemptStarted)
+      throw new Error("The graded attempt has already been used.");
+    this.mode = selectedMode;
+    if (selectedMode === "graded") this.gradedAttemptStarted = true;
     this.startedOnce = true;
+    this.clearPlaybackEvents();
     this.stateValue = "starting";
     this.resultValue = null;
     this.snapshotValue = null;
@@ -228,11 +275,35 @@ export class TapRhythmEngine {
     this.wake(token);
   }
 
+  /** Seal a genuine ungraded technical receipt if audio preparation fails first. */
+  failBeforeStart(
+    mode: "practice" | "graded",
+    reason = "audio-unavailable"
+  ): void {
+    if (
+      this.stateValue === "disposed" ||
+      this.active() ||
+      this.stateValue === "reference"
+    )
+      throw new Error("Cannot fail an active or disposed Tap engine.");
+    if (mode === "graded" && this.gradedAttemptStarted)
+      throw new Error("The graded attempt has already been used.");
+    this.mode = mode;
+    if (mode === "graded") this.gradedAttemptStarted = true;
+    this.startedOnce = true;
+    this.clearPlaybackEvents();
+    this.resultValue = null;
+    this.snapshotValue = null;
+    this.taps = [];
+    this.raw = [];
+    this.stateValue = "starting";
+    this.abort(reason);
+  }
+
   /** Explicit retry is always practice, including after a technical abort. */
   async retry(): Promise<void> {
     if (this.active()) this.stop();
-    this.startedOnce = true;
-    await this.start();
+    await this.start("practice");
   }
   async replay(): Promise<void> {
     if (this.active() || this.stateValue === "reference")
@@ -460,6 +531,7 @@ export class TapRhythmEngine {
     );
   }
   stop(): void {
+    this.clearPlaybackEvents();
     this.abort("stopped");
   }
   pause(): void {
@@ -467,6 +539,7 @@ export class TapRhythmEngine {
   }
   async dispose(): Promise<void> {
     if (this.stateValue === "disposed") return;
+    this.clearPlaybackEvents();
     this.abort("disposed");
     this.clearWake();
     this.token++;
@@ -483,7 +556,8 @@ export class TapRhythmEngine {
       "visibilitychange",
       this.hidden
     );
-    await this.transport.dispose();
+    if (this.options.disposeAudioContext === false) this.transport.stop();
+    else await this.transport.dispose();
     this.stateValue = "disposed";
   }
 }

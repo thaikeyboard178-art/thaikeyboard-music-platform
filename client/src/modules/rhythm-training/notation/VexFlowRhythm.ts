@@ -56,10 +56,31 @@ export type RhythmNotationParityReport = Readonly<{
   segmentReports: readonly RhythmSegmentParityReport[];
 }>;
 
+export type RhythmNotationMeasureGeometry = Readonly<{
+  measureIndex: number;
+  rowIndex: number;
+  startTicks: number;
+  endTicks: number;
+  xStart: number;
+  xEnd: number;
+  noteAnchors: readonly Readonly<{
+    segmentId: string;
+    tick: number;
+    x: number;
+  }>[];
+  staveBounds: Readonly<{
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+  }>;
+}>;
+
 export type RhythmNotationRenderResult = Readonly<{
   svg: SVGSVGElement;
   projection: ImmutableRhythmNotationProjection;
   parity: RhythmNotationParityReport;
+  geometry: readonly RhythmNotationMeasureGeometry[];
 }>;
 
 export class RhythmNotationRenderError extends Error {
@@ -668,6 +689,41 @@ export function renderRhythmNotation(
   addCanonicalDataAttributes(svg, allNotes, projection.segments, rowByMeasure);
   markTieElements(svg, tieMarkers);
   markBeamElements(svg, projection.beamGroups);
+  const measureTicks = projection.timeline.meter.measureTicks;
+  const geometry: readonly RhythmNotationMeasureGeometry[] = Object.freeze(
+    [...stavesByMeasure.entries()]
+      .sort(([left], [right]) => left - right)
+      .map(([measureIndex, stave]) => {
+        const segments = projection.segments.filter(
+          segment => segment.measureIndex === measureIndex
+        );
+        const notes = notesByMeasure.get(measureIndex) ?? [];
+        const noteAnchors = Object.freeze(
+          segments.map((segment, index) =>
+            Object.freeze({
+              segmentId: segment.segmentId,
+              tick: segment.startTicks,
+              x: notes[index].getAbsoluteX(),
+            })
+          )
+        );
+        return Object.freeze({
+          measureIndex,
+          rowIndex: rowByMeasure.get(measureIndex) ?? 0,
+          startTicks: measureIndex * measureTicks,
+          endTicks: (measureIndex + 1) * measureTicks,
+          xStart: stave.getNoteStartX(),
+          xEnd: stave.getX() + stave.getWidth(),
+          noteAnchors,
+          staveBounds: Object.freeze({
+            left: stave.getX(),
+            right: stave.getX() + stave.getWidth(),
+            top: stave.getTopLineTopY(),
+            bottom: stave.getBottomLineBottomY(),
+          }),
+        });
+      })
+  );
   svg.setAttribute("data-rhythm-pattern-id", projection.canonicalPattern.id);
   svg.setAttribute(
     "data-rhythm-meter",
@@ -690,5 +746,5 @@ export function renderRhythmNotation(
     "height",
     String((height * renderOptions.width) / naturalWidth)
   );
-  return Object.freeze({ svg, projection, parity });
+  return Object.freeze({ svg, projection, parity, geometry });
 }

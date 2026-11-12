@@ -286,11 +286,12 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const finalState = h.controller.getSnapshot();
     expect(finalState.result?.mode).toBe("practice");
     expect(finalState.result?.status).toBe("completed");
-    expect(finalState.points).toBe(0);
+    expect(finalState.points).toBeNull();
     expect(finalState.originalPoints).toBe(10);
     expect(finalState.gradedResult).toBe(original);
     expect(finalState.session).toBe(originalSession);
     expect(finalState.session?.questionsAnswered).toBe(1);
+    expect(finalState.session?.totalScore).toBe(10);
   });
 
   it("Continue disposes the prior engine and creates a different exercise with a fresh shared session", async () => {
