@@ -27,6 +27,8 @@ export function RhythmQuizNotation({
         const rendered = renderRhythmNotation(host, notation.pattern, {
           width: 620,
           measuresPerRow: 1,
+          displayTimeSignature: notation.showTimeSignature !== false,
+          exposeCanonicalMetadata: notation.showTimeSignature !== false,
         });
         rendered.svg.setAttribute(
           "data-quiz-notation",

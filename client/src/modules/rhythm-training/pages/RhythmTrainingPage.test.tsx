@@ -184,7 +184,9 @@ describe("Rhythm learner page: three screens and real controller integration", (
         name: /Rhythm Quiz/,
       })
     ).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Chọn hoạt động" }));
+    await user.click(
+      screen.getByRole("button", { name: "Quay về Rhythm Training" })
+    );
     expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
       false
     );
@@ -363,6 +365,33 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(
       screen.getByTestId("rhythm-workspace").getAttribute("data-section")
     ).toBe("practice");
+    const workspace = screen.getByTestId("rhythm-workspace");
+    const zones = Array.from(
+      workspace.querySelectorAll<HTMLElement>(".rhythm-practice-zone")
+    );
+    expect(
+      zones.map(zone =>
+        [
+          "rhythm-metronome-zone",
+          "rhythm-controls-zone",
+          "rhythm-staff-tap-zone",
+        ].find(className => zone.classList.contains(className))
+      )
+    ).toEqual([
+      "rhythm-metronome-zone",
+      "rhythm-controls-zone",
+      "rhythm-staff-tap-zone",
+    ]);
+    expect(workspace.querySelectorAll(".rhythm-tempo-value")).toHaveLength(1);
+    expect(workspace.querySelectorAll(".rhythm-tempo")).toHaveLength(0);
+    const staffTapZone = zones[2];
+    const tapTarget = staffTapZone.querySelector(
+      '[data-testid="rhythm-tap-surface"]'
+    )!;
+    expect(tapTarget.previousElementSibling?.getAttribute("data-testid")).toBe(
+      "notation-jsdom-placeholder"
+    );
+    expect(staffTapZone.querySelectorAll(".rhythm-tap-surface")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Thiết lập lại" }));
     await user.click(screen.getByRole("button", { name: /^Level 2 —/ }));
     await user.click(screen.getByRole("button", { name: /^Chơi thử/ }));

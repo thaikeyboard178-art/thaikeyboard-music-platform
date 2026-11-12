@@ -2,18 +2,23 @@ import { describe, expect, it } from "vitest";
 import {
   createQuizRun,
   DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+  getAvailableQuizQuestionCount,
   QUIZ_QUESTION_BANK,
+  RHYTHM_QUIZ_QUESTION_COUNTS,
   type QuizTrack,
 } from "./questionBank";
 import { requireValidRhythmPattern } from "../rhythm/validate";
+import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 
-const tracks: readonly QuizTrack[] = [1, 2, 3, 4, 5, 6, "bonus"];
+const tracks: readonly Exclude<QuizTrack, "mixed">[] = [1, 2, 3, 4, 5, 6, "bonus"];
 const bankFor = (track: QuizTrack) => QUIZ_QUESTION_BANK[String(track)];
 
 function questionIds(track: QuizTrack, seed: string) {
-  return createQuizRun(track, seed, DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT).map(
-    question => question.id
+  const exactCount = Math.min(
+    DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+    bankFor(track).length
   );
+  return createQuizRun(track, seed, exactCount).map(question => question.id);
 }
 
 describe("Rhythm Quiz question bank", () => {
@@ -89,7 +94,10 @@ describe("Rhythm Quiz question bank", () => {
         question => question.concept === "complex-rhythm-combinations"
       )
     ).toBe(true);
-    expect(createQuizRun(5, "short-bank", 10)).toHaveLength(level5.length);
+    expect(createQuizRun(5, "short-bank", level5.length)).toHaveLength(level5.length);
+    expect(() => createQuizRun(5, "short-bank", 10)).toThrow(
+      /unique questions are available/
+    );
     expect(new Set(questionIds(5, "short-bank")).size).toBe(level5.length);
   });
 
@@ -158,7 +166,8 @@ describe("Rhythm Quiz question bank", () => {
     );
 
     for (const track of tracks) {
-      const shuffled = createQuizRun(track, `options-${String(track)}`, 10);
+      const count = Math.min(10, bankFor(track).length);
+      const shuffled = createQuizRun(track, `options-${String(track)}`, count);
       for (const question of shuffled) {
         const canonical = bankFor(track).find(item => item.id === question.id)!;
         expect(question.correctOptionId).toBe(canonical.correctOptionId);
@@ -176,5 +185,75 @@ describe("Rhythm Quiz question bank", () => {
         );
       }
     }
+  });
+
+  it("keeps meter-identification stimuli uniquely inferable without signature data leaking", () => {
+    for (const track of tracks) {
+      for (const question of bankFor(track)) {
+        if (question.concept !== "meter-identification") continue;
+        expect(question.notation?.kind).toBe("canonical");
+        if (question.notation?.kind !== "canonical") continue;
+        expect(question.notation.showTimeSignature).toBe(false);
+        expect(question.prompt).not.toMatch(/\b\d+\/\d+\b/);
+        expect(question.explanation).not.toMatch(/\b\d+\/\d+\b/);
+        expect(question.notation.caption).not.toMatch(/\b\d+\/\d+\b/);
+        const optionDurations = question.options.map(candidate => {
+          const [numerator, denominator] = candidate.label
+            .split("/")
+            .map(Number);
+          return (numerator * 480 * 4) / denominator;
+        });
+        const pattern = question.notation.pattern;
+        const capacity = deriveRhythmTimeline(pattern, 120).meter.measureTicks;
+        const correctIndex = question.options.findIndex(
+          candidate => candidate.id === question.correctOptionId
+        );
+        expect(optionDurations[correctIndex]).toBe(capacity);
+        expect(optionDurations.filter(duration => duration === capacity)).toHaveLength(1);
+      }
+    }
+  });
+
+  it("spells the Level 5 beat-2 sustain over beat 3 as a tie without changing attack onsets", () => {
+    const question = bankFor(5).find(
+      candidate => candidate.id === "l5-combo-sixteenths-dotted-eighth-quarter"
+    )!;
+    expect(question.notation?.kind).toBe("canonical");
+    if (question.notation?.kind !== "canonical") return;
+    const timeline = deriveRhythmTimeline(question.notation.pattern, 120);
+    expect(timeline.totalTicks).toBe(1920);
+    expect(timeline.onsets).toEqual([0, 120, 240, 360, 480, 1200, 1440]);
+    expect(
+      timeline.segments.find(
+        segment => segment.segmentId === "l5-combo-beat-three-tied-eighth"
+      )
+    ).toMatchObject({ absoluteStartTicks: 960, isOnset: false, tieRole: "end" });
+    expect(
+      timeline.segments.filter(segment => segment.tieGroupId === "l5-combo-beat-boundary-tie")
+    ).toHaveLength(2);
+  });
+
+  it("creates exact-count, unique Mixed runs from all seven curriculum groups with reproducible level diversity", () => {
+    expect(RHYTHM_QUIZ_QUESTION_COUNTS).toEqual([5, 10, 20, 30]);
+    expect(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT).toBe(10);
+    const first = createQuizRun("mixed", "all-levels-stable", 30);
+    const repeat = createQuizRun("mixed", "all-levels-stable", 30);
+    expect(first.map(question => [question.id, question.options.map(o => o.id)])).toEqual(
+      repeat.map(question => [question.id, question.options.map(o => o.id)])
+    );
+    expect(first).toHaveLength(30);
+    expect(new Set(first.map(question => question.id)).size).toBe(30);
+    expect(new Set(first.map(question => String(question.track)))).toEqual(
+      new Set(tracks.map(String))
+    );
+    const sourceIds = new Set(tracks.flatMap(track => bankFor(track).map(q => q.id)));
+    expect(first.every(question => sourceIds.has(question.id))).toBe(true);
+    for (const count of RHYTHM_QUIZ_QUESTION_COUNTS) {
+      expect(createQuizRun("mixed", `mixed-${count}`, count)).toHaveLength(count);
+    }
+    expect(getAvailableQuizQuestionCount("mixed")).toBe(sourceIds.size);
+    expect(() => createQuizRun("mixed", "too-many", sourceIds.size + 1)).toThrow(
+      /unique questions are available/
+    );
   });
 });

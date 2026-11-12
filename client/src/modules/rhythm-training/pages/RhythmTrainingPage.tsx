@@ -694,9 +694,20 @@ export default function RhythmTrainingPage() {
   }
 
   return (
-    <div className="training-app rhythm-page">
+      <div className="training-app rhythm-page">
       <TrainingHeader currentModuleId="rhythm-training" />
       <main className="module-main rhythm-main">
+        {screen === "setup" && selectedActivity === "tap" && (
+          <nav className="rhythm-top-navigation" aria-label="Rhythm Training">
+            <button
+              type="button"
+              className="rhythm-top-return"
+              onClick={() => transitionTo("chooser")}
+            >
+              Quay về Rhythm Training
+            </button>
+          </nav>
+        )}
         <div className="module-breadcrumb">
           <Link href="/">Trang chủ</Link>
           <ChevronRight size={12} />
@@ -781,13 +792,6 @@ export default function RhythmTrainingPage() {
               <span className="module-kicker">MÀN HÌNH 1 · THIẾT LẬP</span>
               <h2 id="rhythm-setup-title">Thiết lập Tap Rhythm</h2>
               <p>Chọn cấp độ, nhịp, nội dung luyện, số ô nhịp và tempo.</p>
-              <button
-                type="button"
-                className="rhythm-tertiary rhythm-choose-activity"
-                onClick={() => transitionTo("chooser")}
-              >
-                Chọn hoạt động
-              </button>
             </div>
             <span className="rhythm-note">
               Level 1–6 và Bonus 2/2 theo vocabulary/generator gate hiện hành.
@@ -1083,281 +1087,302 @@ export default function RhythmTrainingPage() {
               data-section={view.exercise.section}
               data-testid="rhythm-workspace"
             >
-              <ExerciseMetadata view={view} />
               <section
-                className="rhythm-tempo-control rhythm-practice-tempo"
-                aria-labelledby="practice-tempo-heading"
+                className="rhythm-practice-zone rhythm-metronome-zone"
+                aria-labelledby="rhythm-metronome-zone-title"
               >
-                <div className="rhythm-tempo-heading">
-                  <div>
-                    <span className="module-kicker">TEMPO · 30–300 BPM</span>
-                    <h3 id="practice-tempo-heading">
-                      Điều chỉnh tempo khi luyện
-                    </h3>
-                    <p>
-                      Nhịp {meterKey(view.exercise.pattern.meter)} và số phách
-                      giữ nguyên; thay đổi chỉ áp dụng tempo cho metronome và
-                      playback của bài.
-                    </p>
+                <h3 id="rhythm-metronome-zone-title" className="rhythm-zone-title">
+                  1 · METRONOME
+                </h3>
+                <section
+                  className="rhythm-tempo-control rhythm-practice-tempo"
+                  aria-labelledby="practice-tempo-heading"
+                >
+                  <div className="rhythm-tempo-heading">
+                    <div>
+                      <span className="module-kicker">TEMPO · 30–300 BPM</span>
+                      <h4 id="practice-tempo-heading">Điều chỉnh tempo khi luyện</h4>
+                      <p>
+                        Nhịp {meterKey(view.exercise.pattern.meter)} và số phách
+                        giữ nguyên; thay đổi chỉ áp dụng tempo cho metronome và
+                        playback của bài.
+                      </p>
+                    </div>
+                    <output
+                      className="rhythm-tempo-value"
+                      aria-label="Tempo hiện tại"
+                    >
+                      <strong>{view.exercise.pattern.tempo.pulseBpm}</strong>
+                      <span>BPM</span>
+                    </output>
                   </div>
-                  <output
-                    className="rhythm-tempo-value"
-                    aria-label="Tempo hiện tại"
-                  >
-                    <strong>{view.exercise.pattern.tempo.pulseBpm}</strong>
-                    <span>BPM</span>
-                  </output>
-                </div>
-                <div className="rhythm-tempo-row">
-                  <button
-                    type="button"
-                    className="rhythm-stepper"
-                    aria-label="Giảm BPM trong Practice"
-                    disabled={
-                      !canEditPracticeBpm ||
-                      view.exercise.pattern.tempo.pulseBpm <= 30
-                    }
-                    onClick={() =>
-                      void applyPracticeBpm(
-                        view.exercise!.pattern.tempo.pulseBpm - 1
-                      )
-                    }
-                  >
-                    −
-                  </button>
-                  <input
-                    type="range"
-                    aria-label="Tempo Practice (BPM)"
-                    min="30"
-                    max="300"
-                    step="1"
-                    value={view.exercise.pattern.tempo.pulseBpm}
-                    disabled={!canEditPracticeBpm}
-                    onChange={event =>
-                      void applyPracticeBpm(Number(event.target.value))
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="rhythm-stepper"
-                    aria-label="Tăng BPM trong Practice"
-                    disabled={
-                      !canEditPracticeBpm ||
-                      view.exercise.pattern.tempo.pulseBpm >= 300
-                    }
-                    onClick={() =>
-                      void applyPracticeBpm(
-                        view.exercise!.pattern.tempo.pulseBpm + 1
-                      )
-                    }
-                  >
-                    +
-                  </button>
-                  <label className="rhythm-bpm-input-label">
-                    BPM
+                  <div className="rhythm-tempo-row">
+                    <button
+                      type="button"
+                      className="rhythm-stepper"
+                      aria-label="Giảm BPM trong Practice"
+                      disabled={
+                        !canEditPracticeBpm ||
+                        view.exercise.pattern.tempo.pulseBpm <= 30
+                      }
+                      onClick={() =>
+                        void applyPracticeBpm(
+                          view.exercise!.pattern.tempo.pulseBpm - 1
+                        )
+                      }
+                    >
+                      −
+                    </button>
                     <input
-                      aria-label="BPM trong Practice"
-                      type="number"
-                      inputMode="numeric"
+                      type="range"
+                      aria-label="Tempo Practice (BPM)"
                       min="30"
                       max="300"
                       step="1"
-                      value={practiceTempoInput}
+                      value={view.exercise.pattern.tempo.pulseBpm}
                       disabled={!canEditPracticeBpm}
-                      aria-invalid={!practiceTempoInputValid}
                       onChange={event =>
-                        changePracticeBpmInput(event.target.value)
+                        void applyPracticeBpm(Number(event.target.value))
                       }
                     />
-                  </label>
-                </div>
-                {!practiceTempoInputValid && (
-                  <p className="rhythm-error" role="alert">
-                    BPM trong Practice phải là số nguyên từ 30 đến 300. Giá trị
-                    không hợp lệ sẽ không được tự điều chỉnh.
-                  </p>
-                )}
-              </section>
-              <RhythmNotation
-                pattern={view.exercise.pattern}
-                onReady={setNotationReady}
-              />
-              <VisualMetronome
-                meter={view.exercise.pattern.meter}
-                pulseBpm={view.exercise.pattern.tempo.pulseBpm}
-                readPlayback={() => controller.getAudioPlayback()}
-              />
-              <div
-                className={`rhythm-status phase-${view.phase}`}
-                role="status"
-                aria-live="polite"
-                data-testid="rhythm-status"
-                data-phase={view.phase}
-              >
-                {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
-                {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
-              </div>
-              <span className="rhythm-mode-badge" aria-disabled="true">
-                Chế độ:{" "}
-                {view.selectedMode === "practice" ? "Chơi thử" : "Chấm điểm"}
-              </span>
-              {showOfficialSessionScore && cumulativeTotalScore !== null && (
-                <SessionScore score={cumulativeTotalScore} />
-              )}
-              {view.replayOnly && view.selectedMode === "graded" && (
-                <div
-                  className="rhythm-replay-note"
-                  role="note"
-                  data-testid="rhythm-replay-practice-only"
-                >
-                  Lựa chọn hiển thị vẫn là Chấm điểm, nhưng Chơi lại chỉ tạo một
-                  lượt luyện tập tham khảo: không gửi câu trả lời chung và không
-                  ghi thêm điểm. Hãy bấm Bắt đầu để chủ động phát lượt này.
-                </div>
-              )}
-              <div className="rhythm-controls">
-                <button
-                  type="button"
-                  className="rhythm-primary"
-                  onClick={() => void start()}
-                  disabled={!canStart || locked}
-                >
-                  <Play size={16} /> Bắt đầu
-                </button>
-                <button
-                  type="button"
-                  className="rhythm-secondary"
-                  onClick={() => void controller.reference()}
-                  disabled={!controller.canReference || locked}
-                >
-                  <Headphones size={16} />
-                  {view.referenceUsed
-                    ? "Đã nghe mẫu (1/1)"
-                    : "Nghe mẫu (1 lần)"}
-                </button>
-                <button
-                  type="button"
-                  className="rhythm-tertiary"
-                  ref={skipTriggerRef}
-                  onClick={requestSkip}
-                  disabled={!controller.canSkipCurrentExercise || skipInFlight}
-                >
-                  {skipInFlight ? "Đang bỏ qua…" : "Bỏ qua bài"}
-                </button>
-                {active && (
-                  <button
-                    type="button"
-                    className="rhythm-secondary"
-                    onClick={() => controller.stop()}
-                  >
-                    <Square size={14} /> Dừng — không chấm
-                  </button>
-                )}
-              </div>
-              <label className="rhythm-volume-control">
-                <Volume2 size={16} />
-                <span>Âm lượng metronome</span>
-                <input
-                  type="range"
-                  aria-label="Âm lượng metronome"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={metronomeVolume}
-                  onChange={event => {
-                    const next = Number(event.target.value);
-                    setMetronomeVolume(next);
-                    controller.setMetronomeVolume(next);
-                  }}
+                    <button
+                      type="button"
+                      className="rhythm-stepper"
+                      aria-label="Tăng BPM trong Practice"
+                      disabled={
+                        !canEditPracticeBpm ||
+                        view.exercise.pattern.tempo.pulseBpm >= 300
+                      }
+                      onClick={() =>
+                        void applyPracticeBpm(
+                          view.exercise!.pattern.tempo.pulseBpm + 1
+                        )
+                      }
+                    >
+                      +
+                    </button>
+                    <label className="rhythm-bpm-input-label">
+                      BPM
+                      <input
+                        aria-label="BPM trong Practice"
+                        type="number"
+                        inputMode="numeric"
+                        min="30"
+                        max="300"
+                        step="1"
+                        value={practiceTempoInput}
+                        disabled={!canEditPracticeBpm}
+                        aria-invalid={!practiceTempoInputValid}
+                        onChange={event =>
+                          changePracticeBpmInput(event.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  {!practiceTempoInputValid && (
+                    <p className="rhythm-error" role="alert">
+                      BPM trong Practice phải là số nguyên từ 30 đến 300. Giá trị
+                      không hợp lệ sẽ không được tự điều chỉnh.
+                    </p>
+                  )}
+                </section>
+                <VisualMetronome
+                  meter={view.exercise.pattern.meter}
+                  pulseBpm={view.exercise.pattern.tempo.pulseBpm}
+                  readPlayback={() => controller.getAudioPlayback()}
                 />
-                <output>{Math.round(metronomeVolume * 100)}%</output>
-              </label>
+                <label className="rhythm-volume-control">
+                  <Volume2 size={16} />
+                  <span>Âm lượng metronome</span>
+                  <input
+                    type="range"
+                    aria-label="Âm lượng metronome"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={metronomeVolume}
+                    onChange={event => {
+                      const next = Number(event.target.value);
+                      setMetronomeVolume(next);
+                      controller.setMetronomeVolume(next);
+                    }}
+                  />
+                  <output>{Math.round(metronomeVolume * 100)}%</output>
+                </label>
+              </section>
 
-              <div
-                ref={tapRef}
-                role="button"
-                tabIndex={0}
-                aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
-                aria-disabled={
-                  !["count-in", "collecting", "draining"].includes(view.phase)
-                }
-                aria-describedby="rhythm-tap-help"
-                className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
-                data-testid="rhythm-tap-surface"
-                onPointerDown={event => {
-                  if (event.isPrimary) controller.acknowledgeTap();
-                }}
-                onKeyDown={event => {
-                  if (event.code === "Space" || event.key === " ") {
-                    event.preventDefault();
-                    if (!event.repeat) controller.acknowledgeTap();
-                  }
-                }}
+              <section
+                className="rhythm-practice-zone rhythm-controls-zone"
+                aria-labelledby="rhythm-controls-zone-title"
               >
-                <Waves size={35} aria-hidden="true" />
-                <strong>{tapFlash ? "Vừa chạm" : "Chạm ở đây"}</strong>
-                <span>Hoặc ấn Space khi vùng chạm được chọn</span>
-                <small>
-                  {view.tapVisualSequence > 0
-                    ? `Tín hiệu chạm hiển thị: ${view.tapVisualSequence} · chấm sau khi hoàn tất`
-                    : "Chạm một lần ở đầu mỗi nốt · không cần giữ"}
-                </small>
-              </div>
-              <p id="rhythm-tap-help" className="rhythm-tap-help">
-                Tín hiệu chạm chỉ xác nhận thao tác, chưa phải đúng/sai. Engine
-                chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
-              </p>
-              {view.phase === "empty" && (
-                <div className="rhythm-error-card" role="status">
-                  <strong>Không có onset cần chạm</strong>
-                  <p>
-                    Timing Accuracy không áp dụng. Bài này không tạo câu trả lời
-                    hoặc điểm.
-                  </p>
+                <h3 id="rhythm-controls-zone-title" className="rhythm-zone-title">
+                  2 · EXERCISE CONTROLS
+                </h3>
+                <ExerciseMetadata view={view} />
+                <div
+                  className={`rhythm-status phase-${view.phase}`}
+                  role="status"
+                  aria-live="polite"
+                  data-testid="rhythm-status"
+                  data-phase={view.phase}
+                >
+                  {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
+                  {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
+                </div>
+                <span className="rhythm-mode-badge" aria-disabled="true">
+                  Chế độ:{" "}
+                  {view.selectedMode === "practice" ? "Chơi thử" : "Chấm điểm"}
+                </span>
+                {showOfficialSessionScore && cumulativeTotalScore !== null && (
+                  <SessionScore score={cumulativeTotalScore} />
+                )}
+                {view.replayOnly && view.selectedMode === "graded" && (
+                  <div
+                    className="rhythm-replay-note"
+                    role="note"
+                    data-testid="rhythm-replay-practice-only"
+                  >
+                    Lựa chọn hiển thị vẫn là Chấm điểm, nhưng Chơi lại chỉ tạo một
+                    lượt luyện tập tham khảo: không gửi câu trả lời chung và không
+                    ghi thêm điểm. Hãy bấm Bắt đầu để chủ động phát lượt này.
+                  </div>
+                )}
+                <div className="rhythm-controls">
+                  <button
+                    type="button"
+                    className="rhythm-primary"
+                    onClick={() => void start()}
+                    disabled={!canStart || locked}
+                  >
+                    <Play size={16} /> Bắt đầu
+                  </button>
                   <button
                     type="button"
                     className="rhythm-secondary"
-                    onClick={() => void nextExercise()}
-                    disabled={locked}
+                    onClick={() => void controller.reference()}
+                    disabled={!controller.canReference || locked}
                   >
-                    Mở bài khác
+                    <Headphones size={16} />
+                    {view.referenceUsed
+                      ? "Đã nghe mẫu (1/1)"
+                      : "Nghe mẫu (1 lần)"}
                   </button>
-                </div>
-              )}
-              {practiceReturnReceipt && (
-                <div className="rhythm-receipt-return" role="note">
-                  <span>
-                    {view.replayOnly && view.gradedResult
-                      ? "Kết quả chấm ban đầu và điểm gốc vẫn được giữ nguyên."
-                      : "Kết quả gần nhất vẫn được giữ nguyên."}
-                  </span>
                   <button
                     type="button"
                     className="rhythm-tertiary"
-                    onClick={() =>
-                      showReceipt(
-                        view.replayOnly && view.gradedResult
-                          ? "graded"
-                          : "latest"
-                      )
-                    }
+                    ref={skipTriggerRef}
+                    onClick={requestSkip}
+                    disabled={!controller.canSkipCurrentExercise || skipInFlight}
                   >
-                    {view.replayOnly && view.gradedResult
-                      ? "Xem kết quả chấm"
-                      : "Xem kết quả"}
+                    {skipInFlight ? "Đang bỏ qua…" : "Bỏ qua bài"}
                   </button>
-                  {view.gradedResult &&
-                    view.gradedResult !== practiceReturnReceipt && (
-                      <button
-                        type="button"
-                        className="rhythm-tertiary"
-                        onClick={() => showReceipt("graded")}
-                      >
-                        Xem kết quả chấm
-                      </button>
-                    )}
+                  {active && (
+                    <button
+                      type="button"
+                      className="rhythm-secondary"
+                      onClick={() => controller.stop()}
+                    >
+                      <Square size={14} /> Dừng — không chấm
+                    </button>
+                  )}
                 </div>
-              )}
+                {view.phase === "empty" && (
+                  <div className="rhythm-error-card" role="status">
+                    <strong>Không có onset cần chạm</strong>
+                    <p>
+                      Timing Accuracy không áp dụng. Bài này không tạo câu trả lời
+                      hoặc điểm.
+                    </p>
+                    <button
+                      className="rhythm-secondary"
+                      type="button"
+                      onClick={() => void nextExercise()}
+                      disabled={locked}
+                    >
+                      Mở bài khác
+                    </button>
+                  </div>
+                )}
+                {practiceReturnReceipt && (
+                  <div className="rhythm-receipt-return" role="note">
+                    <span>
+                      {view.replayOnly && view.gradedResult
+                        ? "Kết quả chấm ban đầu và điểm gốc vẫn được giữ nguyên."
+                        : "Kết quả gần nhất vẫn được giữ nguyên."}
+                    </span>
+                    <button
+                      type="button"
+                      className="rhythm-tertiary"
+                      onClick={() =>
+                        showReceipt(
+                          view.replayOnly && view.gradedResult ? "graded" : "latest"
+                        )
+                      }
+                    >
+                      {view.replayOnly && view.gradedResult
+                        ? "Xem kết quả chấm"
+                        : "Xem kết quả"}
+                    </button>
+                    {view.gradedResult &&
+                      view.gradedResult !== practiceReturnReceipt && (
+                        <button
+                          type="button"
+                          className="rhythm-tertiary"
+                          onClick={() => showReceipt("graded")}
+                        >
+                          Xem kết quả chấm
+                        </button>
+                      )}
+                  </div>
+                )}
+              </section>
+
+              <section
+                className="rhythm-practice-zone rhythm-staff-tap-zone"
+                aria-labelledby="rhythm-staff-tap-zone-title"
+              >
+                <h3 id="rhythm-staff-tap-zone-title" className="rhythm-zone-title">
+                  3 · STAFF AND TAP
+                </h3>
+                <RhythmNotation
+                  pattern={view.exercise.pattern}
+                  onReady={setNotationReady}
+                />
+                <div
+                  ref={tapRef}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
+                  aria-disabled={
+                    !["count-in", "collecting", "draining"].includes(view.phase)
+                  }
+                  aria-describedby="rhythm-tap-help"
+                  className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
+                  data-testid="rhythm-tap-surface"
+                  onPointerDown={event => {
+                    if (event.isPrimary) controller.acknowledgeTap();
+                  }}
+                  onKeyDown={event => {
+                    if (event.code === "Space" || event.key === " ") {
+                      event.preventDefault();
+                      if (!event.repeat) controller.acknowledgeTap();
+                    }
+                  }}
+                >
+                  <Waves size={35} aria-hidden="true" />
+                  <strong>{tapFlash ? "Vừa chạm" : "Chạm ở đây"}</strong>
+                  <span>Hoặc ấn Space khi vùng chạm được chọn</span>
+                  <small>
+                    {view.tapVisualSequence > 0
+                      ? `Tín hiệu chạm hiển thị: ${view.tapVisualSequence} · chấm sau khi hoàn tất`
+                      : "Chạm một lần ở đầu mỗi nốt · không cần giữ"}
+                  </small>
+                </div>
+                <p id="rhythm-tap-help" className="rhythm-tap-help">
+                  Tín hiệu chạm chỉ xác nhận thao tác, chưa phải đúng/sai. Engine
+                  chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
+                </p>
+              </section>
             </section>
           )}
           {skipDialogOpen && (
@@ -1539,10 +1564,6 @@ function ExerciseMetadata({ view }: { view: TapUiState }) {
         <p>{pulseDescription(exercise.pattern.meter)}</p>
         <p>{groupingDescription(exercise.pattern.meter)}</p>
       </div>
-      <span className="rhythm-tempo">
-        <strong>{exercise.pattern.tempo.pulseBpm}</strong>
-        <small>BPM theo phách</small>
-      </span>
     </div>
   );
 }

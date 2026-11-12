@@ -178,8 +178,12 @@ describe("Rhythm Quiz tiered visual question bank", () => {
         ).toBe(true);
       }
       expect(bank(track).length).toBeGreaterThan(0);
-      const first = createQuizRun(track, "repro-seed", 10);
-      const again = createQuizRun(track, "repro-seed", 10);
+      const requestedCount = Math.min(
+        DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+        bank(track).length
+      );
+      const first = createQuizRun(track, "repro-seed", requestedCount);
+      const again = createQuizRun(track, "repro-seed", requestedCount);
       expect(
         first.map(question => [
           question.id,
@@ -191,9 +195,7 @@ describe("Rhythm Quiz tiered visual question bank", () => {
           question.options.map(candidate => candidate.id),
         ])
       );
-      expect(first).toHaveLength(
-        Math.min(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT, bank(track).length)
-      );
+      expect(first).toHaveLength(requestedCount);
       expect(new Set(first.map(question => question.id)).size).toBe(
         first.length
       );
@@ -357,7 +359,7 @@ describe("RhythmQuizScreen visual-only flow", () => {
     expect(
       screen.getByRole("heading", { name: "Trắc nghiệm kiến thức nhịp điệu" })
     ).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Level 1/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Level 1/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Bonus · 2\/2/ })).toBeTruthy();
     expect(
       container.querySelector(
@@ -387,6 +389,14 @@ describe("RhythmQuizScreen visual-only flow", () => {
           )
         ).toBeTruthy();
         expect(errors).not.toHaveBeenCalled();
+        if (question.concept === "meter-identification") {
+          const svg = container.querySelector("svg")!;
+          expect(svg.outerHTML).not.toMatch(/data-rhythm-(?:meter|pattern-id)/);
+          expect(svg.outerHTML).not.toMatch(/vf-timesignature/i);
+          expect(svg.getAttribute("aria-label")).not.toMatch(/\d+\/\d+/);
+          expect(question.notation.caption).not.toMatch(/\d+\/\d+/);
+          expect(question.prompt + question.explanation).not.toMatch(/\d+\/\d+/);
+        }
         renderedStaffQuestions += 1;
         unmount();
       }
@@ -422,15 +432,29 @@ describe("RhythmQuizScreen visual-only flow", () => {
     expect(errors).not.toHaveBeenCalled();
   });
 
+  it("keeps the time signature visible for a non-identification question that needs it", () => {
+    const question = bank(1).find(
+      item => item.notation?.kind === "canonical"
+    );
+    expect(question?.notation?.kind).toBe("canonical");
+    const { container } = render(
+      <RhythmQuizNotation
+        notation={question!.notation!}
+        onRenderError={vi.fn()}
+      />
+    );
+    const svg = container.querySelector("svg")!;
+    expect(svg.querySelector(".vf-timesignature")).not.toBeNull();
+    expect(svg.getAttribute("data-rhythm-meter")).toBe("4/4");
+  });
+
   it("completes a finite run with unique question IDs, visible A–D labels, canonical option mapping, and a fresh retry", () => {
     const onBack = vi.fn();
     const { container } = render(<RhythmQuizScreen onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: /Level 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Level 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
-    const plannedCount = Math.min(
-      DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
-      bank(1).length
-    );
+    const plannedCount = 5;
     const seenQuestionIds = new Set<string>();
     for (let index = 0; index < plannedCount; index += 1) {
       const prompt =
@@ -486,7 +510,11 @@ describe("RhythmQuizScreen visual-only flow", () => {
       fireEvent.click(screen.getByRole("button", { name: nextName }));
     }
     expect(screen.getByRole("heading", { name: "Tổng kết Quiz" })).toBeTruthy();
-    expect(screen.getByText(String(plannedCount * 10))).toBeTruthy();
+    expect(
+      Array.from(container.querySelectorAll(".rhythm-quiz-stat")).some(
+        stat => stat.textContent === `${plannedCount * 10}Tổng điểm cuối`
+      )
+    ).toBe(true);
     expect(screen.getByText("Quiz run · chỉ số giao diện")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Làm lại lượt này" }));
     const secondPrompt =
@@ -524,5 +552,66 @@ describe("RhythmQuizScreen visual-only flow", () => {
     );
     expect(wrongButton.getAttribute("aria-pressed")).toBe("true");
     expect(wrongButton.disabled).toBe(true);
+  });
+
+  it("shows Mixed origin and creates a full 30-question run with no repeated source question", () => {
+    render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /Hỗn hợp.*All Levels/i }));
+    fireEvent.click(screen.getByRole("button", { name: "30 câu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    expect(screen.getByText(/Câu này thuộc/)).toBeTruthy();
+    expect(screen.getByText("Câu 1 / 30")).toBeTruthy();
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuemax")).toBe("30");
+  });
+
+  it("confirms Skip once, keeps cancelled skips untouched, and reports all result score fields", () => {
+    const { container } = render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Level 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    const initialPrompt = document.querySelector(".rhythm-quiz-question")?.textContent;
+    fireEvent.click(screen.getByRole("button", { name: "Bỏ qua câu hỏi" }));
+    expect(screen.getByRole("dialog").textContent).toContain("trừ 5 điểm");
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục làm" }));
+    expect(document.querySelector(".rhythm-quiz-question")?.textContent).toBe(initialPrompt);
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("0");
+    fireEvent.click(screen.getByRole("button", { name: "Bỏ qua câu hỏi" }));
+    fireEvent.click(screen.getByRole("button", { name: /Xác nhận bỏ qua/ }));
+    expect(screen.getByText("Câu 2 / 5")).toBeTruthy();
+    const secondPrompt = document.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+    const secondQuestion = bank(1).find(question => question.prompt === secondPrompt)!;
+    fireEvent.click(
+      document.querySelector<HTMLButtonElement>(
+        `.rhythm-quiz-option[data-option-id="${secondQuestion.correctOptionId}"]`
+      )!
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Câu tiếp theo" }));
+    for (let skippedCount = 1; skippedCount <= 3; skippedCount += 1) {
+      fireEvent.click(screen.getByRole("button", { name: "Bỏ qua câu hỏi" }));
+      fireEvent.click(screen.getByRole("button", { name: /Xác nhận bỏ qua/ }));
+    }
+    expect(screen.getByRole("heading", { name: "Tổng kết Quiz" })).toBeTruthy();
+    const summaryStats = Array.from(
+      container.querySelectorAll(".rhythm-quiz-stat")
+    ).map(stat => stat.textContent ?? "");
+    expect(summaryStats).toContain("4Câu đã bỏ qua");
+    expect(summaryStats).toContain("10Điểm cộng từ câu đúng");
+    expect(summaryStats).toContain("10Điểm thực tế bị trừ khi bỏ qua");
+    expect(summaryStats).toContain("0Tổng điểm cuối");
+  });
+
+  it("uses a short bank's exact available count instead of capping silently", () => {
+    render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Level 5/ }));
+    expect(screen.getByRole("status").textContent).toContain(
+      `đúng ${bank(5).length} câu`
+    );
+    expect(
+      screen.getByRole("button", { name: `${bank(5).length} câu hiện có` })
+    ).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: "Bắt đầu Quiz" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
   });
 });

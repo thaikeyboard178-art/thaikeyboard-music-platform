@@ -4,14 +4,16 @@ import { RhythmQuizNotation } from "../quiz/RhythmQuizNotation";
 import {
   createQuizRun,
   DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
-  QUIZ_QUESTION_BANK,
+  getAvailableQuizQuestionCount,
   QUIZ_TRACKS,
+  RHYTHM_QUIZ_QUESTION_COUNTS,
   type QuizQuestion,
   type QuizTrack,
 } from "../quiz/questionBank";
 import {
   advanceRhythmQuizSession,
   createRhythmQuizSession,
+  skipRhythmQuizQuestion,
   submitRhythmQuizAnswer,
   type RhythmQuizSession,
 } from "../quiz/session";
@@ -37,6 +39,8 @@ export default function RhythmQuizScreen({
   onScreenChange,
 }: RhythmQuizScreenProps) {
   const [selectedTrack, setSelectedTrack] = useState<QuizTrack>(1);
+  const [selectedQuestionCount, setSelectedQuestionCount] =
+    useState<number>(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT);
   const [localScreen, setLocalScreen] =
     useState<RhythmQuizScreenState>("select");
   const screen = controlledScreen ?? localScreen;
@@ -52,25 +56,32 @@ export default function RhythmQuizScreen({
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [runNumber, setRunNumber] = useState(0);
   const [technicalError, setTechnicalError] = useState<string | null>(null);
+  const [skipDialogOpen, setSkipDialogOpen] = useState(false);
   const questionStartedAt = useRef(Date.now());
+  const skipLockRef = useRef(false);
+
+  React.useEffect(() => {
+    skipLockRef.current = false;
+  }, [session]);
 
   const startRun = useCallback(
-    (track = selectedTrack, nextRun = runNumber + 1) => {
-      const deck = createQuizRun(
-        track,
-        undefined,
-        DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
-      );
+    (
+      track = selectedTrack,
+      nextRun = runNumber + 1,
+      questionCount: number = selectedQuestionCount
+    ) => {
+      const deck = createQuizRun(track, undefined, questionCount);
       setSelectedTrack(track);
       setQuestions(deck);
       setSession(createRhythmQuizSession(track, deck, nextRun));
       setSelectedOptionId(null);
+      setSkipDialogOpen(false);
       setRunNumber(nextRun);
       setTechnicalError(null);
       questionStartedAt.current = Date.now();
       setScreen("quiz");
     },
-    [runNumber, selectedTrack, setScreen]
+    [runNumber, selectedQuestionCount, selectedTrack, setScreen]
   );
 
   const onNotationFailure = useCallback(
@@ -101,7 +112,7 @@ export default function RhythmQuizScreen({
       setScreen("summary");
       return;
     }
-    const nextQuestion = questions[session.questionsAnswered];
+    const nextQuestion = questions[session.seenQuestionIds.length];
     if (!nextQuestion) {
       setScreen("technical-error");
       setTechnicalError(
@@ -114,14 +125,37 @@ export default function RhythmQuizScreen({
     questionStartedAt.current = Date.now();
   };
 
+  const confirmSkip = () => {
+    if (!session || skipLockRef.current || selectedOptionId !== null) return;
+    skipLockRef.current = true;
+    const currentIndex = session.runQuestionIds.indexOf(
+      session.currentExercise.id
+    );
+    const nextQuestion = questions[currentIndex + 1] ?? null;
+    const skipped = skipRhythmQuizQuestion(session, nextQuestion, Date.now());
+    if (skipped === session) {
+      skipLockRef.current = false;
+      setTechnicalError("Không thể bỏ qua câu hiện tại một cách an toàn.");
+      setScreen("technical-error");
+      return;
+    }
+    setSession(skipped);
+    setSelectedOptionId(null);
+    setSkipDialogOpen(false);
+    if (skipped.completedAt !== null) setScreen("summary");
+    else questionStartedAt.current = Date.now();
+  };
+
   const currentQuestion = session?.currentExercise ?? null;
   const result = session ? toTrainingResult(session) : null;
+  const availableQuestionCount = getAvailableQuizQuestionCount(selectedTrack);
+  const questionCountAvailable =
+    selectedQuestionCount > 0 && availableQuestionCount >= selectedQuestionCount;
+  const processedQuestionCount = session
+    ? session.questionsAnswered + session.skippedQuestionIds.length
+    : 0;
   const correctOption = currentQuestion?.options.find(
     option => option.id === currentQuestion.correctOptionId
-  );
-  const availableQuestionCount = Math.min(
-    DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
-    QUIZ_QUESTION_BANK[String(selectedTrack)]?.length ?? 0
   );
 
   return (
@@ -155,9 +189,9 @@ export default function RhythmQuizScreen({
                 Trắc nghiệm kiến thức nhịp điệu
               </h1>
               <p className="rhythm-quiz-intro">
-                Nhìn khuông nhạc, đọc câu hỏi và chọn đáp án. Mỗi lượt có tối đa{" "}
-                {availableQuestionCount} câu theo ngân hàng hiện có. Quiz chỉ
-                dùng hình ảnh — không cần nghe hoặc gõ nhịp.
+                Nhìn khuông nhạc, đọc câu hỏi và chọn đáp án. Mỗi lượt tạo đúng
+                số câu đã chọn từ câu hỏi curriculum hiện có. Quiz chỉ dùng hình
+                ảnh — không cần nghe hoặc gõ nhịp.
               </p>
               <div
                 className="rhythm-quiz-track-list"
@@ -170,7 +204,18 @@ export default function RhythmQuizScreen({
                     type="button"
                     className="rhythm-quiz-track"
                     aria-pressed={selectedTrack === track.id}
-                    onClick={() => setSelectedTrack(track.id)}
+                    onClick={() => {
+                      const nextAvailable = getAvailableQuizQuestionCount(track.id);
+                      setSelectedTrack(track.id);
+                      setSelectedQuestionCount(previous => {
+                        if (previous >= 5 && previous <= nextAvailable)
+                          return previous;
+                        if (nextAvailable < 5) return nextAvailable;
+                        return nextAvailable >= DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
+                          ? DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
+                          : 5;
+                      });
+                    }}
                   >
                     <span
                       className="rhythm-quiz-track-index"
@@ -178,7 +223,9 @@ export default function RhythmQuizScreen({
                     >
                       {track.id === "bonus"
                         ? "2/2"
-                        : String(track.id).padStart(2, "0")}
+                        : track.id === "mixed"
+                          ? "ALL"
+                          : String(track.id).padStart(2, "0")}
                     </span>
                     <span className="rhythm-quiz-track-copy">
                       <strong>{track.title}</strong>
@@ -187,17 +234,65 @@ export default function RhythmQuizScreen({
                   </button>
                 ))}
               </div>
+              <div
+                className="rhythm-quiz-count-group"
+                role="group"
+                aria-label="Số câu trong Quiz"
+              >
+                <span>Số câu mỗi lượt</span>
+                <div className="rhythm-quiz-count-options">
+                  {RHYTHM_QUIZ_QUESTION_COUNTS.map(count => (
+                    <button
+                      key={count}
+                      type="button"
+                      className="rhythm-quiz-count-option"
+                      aria-pressed={selectedQuestionCount === count}
+                      disabled={count > availableQuestionCount}
+                      onClick={() => setSelectedQuestionCount(count)}
+                    >
+                      {count} câu
+                    </button>
+                  ))}
+                  {availableQuestionCount > 0 && availableQuestionCount < 5 && (
+                    <button
+                      type="button"
+                      className="rhythm-quiz-count-option"
+                      aria-pressed={
+                        selectedQuestionCount === availableQuestionCount
+                      }
+                      onClick={() =>
+                        setSelectedQuestionCount(availableQuestionCount)
+                      }
+                    >
+                      {availableQuestionCount} câu hiện có
+                    </button>
+                  )}
+                </div>
+              </div>
+              {questionCountAvailable ? (
+                <p className="rhythm-quiz-note" role="status">
+                  Ngân hàng có {availableQuestionCount} câu khác nhau; lượt này
+                  sẽ có đúng {selectedQuestionCount} câu.
+                </p>
+              ) : (
+                <p className="rhythm-quiz-availability-warning" role="status">
+                  Ngân hàng hiện có {availableQuestionCount} câu khác nhau, chưa
+                  đủ {selectedQuestionCount} câu. Hãy chọn mức ngắn hơn hoặc dùng
+                  toàn bộ số câu khả dụng.
+                </p>
+              )}
               <div className="rhythm-quiz-action-row">
                 <button
                   type="button"
                   className="rhythm-quiz-primary"
+                  disabled={!questionCountAvailable}
                   onClick={() => startRun()}
                 >
                   Bắt đầu Quiz
                 </button>
               </div>
               <p className="rhythm-quiz-note">
-                Chọn một cấp độ để bắt đầu một lượt trắc nghiệm hữu hạn.
+                Chọn một cấp độ hoặc Hỗn hợp — All Levels để bắt đầu lượt Quiz.
               </p>
             </section>
           )}
@@ -214,12 +309,18 @@ export default function RhythmQuizScreen({
                   {QUIZ_TRACKS.find(track => track.id === selectedTrack)?.title}{" "}
                   · Quiz run {runNumber}{" "}
                   <span>(chỉ số lượt trong giao diện)</span>
+                  {selectedTrack === "mixed" && (
+                    <small>
+                      · Câu này thuộc{" "}
+                      {QUIZ_TRACKS.find(
+                        track => track.id === currentQuestion.track
+                      )?.title ?? String(currentQuestion.track)}
+                    </small>
+                  )}
                 </span>
                 <span>
-                  Câu{" "}
-                  {session.questionsAnswered +
-                    (session.hasAnsweredCurrent ? 0 : 1)}{" "}
-                  / {questions.length}
+                  Câu {session.runQuestionIds.indexOf(currentQuestion.id) + 1} /{" "}
+                  {questions.length}
                 </span>
               </div>
               <div
@@ -228,11 +329,11 @@ export default function RhythmQuizScreen({
                 aria-label="Tiến độ câu hỏi"
                 aria-valuemin={0}
                 aria-valuemax={questions.length}
-                aria-valuenow={session.questionsAnswered}
+                aria-valuenow={processedQuestionCount}
               >
                 <span
                   style={{
-                    width: `${(session.questionsAnswered / questions.length) * 100}%`,
+                    width: `${(processedQuestionCount / questions.length) * 100}%`,
                   }}
                 />
               </div>
@@ -287,6 +388,50 @@ export default function RhythmQuizScreen({
                   );
                 })}
               </ul>
+              {!session.hasAnsweredCurrent && selectedOptionId === null && (
+                <div className="rhythm-quiz-action-row rhythm-quiz-skip-row">
+                  <button
+                    type="button"
+                    className="rhythm-quiz-secondary"
+                    onClick={() => setSkipDialogOpen(true)}
+                  >
+                    Bỏ qua câu hỏi
+                  </button>
+                </div>
+              )}
+              {skipDialogOpen && (
+                <div className="rhythm-quiz-dialog-backdrop">
+                  <div
+                    className="rhythm-quiz-dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="rhythm-quiz-skip-title"
+                    aria-describedby="rhythm-quiz-skip-copy"
+                  >
+                    <h2 id="rhythm-quiz-skip-title">Xác nhận bỏ qua câu hỏi?</h2>
+                    <p id="rhythm-quiz-skip-copy">
+                      Câu hỏi này được đánh dấu đã bỏ qua và không thể trả lời lại
+                      trong lượt này. Xác nhận sẽ trừ 5 điểm, tối thiểu 0 điểm.
+                    </p>
+                    <div className="rhythm-quiz-action-row">
+                      <button
+                        type="button"
+                        className="rhythm-quiz-secondary"
+                        onClick={() => setSkipDialogOpen(false)}
+                      >
+                        Tiếp tục làm
+                      </button>
+                      <button
+                        type="button"
+                        className="rhythm-quiz-primary"
+                        onClick={confirmSkip}
+                      >
+                        Xác nhận bỏ qua · −5 điểm
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {selectedOptionId !== null && session.hasAnsweredCurrent && (
                 <div
                   className={`rhythm-quiz-feedback ${session.lastAnswerCorrect ? "" : "is-incorrect"}`}
@@ -327,7 +472,7 @@ export default function RhythmQuizScreen({
             </section>
           )}
 
-          {screen === "summary" && result && (
+          {screen === "summary" && result && session && (
             <section
               className="rhythm-quiz-summary"
               aria-labelledby="rhythm-quiz-summary-title"
@@ -346,13 +491,13 @@ export default function RhythmQuizScreen({
                 Tổng kết Quiz
               </h1>
               <p className="rhythm-quiz-intro">
-                Bạn đã hoàn thành lượt trắc nghiệm. Điểm phản ánh đúng số câu
-                trả lời đúng trong lượt này.
+                Bạn đã hoàn thành đủ {session.runQuestionIds.length} câu đã chọn.
+                Độ chính xác tính trên câu đã trả lời; câu bỏ qua được tính riêng.
               </p>
               <div className="rhythm-quiz-summary-grid">
                 <div className="rhythm-quiz-stat">
                   <strong>{result.totalScore}</strong>
-                  <span>Điểm · +10 / câu đúng</span>
+                  <span>Tổng điểm cuối</span>
                 </div>
                 <div className="rhythm-quiz-stat">
                   <strong>{result.accuracy}%</strong>
@@ -360,13 +505,26 @@ export default function RhythmQuizScreen({
                 </div>
                 <div className="rhythm-quiz-stat">
                   <strong>
-                    {result.correctAnswers}/{result.totalQuestions}
+                    {result.correctAnswers}/
+                    {result.correctAnswers + result.incorrectAnswers}
                   </strong>
-                  <span>Câu đúng</span>
+                  <span>Câu đúng / đã trả lời</span>
                 </div>
                 <div className="rhythm-quiz-stat">
                   <strong>{result.incorrectAnswers}</strong>
-                  <span>Câu chưa đúng</span>
+                  <span>Câu trả lời sai · +0 điểm</span>
+                </div>
+                <div className="rhythm-quiz-stat">
+                  <strong>{session.skippedQuestionIds.length}</strong>
+                  <span>Câu đã bỏ qua</span>
+                </div>
+                <div className="rhythm-quiz-stat">
+                  <strong>{result.correctAnswers * 10}</strong>
+                  <span>Điểm cộng từ câu đúng</span>
+                </div>
+                <div className="rhythm-quiz-stat">
+                  <strong>{session.pointsDeducted}</strong>
+                  <span>Điểm thực tế bị trừ khi bỏ qua</span>
                 </div>
                 <div className="rhythm-quiz-stat">
                   <strong>

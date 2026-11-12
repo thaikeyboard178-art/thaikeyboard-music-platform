@@ -6,14 +6,16 @@ import {
 } from "../rhythm/meters";
 import { PPQ } from "../rhythm/durations";
 import { requireValidRhythmPattern } from "../rhythm/validate";
+import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 
-export type QuizTrack = RhythmTrack;
+export type QuizTrack = RhythmTrack | "mixed";
 export type QuizOption = Readonly<{ id: string; label: string }>;
 export type QuizNotation =
   | Readonly<{
       kind: "canonical";
       pattern: RhythmPattern;
       caption: string;
+      showTimeSignature?: boolean;
     }>
   | Readonly<{
       kind: "illustrative-3-8-partial";
@@ -177,9 +179,9 @@ function meterIdentityQuestions(
         : track === "bonus"
           ? [
               option("meter-2-2", "2/2"),
-              option("meter-2-4", "2/4"),
-              option("meter-4-4", "4/4"),
+              option("meter-1-2", "1/2"),
               option("meter-3-2", "3/2"),
+              option("meter-4-2", "4/2"),
             ]
           : [
               option("meter-2-4", "2/4"),
@@ -190,16 +192,68 @@ function meterIdentityQuestions(
     track,
     `${label}-identify-meter`,
     "meter-identification",
-    "Hãy xác định số chỉ nhịp được viết trong ô nhịp hoàn chỉnh.",
+    "Dựa vào trường độ và cách phân nhóm trong ô nhịp hoàn chỉnh, số chỉ nhịp nào phù hợp?",
     meterOptions,
     `meter-${signature}`,
-    `Khuông nhạc ghi ${meter.numerator}/${meter.denominator}; đây là một ô nhịp hoàn chỉnh theo số chỉ nhịp đó.`,
+    "Đếm trường độ trong ô nhịp và đối chiếu cách phân nhóm với các phương án.",
     {
       kind: "canonical",
       pattern: meterPattern(meter, `${label}-canonical-staff`),
-      caption: "Ô nhịp hoàn chỉnh được viết theo mô hình canonical.",
+      caption: "Ô nhịp hoàn chỉnh — hãy suy ra số chỉ nhịp từ trường độ và nhóm phách.",
+      showTimeSignature: false,
     }
   );
+}
+
+function assertMeterIdentificationIsUnique(question: QuizQuestion): void {
+  if (question.concept !== "meter-identification") return;
+  if (question.notation?.kind !== "canonical")
+    throw new Error(`Meter question ${question.id} needs a canonical bar.`);
+  if (question.notation.showTimeSignature !== false)
+    throw new Error(`Meter question ${question.id} must hide its time signature.`);
+  const matches = question.options.map(candidate => {
+    const match = /^(\d+)\/(\d+)$/.exec(candidate.label.trim());
+    if (!match) throw new Error(`Invalid meter option in ${question.id}.`);
+    const numerator = Number(match[1]);
+    const denominator = Number(match[2]);
+    const durationTicks = (numerator * PPQ * 4) / denominator;
+    if (!Number.isSafeInteger(durationTicks))
+      throw new Error(`Invalid meter capacity in ${question.id}.`);
+    return { option: candidate, durationTicks };
+  });
+  const pattern = question.notation.pattern;
+  if (pattern.measures.length !== 1)
+    throw new Error(`Meter question ${question.id} must show one complete bar.`);
+  const measureTicks = deriveRhythmTimeline(pattern, 120).meter.measureTicks;
+  const correct = matches.filter(
+    candidate => candidate.option.id === question.correctOptionId
+  );
+  if (
+    correct.length !== 1 ||
+    correct[0].durationTicks !== measureTicks ||
+    matches.filter(candidate => candidate.durationTicks === measureTicks)
+      .length !== 1
+  )
+    throw new Error(`Meter question ${question.id} is not uniquely identifiable.`);
+}
+
+function assertReadableQuizGrouping(question: QuizQuestion): void {
+  if (question.notation?.kind !== "canonical") return;
+  const { pattern } = question.notation;
+  if (pattern.meter.numerator !== 4 || pattern.meter.denominator !== 4) return;
+  const timeline = deriveRhythmTimeline(pattern, 120);
+  for (const position of timeline.segments) {
+    const segment =
+      pattern.measures[position.measureIndex].segments[position.segmentIndex];
+    if (
+      segment.duration.dots > 0 &&
+      position.measureOffsetTicks === PPQ &&
+      position.measureOffsetTicks + position.durationTicks > PPQ * 2
+    )
+      throw new Error(
+        `Quiz question ${question.id} hides beat 3 with a dotted value starting on beat 2.`
+      );
+  }
 }
 
 const l1: QuizQuestion[] = [
@@ -886,7 +940,16 @@ const l5ComboPatterns = {
         id: `l5-combo-sixteenth-${index + 1}`,
         denominator: 16 as const,
       })),
-      { id: "l5-combo-dotted-quarter", denominator: 4, dots: 1 },
+      {
+        id: "l5-combo-beat-two-quarter",
+        denominator: 4,
+        tieGroupId: "l5-combo-beat-boundary-tie",
+      },
+      {
+        id: "l5-combo-beat-three-tied-eighth",
+        denominator: 8,
+        tieGroupId: "l5-combo-beat-boundary-tie",
+      },
       { id: "l5-combo-eighth", denominator: 8 },
       { id: "l5-combo-quarter", denominator: 4 },
     ]
@@ -913,7 +976,16 @@ const l5ComboPatterns = {
     fourFour,
     [
       { id: "l5-combo-quarter-rest", kind: "rest", denominator: 4 },
-      { id: "l5-combo-rest-dotted-quarter", denominator: 4, dots: 1 },
+      {
+        id: "l5-combo-rest-tie-start",
+        denominator: 4,
+        tieGroupId: "l5-combo-rest-beat-boundary-tie",
+      },
+      {
+        id: "l5-combo-rest-tie-continuation",
+        denominator: 8,
+        tieGroupId: "l5-combo-rest-beat-boundary-tie",
+      },
       { id: "l5-combo-rest-eighth", denominator: 8 },
       ...Array.from({ length: 4 }, (_, index) => ({
         id: `l5-combo-rest-sixteenth-${index + 1}`,
@@ -947,7 +1019,7 @@ const l5: QuizQuestion[] = [
     5,
     "l5-combo-sixteenths-dotted-eighth-quarter",
     "complex-rhythm-combinations",
-    "Trong ví dụ, bốn móc kép, nốt đen chấm dôi và móc đơn đầu tiên chiếm tổng cộng bao nhiêu phách?",
+    "Trong ví dụ, bốn móc kép, nốt đen nối với móc đơn và móc đơn kế tiếp chiếm tổng cộng bao nhiêu phách?",
     [
       option("l5-combo-part-2", "2 phách"),
       option("l5-combo-part-2-half", "2½ phách"),
@@ -955,11 +1027,11 @@ const l5: QuizQuestion[] = [
       option("l5-combo-part-4", "4 phách"),
     ],
     "l5-combo-part-3",
-    "Bốn móc kép bằng 1 phách; nốt đen chấm dôi là 1½; móc đơn là ½. Tổng cộng 3 phách.",
+    "Bốn móc kép bằng 1 phách; nốt đen nối móc đơn giữ tiếng trong 1½ phách, không tạo onset ở phần nối; móc đơn kế tiếp là ½. Tổng cộng 3 phách.",
     {
       kind: "canonical",
       pattern: l5ComboPatterns.sixteenthsDottedEighthQuarter,
-      caption: "Bốn móc kép, nốt đen chấm dôi, móc đơn và nốt đen trong ô 4/4.",
+      caption: "Bốn móc kép; nốt đen nối qua ranh giới phách; móc đơn và nốt đen.",
     }
   ),
   makeQuestion(
@@ -985,7 +1057,7 @@ const l5: QuizQuestion[] = [
     5,
     "l5-combo-rest-dotted-sixteenths",
     "complex-rhythm-combinations",
-    "Sau dấu lặng đen, nốt đen chấm dôi, móc đơn và bốn móc kép chiếm thêm bao nhiêu phách?",
+    "Sau dấu lặng đen, nốt đen nối móc đơn, móc đơn kế tiếp và bốn móc kép chiếm thêm bao nhiêu phách?",
     [
       option("l5-combo-after-rest-2", "2 phách"),
       option("l5-combo-after-rest-3", "3 phách"),
@@ -993,11 +1065,11 @@ const l5: QuizQuestion[] = [
       option("l5-combo-after-rest-5", "5 phách"),
     ],
     "l5-combo-after-rest-3",
-    "Bỏ dấu lặng đầu, phần còn lại là 1½ + ½ + 1 = 3 phách.",
+    "Bỏ dấu lặng đầu, phần còn lại gồm nốt đen nối móc đơn (1½ phách), móc đơn kế tiếp (½ phách) và bốn móc kép (1 phách): tổng cộng 3 phách.",
     {
       kind: "canonical",
       pattern: l5ComboPatterns.restDottedAndSixteenths,
-      caption: "Dấu lặng, chấm dôi, móc đơn và móc kép trong ô 4/4.",
+      caption: "Dấu lặng, nốt nối qua ranh giới phách, móc đơn và móc kép.",
     }
   ),
 ];
@@ -1380,6 +1452,8 @@ function validateAndFreezeBank(): Readonly<
         throw new Error(
           `Question ${question.id} is assigned to the wrong track.`
         );
+      assertMeterIdentificationIsUnique(question);
+      assertReadableQuizGrouping(question);
       questionIds.add(question.id);
     }
     result[track] = Object.freeze(bank);
@@ -1421,10 +1495,17 @@ export const QUIZ_TRACKS: readonly Readonly<{
     title: "Bonus · 2/2",
     description: "Hai phách nốt trắng trong mỗi ô",
   },
+  {
+    id: "mixed",
+    title: "Hỗn hợp — All Levels",
+    description: "Câu hỏi ngẫu nhiên từ Level 1–6 và Bonus 2/2",
+  },
 ]);
 
-const DEFAULT_QUESTION_COUNT = 10;
-export const DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT = DEFAULT_QUESTION_COUNT;
+export const RHYTHM_QUIZ_QUESTION_COUNTS = Object.freeze([5, 10, 20, 30] as const);
+export type RhythmQuizQuestionCount = (typeof RHYTHM_QUIZ_QUESTION_COUNTS)[number];
+export const DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT: RhythmQuizQuestionCount = 10;
+const SOURCE_TRACKS: readonly RhythmTrack[] = [1, 2, 3, 4, 5, 6, "bonus"];
 
 function hashSeed(seed: string): number {
   let hash = 2166136261;
@@ -1459,32 +1540,89 @@ function freshCryptographicSeed(): string {
   return `fresh-${Array.from(words, word => word.toString(16).padStart(8, "0")).join("")}`;
 }
 
-/** Return a finite, randomly sampled deck; explicit seeds remain stable for tests and repro. */
+export function getAvailableQuizQuestionCount(track: QuizTrack): number {
+  if (track === "mixed")
+    return SOURCE_TRACKS.reduce(
+      (total, sourceTrack) =>
+        total + (QUIZ_QUESTION_BANK[String(sourceTrack)]?.length ?? 0),
+      0
+    );
+  return QUIZ_QUESTION_BANK[String(track)]?.length ?? 0;
+}
+
+function questionPool(track: QuizTrack): readonly QuizQuestion[] {
+  if (track !== "mixed") {
+    const bank = QUIZ_QUESTION_BANK[String(track)];
+    if (!bank) throw new RangeError("Unknown Rhythm Quiz track.");
+    return bank;
+  }
+  return Object.freeze(
+    SOURCE_TRACKS.flatMap(sourceTrack => QUIZ_QUESTION_BANK[String(sourceTrack)])
+  );
+}
+
+function selectMixedQuestions(seed: string, questionCount: number): QuizQuestion[] {
+  const decks = new Map<RhythmTrack, QuizQuestion[]>();
+  for (const sourceTrack of SOURCE_TRACKS) {
+    const bank = QUIZ_QUESTION_BANK[String(sourceTrack)];
+    decks.set(
+      sourceTrack,
+      shuffle(bank, seededRandom(`${seed}:mixed-level:${String(sourceTrack)}`))
+    );
+  }
+  const selected: QuizQuestion[] = [];
+  let round = 0;
+  while (selected.length < questionCount) {
+    const levelOrder = shuffle(
+      SOURCE_TRACKS,
+      seededRandom(`${seed}:mixed-round:${round}`)
+    );
+    let addedThisRound = false;
+    for (const sourceTrack of levelOrder) {
+      const question = decks.get(sourceTrack)?.shift();
+      if (question) {
+        selected.push(question);
+        addedThisRound = true;
+        if (selected.length === questionCount) break;
+      }
+    }
+    if (!addedThisRound)
+      throw new RangeError("The eligible Rhythm Quiz question bank is too small.");
+    round += 1;
+  }
+  return selected;
+}
+
+/** Return an exact-length curriculum-eligible deck; explicit seeds remain reproducible. */
 export function createQuizRun(
   track: QuizTrack,
   seed?: string,
-  questionCount = DEFAULT_QUESTION_COUNT
+  questionCount: number = DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
 ): readonly QuizQuestion[] {
   if (seed !== undefined && !seed.trim())
     throw new RangeError("An explicit quiz seed must not be empty.");
   if (!Number.isSafeInteger(questionCount) || questionCount < 1)
     throw new RangeError("Quiz question count must be a positive integer.");
-  const bank = QUIZ_QUESTION_BANK[String(track)];
-  if (!bank) throw new RangeError("Unknown Rhythm Quiz track.");
+  const bank = questionPool(track);
+  if (questionCount > bank.length)
+    throw new RangeError(
+      `Only ${bank.length} unique questions are available for ${String(track)}.`
+    );
   const bankIds = bank.map(question => question.id);
   if (
     new Set(bankIds).size !== bank.length ||
-    bank.some(question => String(question.track) !== String(track))
+    (track !== "mixed" &&
+      bank.some(question => String(question.track) !== String(track)))
   )
     throw new Error(
       `Rhythm Quiz track ${String(track)} has invalid bank identities.`
     );
   const runSeed =
     seed ?? `rhythm-quiz-${String(track)}:${freshCryptographicSeed()}`;
-  const selected = shuffle(bank, seededRandom(`${runSeed}:deck`)).slice(
-    0,
-    Math.min(questionCount, bank.length)
-  );
+  const selected =
+    track === "mixed"
+      ? selectMixedQuestions(runSeed, questionCount)
+      : shuffle(bank, seededRandom(`${runSeed}:deck`)).slice(0, questionCount);
   if (new Set(selected.map(question => question.id)).size !== selected.length)
     throw new Error("A Rhythm Quiz run cannot contain duplicate question IDs.");
   return Object.freeze(

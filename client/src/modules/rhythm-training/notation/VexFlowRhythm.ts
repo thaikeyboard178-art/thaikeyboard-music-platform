@@ -25,6 +25,8 @@ import {
 export type RhythmNotationRenderOptions = Readonly<{
   width?: number;
   measuresPerRow?: number;
+  displayTimeSignature?: boolean;
+  exposeCanonicalMetadata?: boolean;
 }>;
 
 export type RhythmVoiceParityReport = Readonly<{
@@ -124,7 +126,12 @@ function validateOptions(
       "measuresPerRow must be a non-negative integer when provided"
     );
   }
-  return { width: Math.floor(width), measuresPerRow };
+  return {
+    width: Math.floor(width),
+    measuresPerRow,
+    displayTimeSignature: options?.displayTimeSignature ?? true,
+    exposeCanonicalMetadata: options?.exposeCanonicalMetadata ?? true,
+  };
 }
 
 function meterTime(meter: RhythmMeter): string {
@@ -499,7 +506,8 @@ export function renderRhythmNotation(
       );
       if (column === 0) {
         stave.addClef("percussion");
-        stave.addTimeSignature(meterTime(projection.canonicalPattern.meter));
+        if (renderOptions.displayTimeSignature)
+          stave.addTimeSignature(meterTime(projection.canonicalPattern.meter));
       }
       const notes = measureSegments.map(makeStaveNote);
       const voice = makeVoice(projection.canonicalPattern.meter, notes);
@@ -686,9 +694,11 @@ export function renderRhythmNotation(
   if (!parity.ok) {
     throw new RhythmNotationRenderError("VexFlow notation parity check failed");
   }
-  addCanonicalDataAttributes(svg, allNotes, projection.segments, rowByMeasure);
-  markTieElements(svg, tieMarkers);
-  markBeamElements(svg, projection.beamGroups);
+  if (renderOptions.exposeCanonicalMetadata) {
+    addCanonicalDataAttributes(svg, allNotes, projection.segments, rowByMeasure);
+    markTieElements(svg, tieMarkers);
+    markBeamElements(svg, projection.beamGroups);
+  }
   const measureTicks = projection.timeline.meter.measureTicks;
   const geometry: readonly RhythmNotationMeasureGeometry[] = Object.freeze(
     [...stavesByMeasure.entries()]
@@ -724,20 +734,24 @@ export function renderRhythmNotation(
         });
       })
   );
-  svg.setAttribute("data-rhythm-pattern-id", projection.canonicalPattern.id);
-  svg.setAttribute(
-    "data-rhythm-meter",
-    meterTime(projection.canonicalPattern.meter)
-  );
-  svg.setAttribute(
-    "data-rhythm-total-ticks",
-    String(projection.timeline.totalTicks)
-  );
+  if (renderOptions.exposeCanonicalMetadata) {
+    svg.setAttribute("data-rhythm-pattern-id", projection.canonicalPattern.id);
+    svg.setAttribute(
+      "data-rhythm-meter",
+      meterTime(projection.canonicalPattern.meter)
+    );
+    svg.setAttribute(
+      "data-rhythm-total-ticks",
+      String(projection.timeline.totalTicks)
+    );
+  }
   svg.setAttribute("data-rhythm-natural-width", String(naturalWidth));
   svg.setAttribute("role", "img");
   svg.setAttribute(
     "aria-label",
-    `Rhythm notation ${projection.canonicalPattern.id}`
+    renderOptions.exposeCanonicalMetadata
+      ? `Rhythm notation ${projection.canonicalPattern.id}`
+      : "Khuông nhạc tiết tấu, một ô nhịp hoàn chỉnh"
   );
   svg.setAttribute("viewBox", `0 0 ${naturalWidth} ${height}`);
   svg.setAttribute("preserveAspectRatio", "xMinYMin meet");

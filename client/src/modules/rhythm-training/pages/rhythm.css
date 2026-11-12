@@ -145,6 +145,26 @@
 .rhythm-page .rhythm-choose-activity {
   margin-top: 8px;
 }
+.rhythm-page .rhythm-top-navigation {
+  margin: 0 0 9px;
+  display: flex;
+  justify-content: flex-end;
+}
+.rhythm-page .rhythm-top-return {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #d8d8d2;
+  border-radius: 8px;
+  background: #fffefa;
+  color: #37484e;
+  font: 700 12px "DM Sans", sans-serif;
+  cursor: pointer;
+}
+.rhythm-page .rhythm-top-return:hover {
+  border-color: #ba6a58;
+  background: #fff6f2;
+  color: #853a2e;
+}
 .rhythm-page .module-kicker,
 .rhythm-page .rhythm-eyebrow {
   color: #766b64;
@@ -454,6 +474,33 @@
 /* Practice: one focused working surface; the native input target stays mounted. */
 .rhythm-page .rhythm-workspace-shell {
   min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+.rhythm-page .rhythm-practice-zone {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--rhythm-line);
+  border-radius: 11px;
+  background: #fffefa;
+}
+.rhythm-page .rhythm-zone-title {
+  margin: 0 0 8px;
+  color: #786c63;
+  font: 800 10px/1.3 "DM Sans", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.rhythm-page .rhythm-practice-zone .rhythm-tempo-control {
+  margin-top: 0;
+}
+.rhythm-page .rhythm-tempo-heading h4 {
+  margin: 3px 0 2px;
+  color: #283942;
+  font: 800 16px "Manrope", sans-serif;
+}
+.rhythm-page .rhythm-metronome-zone .rhythm-volume-control {
+  margin: 7px 0 1px;
 }
 .rhythm-page .rhythm-meta {
   margin: 0 0 12px;
@@ -644,8 +691,8 @@
 }
 .rhythm-page .rhythm-tap-surface {
   width: 100%;
-  min-height: 190px;
-  margin: 12px 0 7px;
+  min-height: 176px;
+  margin: 8px 0 4px;
   padding: 18px;
   display: grid;
   place-items: center;
@@ -689,7 +736,7 @@
     sans-serif;
 }
 .rhythm-page .rhythm-tap-help {
-  margin: 6px 0 0;
+  margin: 2px 0 0;
   color: #536267;
   font-size: 11px;
   line-height: 1.5;
@@ -1125,6 +1172,9 @@
     flex-direction: column;
     gap: 8px;
   }
+  .rhythm-page .rhythm-practice-zone {
+    padding: 9px;
+  }
   .rhythm-page .rhythm-activity-selector {
     gap: 7px;
   }
@@ -1209,7 +1259,7 @@
     grid-row: 2;
   }
   .rhythm-page .rhythm-tap-surface {
-    min-height: 190px;
+    min-height: 176px;
   }
   .rhythm-page .rhythm-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
