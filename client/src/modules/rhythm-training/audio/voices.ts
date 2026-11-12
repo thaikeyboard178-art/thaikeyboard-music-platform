@@ -20,6 +20,8 @@ export type RhythmVoiceSettings = Readonly<{
     edgeSeconds: number;
     /** Opt-in synthesized PCM click; when present, no metronome oscillator is used. */
     brightClick?: true;
+    /** Opt-in inharmonic modal knock with a bounded, independently decaying tail. */
+    resonantKnock?: true;
     /** Optional caller-owned lane gain/output (for example, an independent volume control). */
     output?: AudioNode;
   }>;
@@ -49,6 +51,11 @@ export function validateVoiceSettings(settings: RhythmVoiceSettings): void {
     settings.metronome.durationSeconds > 0.25
   )
     throw new RangeError("Metronome voice must be a short, finite tick.");
+  if (
+    settings.metronome.brightClick === true &&
+    settings.metronome.resonantKnock === true
+  )
+    throw new RangeError("Choose only one opt-in metronome synthesis voice.");
 }
 
 /**
@@ -222,6 +229,225 @@ function getClickBuffer(
   return buffers[accent];
 }
 
+type ResonantMode = Readonly<{
+  frequencyHz: number;
+  amplitude: number;
+  decaySeconds: number;
+}>;
+type ResonantProfile = Readonly<{
+  levelScale: number;
+  modes: readonly ResonantMode[];
+}>;
+
+/**
+ * Inharmonic partials give the strike a wooden/bell-like body instead of the
+ * broadband edge of the legacy bright click. Amplitudes are normalized at
+ * scheduling time; profile frequencies and decay constants are immutable.
+ */
+const RESONANT_KNOCK_PROFILE: Readonly<Record<ClickAccent, ResonantProfile>> =
+  Object.freeze({
+    strong: Object.freeze({
+      levelScale: 0.98,
+      modes: Object.freeze([
+        Object.freeze({
+          frequencyHz: 392,
+          amplitude: 0.46,
+          decaySeconds: 0.105,
+        }),
+        Object.freeze({
+          frequencyHz: 1050,
+          amplitude: 0.3,
+          decaySeconds: 0.078,
+        }),
+        Object.freeze({
+          frequencyHz: 2120,
+          amplitude: 0.16,
+          decaySeconds: 0.052,
+        }),
+        Object.freeze({
+          frequencyHz: 3480,
+          amplitude: 0.08,
+          decaySeconds: 0.038,
+        }),
+      ]),
+    }),
+    medium: Object.freeze({
+      levelScale: 0.75,
+      modes: Object.freeze([
+        Object.freeze({
+          frequencyHz: 349,
+          amplitude: 0.5,
+          decaySeconds: 0.095,
+        }),
+        Object.freeze({
+          frequencyHz: 907,
+          amplitude: 0.29,
+          decaySeconds: 0.07,
+        }),
+        Object.freeze({
+          frequencyHz: 1804,
+          amplitude: 0.15,
+          decaySeconds: 0.047,
+        }),
+        Object.freeze({
+          frequencyHz: 3025,
+          amplitude: 0.08,
+          decaySeconds: 0.034,
+        }),
+      ]),
+    }),
+    weak: Object.freeze({
+      levelScale: 0.52,
+      modes: Object.freeze([
+        Object.freeze({
+          frequencyHz: 311,
+          amplitude: 0.54,
+          decaySeconds: 0.082,
+        }),
+        Object.freeze({
+          frequencyHz: 777,
+          amplitude: 0.27,
+          decaySeconds: 0.061,
+        }),
+        Object.freeze({
+          frequencyHz: 1549,
+          amplitude: 0.13,
+          decaySeconds: 0.041,
+        }),
+        Object.freeze({
+          frequencyHz: 2621,
+          amplitude: 0.06,
+          decaySeconds: 0.03,
+        }),
+      ]),
+    }),
+  });
+
+/** Schedule four native oscillator modes with a shared onset and independent decay. */
+function scheduleResonantKnock(
+  context: BaseAudioContext,
+  startTime: number,
+  ringSeconds: number,
+  level: number,
+  edgeSeconds: number,
+  accent: ClickAccent,
+  output: AudioNode | undefined,
+  onEnded: () => void
+): RhythmVoiceHandle {
+  const profile = RESONANT_KNOCK_PROFILE[accent];
+  const amplitudeTotal = profile.modes.reduce(
+    (sum, mode) => sum + mode.amplitude,
+    0
+  );
+  // A conservative summed-peak bound prevents clipping without hard clipping.
+  const normalizedLevel = Math.min(level, 0.4) * profile.levelScale;
+  const attackSeconds = Math.min(
+    Math.max(edgeSeconds, 0.0005),
+    0.004,
+    ringSeconds / 4
+  );
+  const voices: Array<{
+    oscillator: OscillatorNode;
+    gain: GainNode;
+  }> = [];
+  let endedModes = 0;
+  let finished = false;
+  const cleanup = () => {
+    if (finished) return;
+    finished = true;
+    for (const voice of voices) {
+      voice.oscillator.onended = null;
+      try {
+        voice.oscillator.disconnect();
+      } catch {
+        /* Keep cleanup idempotent if a native node already disconnected. */
+      }
+      try {
+        voice.gain.disconnect();
+      } catch {
+        /* Keep cleanup idempotent if a native node already disconnected. */
+      }
+    }
+    try {
+      onEnded();
+    } catch {
+      /* Scheduler cleanup callbacks must not interrupt native audio teardown. */
+    }
+  };
+
+  try {
+    for (const mode of profile.modes) {
+      const oscillator = context.createOscillator();
+      let gain: GainNode;
+      try {
+        gain = context.createGain();
+      } catch (error) {
+        try {
+          oscillator.disconnect();
+        } catch {
+          /* The oscillator may already be disconnected by a failed context. */
+        }
+        throw error;
+      }
+      voices.push({ oscillator, gain });
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(mode.frequencyHz, startTime);
+      const peak = normalizedLevel * (mode.amplitude / amplitudeTotal);
+      const finalEnvelope =
+        peak *
+        Math.exp(-Math.max(0, ringSeconds - attackSeconds) / mode.decaySeconds);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(peak, startTime + attackSeconds);
+      gain.gain.exponentialRampToValueAtTime(
+        Math.max(finalEnvelope, peak * 0.0001),
+        startTime + ringSeconds
+      );
+      oscillator.connect(gain);
+      gain.connect(output ?? context.destination);
+      oscillator.onended = () => {
+        if (finished) return;
+        endedModes += 1;
+        if (endedModes === profile.modes.length) cleanup();
+      };
+    }
+    const stopTime = startTime + ringSeconds;
+    for (const voice of voices) {
+      voice.oscillator.start(startTime);
+      voice.oscillator.stop(stopTime);
+    }
+  } catch (error) {
+    for (const voice of voices) {
+      try {
+        voice.oscillator.stop(context.currentTime);
+      } catch {
+        /* The mode may not have started, or may already have been stopped. */
+      }
+    }
+    cleanup();
+    throw error;
+  }
+
+  return Object.freeze({
+    cancel: () => {
+      if (finished) return;
+      for (const voice of voices) {
+        try {
+          voice.gain.gain.cancelScheduledValues(context.currentTime);
+          voice.gain.gain.setValueAtTime(0, context.currentTime);
+        } catch {
+          /* Stop and disconnect the mode even if automation cannot be cancelled. */
+        }
+        try {
+          voice.oscillator.stop(context.currentTime);
+        } catch {
+          /* Already ended. */
+        }
+      }
+      cleanup();
+    },
+  });
+}
+
 const pianoPeakCache = new WeakMap<AudioBuffer, number>();
 
 /** Keep normalized sample playback below a conservative per-voice peak. */
@@ -286,6 +512,19 @@ export function scheduleRhythmVoice(
       boundedPianoLevel(settings.pattern.pianoBuffer, settings.pattern.level),
       settings.pattern.edgeSeconds,
       settings.pattern.output,
+      onEnded
+    );
+  }
+
+  if (event.lane === "metronome" && settings.metronome.resonantKnock === true) {
+    return scheduleResonantKnock(
+      context,
+      startTime,
+      settings.metronome.durationSeconds,
+      settings.metronome.level,
+      settings.metronome.edgeSeconds,
+      event.structuralAccent,
+      settings.metronome.output,
       onEnded
     );
   }

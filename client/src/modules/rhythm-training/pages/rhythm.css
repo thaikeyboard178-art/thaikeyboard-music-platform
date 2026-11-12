@@ -104,6 +104,85 @@
   line-height: 1.55;
 }
 
+.rhythm-page .rhythm-step-progress {
+  margin: 0 0 15px;
+  padding: 11px 15px;
+  border: 1px solid var(--rhythm-line);
+  border-radius: 12px;
+  background: var(--rhythm-paper);
+}
+.rhythm-page .rhythm-step-progress ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+}
+.rhythm-page .rhythm-step-progress li {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #788184;
+  font-size: 12px;
+  font-weight: 700;
+}
+.rhythm-page .rhythm-step-progress li:not(:last-child)::after {
+  position: absolute;
+  z-index: 0;
+  top: 17px;
+  left: calc(50% + 19px);
+  width: calc(100% - 38px);
+  height: 2px;
+  background: #e3e2dc;
+  content: "";
+}
+.rhythm-page .rhythm-step-progress li[data-state="completed"]::after {
+  background: #a9cbb4;
+}
+.rhythm-page .rhythm-step-icon {
+  position: relative;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dadbd5;
+  border-radius: 50%;
+  background: #fff;
+  color: #7a8586;
+}
+.rhythm-page .rhythm-step-name {
+  position: relative;
+  z-index: 1;
+  padding: 2px 4px;
+  background: var(--rhythm-paper);
+  white-space: nowrap;
+}
+.rhythm-page .rhythm-step-progress li[data-state="completed"] {
+  color: #28734f;
+}
+.rhythm-page
+  .rhythm-step-progress
+  li[data-state="completed"]
+  .rhythm-step-icon {
+  border-color: #b3d0ba;
+  background: #edf7f0;
+  color: #28734f;
+}
+.rhythm-page .rhythm-step-progress li[data-state="current"] {
+  color: #913e30;
+}
+.rhythm-page .rhythm-step-progress li[data-state="current"] .rhythm-step-icon {
+  border: 2px solid var(--rhythm-coral);
+  background: var(--rhythm-coral-wash);
+  color: var(--rhythm-coral-dark);
+  box-shadow: 0 0 0 3px rgb(232 71 45 / 9%);
+}
+
 /* Setup: short curriculum selector, configuration and one decisive action. */
 .rhythm-page .rhythm-tracks {
   margin: 0 0 14px;
@@ -311,89 +390,37 @@
   justify-content: flex-end;
   gap: 9px;
 }
-.rhythm-page .rhythm-setup-actions .rhythm-primary {
-  min-width: 220px;
+.rhythm-page .rhythm-setup-actions .rhythm-primary,
+.rhythm-page .rhythm-setup-actions .rhythm-setup-practice {
+  min-width: 150px;
 }
 
 /* Practice: one focused working surface; the native input target stays mounted. */
-.rhythm-page .rhythm-mode-chooser {
-  padding: clamp(16px, 3vw, 26px);
-  border: 1px solid #ecdfd2;
-  border-radius: 12px;
-  background: #fffaf5;
+.rhythm-page .rhythm-inline-modes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
-.rhythm-page .rhythm-mode-chooser h3 {
-  margin: 5px 0;
-  color: #283942;
-  font:
-    800 20px/1.25 "Manrope",
-    sans-serif;
-  letter-spacing: -0.025em;
-}
-.rhythm-page .rhythm-mode-chooser > div:first-child p {
-  margin: 0;
-  color: #59686d;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.rhythm-page .rhythm-mode-options {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-.rhythm-page .rhythm-mode-card {
-  min-height: 126px;
-  padding: 15px;
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-content: start;
-  gap: 6px 10px;
-  border: 1px solid #dfd9d0;
-  border-radius: 10px;
-  background: #fff;
+.rhythm-page .rhythm-mode-choice {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #cbd0cc;
+  border-radius: 8px;
+  background: #fffefa;
   color: #33464c;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    transform 0.15s ease;
-}
-.rhythm-page .rhythm-mode-card:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: #d77a64;
-  background: #fff9f6;
-}
-.rhythm-page .rhythm-mode-card.is-graded {
-  border-color: #efc8bb;
-}
-.rhythm-page .rhythm-mode-icon {
-  width: 36px;
-  height: 36px;
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  background: #f4f1ea;
-  color: #57676b;
-}
-.rhythm-page .rhythm-mode-card.is-graded .rhythm-mode-icon {
-  background: #fff0eb;
-  color: var(--rhythm-coral-dark);
-}
-.rhythm-page .rhythm-mode-card strong {
-  align-self: center;
-  color: #26373d;
   font:
-    800 16px "Manrope",
+    700 13px/1.2 "DM Sans",
     sans-serif;
+  cursor: pointer;
 }
-.rhythm-page .rhythm-mode-card > span:last-child {
-  grid-column: 2;
-  color: #59676d;
-  font-size: 12px;
-  line-height: 1.5;
+.rhythm-page .rhythm-mode-choice:hover:not(:disabled) {
+  border-color: #ba6a58;
+  background: #fff6f2;
+}
+.rhythm-page .rhythm-mode-choice.is-selected {
+  border-color: #e9ad9d;
+  background: #fff0eb;
+  color: #873d2f;
 }
 .rhythm-page .rhythm-workspace-shell {
   min-width: 0;
@@ -993,11 +1020,21 @@
   .rhythm-page .rhythm-setup-actions > * {
     width: 100%;
   }
-  .rhythm-page .rhythm-mode-options {
-    grid-template-columns: minmax(0, 1fr);
+  .rhythm-page .rhythm-step-progress {
+    padding: 10px 5px;
   }
-  .rhythm-page .rhythm-mode-card {
-    min-height: 102px;
+  .rhythm-page .rhythm-step-progress li {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 10px;
+  }
+  .rhythm-page .rhythm-step-progress li:not(:last-child)::after {
+    top: 17px;
+    left: calc(50% + 19px);
+    width: calc(100% - 38px);
+  }
+  .rhythm-page .rhythm-step-name {
+    padding: 1px 3px;
   }
   .rhythm-page .rhythm-meta {
     align-items: flex-start;
@@ -1009,6 +1046,14 @@
   .rhythm-page .rhythm-controls > * {
     width: 100%;
     padding-inline: 9px;
+  }
+  .rhythm-page .rhythm-inline-modes {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rhythm-page .rhythm-mode-choice {
+    width: 100%;
   }
   .rhythm-page .rhythm-volume-control {
     grid-template-columns: auto minmax(0, 1fr) 42px;

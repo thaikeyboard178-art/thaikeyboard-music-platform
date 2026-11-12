@@ -114,9 +114,9 @@ function showPage() {
   );
 }
 
-async function openExercise() {
+async function openExercise(mode: "Chơi thử" | "Chấm điểm" = "Chơi thử") {
   await userEvent.click(
-    screen.getByRole("button", { name: "Áp dụng và mở bài" })
+    screen.getByRole("button", { name: new RegExp(`^${mode}`) })
   );
   await waitFor(() =>
     expect(
@@ -128,11 +128,7 @@ async function openExercise() {
 async function openPracticeWorkspace(
   mode: "Chơi thử" | "Chấm điểm" = "Chơi thử"
 ) {
-  await openExercise();
-  await screen.findByTestId("practice-mode-chooser");
-  await userEvent.click(
-    screen.getByRole("button", { name: new RegExp(`^${mode}`) })
-  );
+  await openExercise(mode);
   await screen.findByTestId("rhythm-workspace");
 }
 
@@ -154,6 +150,11 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(screen.getByTestId("screen-setup").getAttribute("data-screen")).toBe(
       "setup"
     );
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("setup");
     expect(screen.queryByLabelText("Phần học")).toBeNull();
     expect(isExerciseKindAllowed(6, "assessment", "tap-rhythm")).toBe(true);
 
@@ -196,10 +197,21 @@ describe("Rhythm learner page: three screens and real controller integration", (
     await user.selectOptions(screen.getByLabelText("Độ dài"), "4");
     await user.clear(screen.getByLabelText("Nhập tempo BPM"));
     await user.type(screen.getByLabelText("Nhập tempo BPM"), "77");
-    await openExercise();
-    await user.click(screen.getByRole("button", { name: /^Chơi thử/ }));
+    await openExercise("Chơi thử");
 
     const workspace = await screen.findByTestId("rhythm-workspace");
+    expect(screen.queryByTestId("practice-mode-chooser")).toBeNull();
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("practice");
+    expect(screen.getByTestId("rhythm-status").textContent).toContain(
+      "Chơi thử"
+    );
+    expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
+      "ready"
+    );
     expect(workspace.getAttribute("data-track")).toBe("3");
     expect(workspace.getAttribute("data-section")).toBe("practice");
     expect(workspace.getAttribute("data-exercise-id")).toMatch(/^tap-3-/);
@@ -217,6 +229,13 @@ describe("Rhythm learner page: three screens and real controller integration", (
       ).toBe(false)
     );
     expect(
+      (
+        screen.getByRole("button", {
+          name: "Nghe mẫu (1 lần)",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(false);
+    expect(
       screen
         .getByRole("button", { name: /Vùng chạm tiết tấu/ })
         .getAttribute("tabindex")
@@ -227,6 +246,19 @@ describe("Rhythm learner page: three screens and real controller integration", (
     const user = userEvent.setup();
     showPage();
     await openPracticeWorkspace("Chấm điểm");
+    expect(screen.queryByTestId("practice-mode-chooser")).toBeNull();
+    expect(screen.getByTestId("rhythm-status").textContent).toContain(
+      "Chấm điểm"
+    );
+    expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
+      "ready"
+    );
+    expect(screen.queryByTestId("tap-result")).toBeNull();
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("practice");
     await user.click(screen.getByRole("button", { name: "Bắt đầu" }));
     await screen.findByTestId("tap-result");
     expect(
@@ -246,6 +278,46 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(screen.getByTestId("tap-result-notation").textContent).toContain(
       "technical-abort"
     );
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("result");
+    expect(
+      screen
+        .getByTestId("tap-result-notation")
+        .compareDocumentPosition(screen.getByTestId("tap-result")) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Quay lại practice" }));
+    const workspace = screen.getByTestId("rhythm-workspace");
+    expect(
+      (
+        within(workspace).getByRole("button", {
+          name: "Chấm điểm",
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
+
+    const originalExerciseId = screen
+      .getByTestId("rhythm-workspace")
+      .getAttribute("data-exercise-id");
+    await user.click(screen.getByRole("button", { name: "Thiết lập lại" }));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("screen-setup").getAttribute("hidden")
+      ).toBeNull()
+    );
+    expect(
+      screen
+        .getByTestId("rhythm-step-progress")
+        .getAttribute("data-current-step")
+    ).toBe("setup");
+    expect(
+      screen.getByTestId("rhythm-workspace").getAttribute("data-exercise-id")
+    ).toBe(originalExerciseId);
+    expect(screen.getByTestId("tap-result")).not.toBeNull();
   });
 
   it("does not start when notation failed and keeps generator errors actionable", async () => {
@@ -260,9 +332,7 @@ describe("Rhythm learner page: three screens and real controller integration", (
     cleanup();
     scenario.mode = "generator-error";
     showPage();
-    await userEvent.click(
-      screen.getByRole("button", { name: "Áp dụng và mở bài" })
-    );
+    await openExercise("Chơi thử");
     await screen.findByRole("alert");
     expect(screen.queryByRole("button", { name: "Bắt đầu" })).toBeNull();
     expect(screen.getByRole("button", { name: "Thử mở lại" })).not.toBeNull();
@@ -271,7 +341,7 @@ describe("Rhythm learner page: three screens and real controller integration", (
   it("renders defensive N=0 as empty and offers another item without a result or fabricated grade", async () => {
     scenario.mode = "empty";
     showPage();
-    await openExercise();
+    await openExercise("Chơi thử");
     await screen.findByText("Không có onset cần chạm");
     expect(screen.getByTestId("rhythm-status").getAttribute("data-phase")).toBe(
       "empty"

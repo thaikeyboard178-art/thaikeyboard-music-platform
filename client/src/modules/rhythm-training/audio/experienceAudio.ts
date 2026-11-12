@@ -53,13 +53,13 @@ export function experienceVoiceSettings(
       pianoBuffer,
     }),
     metronome: Object.freeze({
-      // Bright-click playback consumes the generated PCM buffer, not a sine.
+      // Resonant knock consumes native inharmonic oscillator modes, not a sine.
       frequencyHz: 2600,
-      level: 0.24,
+      level: 0.4,
       waveform: "sine" as OscillatorType,
-      durationSeconds: 0.032,
+      durationSeconds: 0.22,
       edgeSeconds: 0.002,
-      brightClick: true as const,
+      resonantKnock: true as const,
       ...(metronomeOutput === undefined ? {} : { output: metronomeOutput }),
     }),
   });

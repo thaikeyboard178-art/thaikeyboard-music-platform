@@ -18,17 +18,17 @@ type RenderState = "loading" | "ready" | "error";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const STATUS_COPY: Readonly<Record<TapMarkerStatus, string>> = Object.freeze({
   matched: "Khớp",
-  early: "Sớm",
-  late: "Muộn",
-  missing: "Thiếu",
-  extra: "Thừa",
+  early: "Chạm sớm — lệch",
+  late: "Chạm muộn — lệch",
+  missing: "Chưa chạm",
+  extra: "Chạm thừa — lệch",
 });
 const STATUS_COLOR: Readonly<Record<TapMarkerStatus, string>> = Object.freeze({
   matched: "#23835a",
-  early: "#c47a12",
+  early: "#c94b45",
   late: "#c94b45",
-  missing: "#657080",
-  extra: "#7654a8",
+  missing: "#c94b45",
+  extra: "#c94b45",
 });
 
 function timestampText(offsetMs: number): string {
@@ -36,51 +36,27 @@ function timestampText(offsetMs: number): string {
   return `t ${sign}${String(Math.abs(offsetMs))} ms`;
 }
 
-function signedErrorText(errorMs: number, compact = false): string {
+function signedErrorText(errorMs: number): string {
   const sign = errorMs < 0 ? "−" : "+";
-  if (compact) return `${sign}${Math.round(Math.abs(errorMs))} ms`;
   return `Δ ${sign}${String(Math.abs(errorMs))} ms`;
 }
 
-function statusShape(marker: TapMarkerProjection, color: string): SVGElement {
-  const { x, y, status } = marker;
-  if (status === "matched") {
-    const circle = document.createElementNS(SVG_NS, "circle");
-    circle.setAttribute("cx", String(x));
-    circle.setAttribute("cy", String(y));
-    circle.setAttribute("r", "5");
+function statusCircle(
+  marker: TapMarkerProjection,
+  color: string
+): SVGCircleElement {
+  const circle = document.createElementNS(SVG_NS, "circle");
+  circle.setAttribute("cx", String(marker.x));
+  circle.setAttribute("cy", String(marker.y));
+  circle.setAttribute("r", "5");
+  if (marker.status === "missing") {
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke", color);
+    circle.setAttribute("stroke-width", "2.5");
+  } else {
     circle.setAttribute("fill", color);
-    return circle;
   }
-  if (status === "early" || status === "late") {
-    const diamond = document.createElementNS(SVG_NS, "path");
-    diamond.setAttribute(
-      "d",
-      `M ${x} ${y - 6} L ${x + 6} ${y} L ${x} ${y + 6} L ${x - 6} ${y} Z`
-    );
-    diamond.setAttribute("fill", color);
-    return diamond;
-  }
-  if (status === "missing") {
-    const cross = document.createElementNS(SVG_NS, "path");
-    cross.setAttribute(
-      "d",
-      `M ${x - 5} ${y - 5} L ${x + 5} ${y + 5} M ${x + 5} ${y - 5} L ${x - 5} ${y + 5}`
-    );
-    cross.setAttribute("fill", "none");
-    cross.setAttribute("stroke", color);
-    cross.setAttribute("stroke-width", "2.5");
-    cross.setAttribute("stroke-linecap", "round");
-    return cross;
-  }
-  const square = document.createElementNS(SVG_NS, "rect");
-  square.setAttribute("x", String(x - 5));
-  square.setAttribute("y", String(y - 5));
-  square.setAttribute("width", "10");
-  square.setAttribute("height", "10");
-  square.setAttribute("rx", "1.5");
-  square.setAttribute("fill", color);
-  return square;
+  return circle;
 }
 
 function markerAccessibleLabel(marker: TapMarkerProjection): string {
@@ -103,7 +79,7 @@ function createMarkerLayer(
   overlay.setAttribute("height", String(naturalHeight));
   overlay.setAttribute("preserveAspectRatio", "xMinYMin meet");
   overlay.setAttribute("data-testid", "tap-marker-layer");
-  overlay.setAttribute("role", "img");
+  overlay.setAttribute("role", "group");
   overlay.setAttribute("aria-label", "Vị trí lần chạm trên khuông nhạc");
   overlay.setAttribute("aria-hidden", String(!visible));
   overlay.style.position = "absolute";
@@ -116,10 +92,13 @@ function createMarkerLayer(
   group.setAttribute("visibility", visible ? "visible" : "hidden");
   for (const marker of markers) {
     const markerGroup = document.createElementNS(SVG_NS, "g");
+    markerGroup.setAttribute("role", "img");
     markerGroup.setAttribute("data-testid", "tap-marker");
     markerGroup.setAttribute("data-status", marker.status);
     markerGroup.setAttribute("data-tick", String(marker.tick));
     markerGroup.setAttribute("data-measure", String(marker.measureIndex));
+    markerGroup.setAttribute("data-x", String(marker.x));
+    markerGroup.setAttribute("data-y", String(marker.y));
     markerGroup.setAttribute(
       "data-sequence",
       marker.sequence === null ? "" : String(marker.sequence)
@@ -131,36 +110,21 @@ function createMarkerLayer(
     if (marker.errorMs !== null) {
       markerGroup.setAttribute("data-error-ms", String(marker.errorMs));
     }
-    markerGroup.setAttribute("aria-label", markerAccessibleLabel(marker));
+    const accessibleLabel = markerAccessibleLabel(marker);
+    markerGroup.setAttribute("aria-label", accessibleLabel);
     markerGroup.appendChild(
       document.createElementNS(SVG_NS, "title")
-    ).textContent = markerAccessibleLabel(marker);
-    markerGroup.appendChild(statusShape(marker, STATUS_COLOR[marker.status]));
-
-    const label = document.createElementNS(SVG_NS, "text");
-    label.setAttribute("x", String(marker.x + 8));
-    label.setAttribute("y", String(marker.y + 4));
-    label.setAttribute("fill", STATUS_COLOR[marker.status]);
-    label.setAttribute("font-family", "system-ui, sans-serif");
-    label.setAttribute("font-size", "11");
-    label.setAttribute("font-weight", "650");
-    label.textContent =
-      marker.errorMs === null
-        ? STATUS_COPY[marker.status]
-        : signedErrorText(marker.errorMs, true);
-    markerGroup.appendChild(label);
+    ).textContent = accessibleLabel;
+    markerGroup.appendChild(statusCircle(marker, STATUS_COLOR[marker.status]));
     group.appendChild(markerGroup);
   }
   overlay.appendChild(group);
   return overlay;
 }
 
-const LEGEND: readonly TapMarkerStatus[] = Object.freeze([
-  "matched",
-  "early",
-  "late",
-  "missing",
-  "extra",
+const LEGEND = Object.freeze([
+  { state: "matched", label: "Khớp", color: STATUS_COLOR.matched },
+  { state: "misaligned", label: "Lệch", color: STATUS_COLOR.early },
 ]);
 
 export function TapResultNotation({
@@ -341,10 +305,10 @@ export function TapResultNotation({
           padding: 0,
         }}
       >
-        {LEGEND.map(status => (
+        {LEGEND.map(item => (
           <li
-            key={status}
-            data-status={status}
+            key={item.state}
+            data-state={item.state}
             style={{
               alignItems: "center",
               display: "inline-flex",
@@ -354,20 +318,19 @@ export function TapResultNotation({
             <span
               aria-hidden="true"
               style={{
-                background: STATUS_COLOR[status],
-                borderRadius: status === "extra" ? "2px" : "50%",
+                background: item.color,
+                borderRadius: "50%",
                 display: "inline-block",
                 height: "0.62rem",
                 width: "0.62rem",
               }}
             />
-            <span>{STATUS_COPY[status]}</span>
+            <span>{item.label}</span>
           </li>
         ))}
       </ul>
-      <p className="rhythm-note">
-        Sai lệch trên nhãn làm tròn tới mili giây; dữ liệu chấm điểm và vị trí
-        lần chạm giữ nguyên độ chính xác gốc.
+      <p className="rhythm-note" style={{ marginTop: "0.35rem" }}>
+        Vòng tròn viền đỏ: chưa chạm.
       </p>
     </section>
   );

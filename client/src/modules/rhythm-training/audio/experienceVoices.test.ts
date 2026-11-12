@@ -218,7 +218,15 @@ describe("opt-in experience AudioBuffer voices", () => {
     const base = experienceVoiceSettings(sample, output);
     const settings = {
       ...base,
-      metronome: { ...base.metronome, level: 0.9 },
+      metronome: {
+        frequencyHz: base.metronome.frequencyHz,
+        level: 0.9,
+        waveform: base.metronome.waveform,
+        durationSeconds: 0.032,
+        edgeSeconds: 0.002,
+        brightClick: true as const,
+        output,
+      },
     };
     const pulse = createRhythmAudioPlan(HALF_TIE, "metronome").pulseEvents[0];
     const accents = ["strong", "medium", "weak"] as const;

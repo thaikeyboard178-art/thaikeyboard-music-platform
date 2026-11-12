@@ -136,7 +136,7 @@ export function TapResultPanel({
   lesson = false,
   retryLabel = "Luyện lại",
   continueLabel = "Tiếp tục",
-  practiceLabel = "Luyện lại — không ghi thêm điểm",
+  practiceLabel = "Chơi thử — không ghi điểm chính thức",
 }: TapResultPanelProps) {
   const summary = summarizeTapResult(result);
   const evaluation = result.evaluation;
@@ -191,21 +191,15 @@ export function TapResultPanel({
                 </strong>
               </div>
               <div className="rhythm-metric">
-                <span>Khớp nhịp</span>
+                <span>Khớp</span>
                 <strong data-testid="tap-count-matched">
                   {summary.counts.matched}
                 </strong>
               </div>
               <div className="rhythm-metric">
-                <span>Chạm sớm</span>
-                <strong data-testid="tap-count-early">
-                  {summary.counts.early}
-                </strong>
-              </div>
-              <div className="rhythm-metric">
-                <span>Chạm muộn</span>
-                <strong data-testid="tap-count-late">
-                  {summary.counts.late}
+                <span>Lệch</span>
+                <strong data-testid="tap-count-misaligned">
+                  {summary.counts.early + summary.counts.late}
                 </strong>
               </div>
               <div className="rhythm-metric">
@@ -220,50 +214,60 @@ export function TapResultPanel({
                   {summary.counts.extra}
                 </strong>
               </div>
+            </div>
+
+            <details
+              className="rhythm-result-details"
+              data-testid="tap-result-details"
+            >
+              <summary>Chi tiết lần chạm</summary>
               <p className="rhythm-result-nk">
                 N (đầu nốt cần chạm): {summary.counts.n} · K (lần chạm):{" "}
                 {summary.counts.k}
               </p>
-            </div>
-
-            <p className="rhythm-diagnostic-note">
-              Chạm sớm hoặc muộn là thông tin để bạn điều chỉnh nhịp; các lần
-              chạm này vẫn được giữ nguyên trạng thái riêng, không tính thành
-              “khớp”.
-            </p>
-
-            <ul
-              className="rhythm-feedback-list"
-              aria-label="Phản hồi từng đầu nốt"
-            >
-              {evaluation.targetResults.map((target, index) => {
-                const timing = signedTimingText(target);
-                return (
-                  <li
-                    className={`rhythm-feedback-item is-${target.status}`}
-                    key={`${target.targetId}-${target.targetIndex}`}
-                  >
-                    <span className="rhythm-feedback-label">
-                      Đầu nốt {index + 1}
-                    </span>
-                    <span>{targetStatusText(target)}</span>
-                    {timing && <small>{timing}</small>}
-                  </li>
-                );
-              })}
-            </ul>
-
-            {summary.counts.extra > 0 && (
-              <p className="rhythm-extra-note">
-                Có {summary.counts.extra} lần chạm thừa
-                {summary.counts.extraSequences.length > 0
-                  ? ` (lần chạm ${summary.counts.extraSequences
-                      .map(sequence => sequence + 1)
-                      .join(", ")})`
-                  : ""}
-                . Lần chạm thừa không gắn với một đầu nốt mục tiêu.
+              <p className="rhythm-misaligned-details">
+                Chạm sớm:{" "}
+                <strong data-testid="tap-count-early">
+                  {summary.counts.early}
+                </strong>
+                {" · "}
+                Chạm muộn:{" "}
+                <strong data-testid="tap-count-late">
+                  {summary.counts.late}
+                </strong>
               </p>
-            )}
+              <ul
+                className="rhythm-feedback-list"
+                aria-label="Phản hồi từng đầu nốt"
+              >
+                {evaluation.targetResults.map((target, index) => {
+                  const timing = signedTimingText(target);
+                  return (
+                    <li
+                      className={`rhythm-feedback-item is-${target.status}`}
+                      key={`${target.targetId}-${target.targetIndex}`}
+                    >
+                      <span className="rhythm-feedback-label">
+                        Đầu nốt {index + 1}
+                      </span>
+                      <span>{targetStatusText(target)}</span>
+                      {timing && <small>{timing}</small>}
+                    </li>
+                  );
+                })}
+              </ul>
+              {summary.counts.extra > 0 && (
+                <p className="rhythm-extra-note">
+                  Lần chạm thừa
+                  {summary.counts.extraSequences.length > 0
+                    ? `: ${summary.counts.extraSequences
+                        .map(sequence => sequence + 1)
+                        .join(", ")}`
+                    : ""}
+                  .
+                </p>
+              )}
+            </details>
           </>
         )}
 
@@ -291,13 +295,16 @@ export function TapResultPanel({
           </div>
         )}
 
-        {result.mode === "practice" && !lesson && (
-          <p className="rhythm-original-points">
-            {originalPoints === 10 || originalPoints === 0
-              ? `Điểm đã ghi từ bài chấm trước: ${formatPoints(originalPoints)}. Điểm này được giữ nguyên, không tính lại ở lượt luyện.`
-              : "Chơi thử không tạo câu trả lời chấm điểm hoặc điểm chính thức."}
-          </p>
-        )}
+        {result.mode === "practice" &&
+          !lesson &&
+          originalPoints !== null &&
+          originalPoints !== undefined && (
+            <p className="rhythm-original-points">
+              {originalPoints === 10 || originalPoints === 0
+                ? `Điểm đã ghi từ bài chấm trước: ${formatPoints(originalPoints)}. Điểm này được giữ nguyên, không tính lại ở lượt luyện.`
+                : "Điểm đã ghi từ bài chấm trước được giữ nguyên, không tính lại ở lượt luyện."}
+            </p>
+          )}
       </div>
 
       <div className="rhythm-result-actions">

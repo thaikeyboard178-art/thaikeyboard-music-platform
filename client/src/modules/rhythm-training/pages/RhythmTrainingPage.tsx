@@ -7,11 +7,9 @@ import React, {
 } from "react";
 import { Link } from "wouter";
 import {
-  ArrowRight,
   ChevronRight,
   Headphones,
   Play,
-  RotateCcw,
   Square,
   Volume2,
   Waves,
@@ -45,13 +43,13 @@ import {
   trackName,
 } from "../ui/learnerConfiguration";
 import { RhythmNotation } from "../components/RhythmNotation";
+import { RhythmStepProgress } from "../components/RhythmStepProgress";
 import { TapResultPanel } from "../components/TapResultPanel";
 import { TapResultNotation } from "../components/TapResultNotation";
 import { VisualMetronome } from "../components/VisualMetronome";
 import "./rhythm.css";
 
 type PageScreen = "setup" | "practice" | "result";
-type PracticeStage = "mode" | "exercise";
 type ReceiptChoice = "latest" | "graded";
 type TapMode = "practice" | "graded";
 
@@ -128,8 +126,8 @@ export default function RhythmTrainingPage() {
     String(defaultTempo(3, defaultTapMeter(3)))
   );
   const [screen, setScreen] = useState<PageScreen>("setup");
-  const [practiceStage, setPracticeStage] = useState<PracticeStage>("mode");
   const [notationReady, setNotationReady] = useState(false);
+  const [gradedAttemptConsumed, setGradedAttemptConsumed] = useState(false);
   const [tapFlash, setTapFlash] = useState(false);
   const [metronomeVolume, setMetronomeVolume] = useState(() =>
     controller.getMetronomeVolume()
@@ -141,6 +139,10 @@ export default function RhythmTrainingPage() {
   const phaseRef = useRef(view.phase);
   const latestAutoReceipt = useRef<TapAttemptResult | null>(null);
   const mountToken = useRef(0);
+  const preparationToken = useRef(0);
+  const openingRef = useRef(false);
+  const mountedRef = useRef(false);
+  const preferredMode = useRef<TapMode>("graded");
   const historyKey = useRef(
     `rhythm-training-${Math.random().toString(36).slice(2)}`
   );
@@ -175,10 +177,18 @@ export default function RhythmTrainingPage() {
   const showResult = screen === "result" && selectedReceipt !== null;
   const canStart = hasExercise && notationReady && controller.canStart;
   const screenTransitionBlocked = active;
+  const gradedModeUsed =
+    gradedAttemptConsumed ||
+    view.gradedResult !== null ||
+    view.result?.mode === "graded";
 
   useEffect(() => {
     const token = ++mountToken.current;
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      ++preparationToken.current;
+      openingRef.current = false;
       // Effect replay in React StrictMode must not dispose a remounted controller.
       queueMicrotask(() => {
         if (mountToken.current === token) void controller.dispose();
@@ -192,10 +202,6 @@ export default function RhythmTrainingPage() {
     const id = globalThis.setTimeout(() => setTapFlash(false), 140);
     return () => globalThis.clearTimeout(id);
   }, [view.tapVisualSequence]);
-
-  useEffect(() => {
-    if (view.phase === "empty") setPracticeStage("exercise");
-  }, [view.phase]);
 
   useEffect(() => {
     if (!view.result || !isFinalReceipt(view.result, view.phase)) return;
@@ -263,8 +269,6 @@ export default function RhythmTrainingPage() {
       screenRef.current = nextScreen;
       setScreen(nextScreen);
       if (nextScreen === "result") setReceiptChoice("latest");
-      if (nextScreen === "practice" && view.exercise)
-        setPracticeStage("exercise");
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -337,23 +341,63 @@ export default function RhythmTrainingPage() {
       setTempo(nextTempo);
   }
 
-  async function openExercise() {
-    if (locked || getTapSections(track).length === 0) return;
+  async function openExercise(mode: TapMode) {
+    if (locked || openingRef.current || getTapSections(track).length === 0)
+      return;
+    const selectedConfiguration: TapUiConfiguration = Object.freeze({
+      ...configuration,
+      meter: Object.freeze({ ...meter }),
+    });
+    const request = ++preparationToken.current;
+    const mountedAt = mountToken.current;
+    openingRef.current = true;
+    preferredMode.current = mode;
+    setGradedAttemptConsumed(false);
     setNotationReady(false);
-    setPracticeStage("mode");
     transitionTo("practice");
-    await controller.prepare(configuration);
+    try {
+      await controller.prepare(selectedConfiguration);
+      if (
+        !mountedRef.current ||
+        mountToken.current !== mountedAt ||
+        preparationToken.current !== request
+      )
+        return;
+      controller.chooseMode(mode);
+    } finally {
+      if (preparationToken.current === request) openingRef.current = false;
+    }
   }
 
   async function reopenExercise() {
-    if (locked) return;
+    if (locked || openingRef.current) return;
+    const selectedConfiguration: TapUiConfiguration = Object.freeze({
+      ...configuration,
+      meter: Object.freeze({ ...meter }),
+    });
+    const request = ++preparationToken.current;
+    const mountedAt = mountToken.current;
+    const mode = preferredMode.current;
+    openingRef.current = true;
+    setGradedAttemptConsumed(false);
     setNotationReady(false);
-    setPracticeStage("mode");
-    await controller.prepare(configuration);
+    try {
+      await controller.prepare(selectedConfiguration);
+      if (
+        !mountedRef.current ||
+        mountToken.current !== mountedAt ||
+        preparationToken.current !== request
+      )
+        return;
+      if (controller.getSnapshot().exercise) controller.chooseMode(mode);
+    } finally {
+      if (preparationToken.current === request) openingRef.current = false;
+    }
   }
 
   async function start() {
     if (!canStart) return;
+    if (view.selectedMode === "graded") setGradedAttemptConsumed(true);
     tapRef.current?.focus({ preventScroll: true });
     await controller.start();
     tapRef.current?.focus({ preventScroll: true });
@@ -361,8 +405,8 @@ export default function RhythmTrainingPage() {
 
   async function retry() {
     if (locked || !notationReady) return;
+    preferredMode.current = "practice";
     controller.chooseMode("practice");
-    setPracticeStage("exercise");
     transitionTo("practice");
     tapRef.current?.focus({ preventScroll: true });
     await controller.retry();
@@ -370,17 +414,33 @@ export default function RhythmTrainingPage() {
   }
 
   async function nextExercise() {
-    if (locked) return;
+    if (locked || openingRef.current) return;
+    const mode = view.result?.mode ?? view.selectedMode;
+    const request = ++preparationToken.current;
+    const mountedAt = mountToken.current;
+    openingRef.current = true;
+    preferredMode.current = mode;
+    setGradedAttemptConsumed(false);
     setNotationReady(false);
-    setPracticeStage("mode");
     transitionTo("practice");
-    await controller.continue();
+    try {
+      await controller.continue();
+      if (
+        !mountedRef.current ||
+        mountToken.current !== mountedAt ||
+        preparationToken.current !== request
+      )
+        return;
+      if (controller.getSnapshot().exercise) controller.chooseMode(mode);
+    } finally {
+      if (preparationToken.current === request) openingRef.current = false;
+    }
   }
 
   function chooseMode(next: TapMode) {
     if (locked || !view.exercise) return;
-    controller.chooseMode(next);
-    setPracticeStage("exercise");
+    if (next === "graded" && gradedModeUsed) return;
+    if (controller.chooseMode(next)) preferredMode.current = next;
   }
 
   async function playPreview() {
@@ -408,7 +468,6 @@ export default function RhythmTrainingPage() {
 
   function returnToPractice() {
     if (screenTransitionBlocked) return;
-    setPracticeStage("exercise");
     transitionTo("practice");
   }
 
@@ -431,6 +490,8 @@ export default function RhythmTrainingPage() {
             <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
           </span>
         </div>
+
+        <RhythmStepProgress current={screen} />
 
         <section
           className="rhythm-screen rhythm-setup-screen"
@@ -608,11 +669,19 @@ export default function RhythmTrainingPage() {
             </button>
             <button
               type="button"
-              className="rhythm-primary"
-              onClick={() => void openExercise()}
+              className="rhythm-secondary rhythm-setup-practice"
+              onClick={() => void openExercise("practice")}
               disabled={locked || getTapSections(track).length === 0}
             >
-              Áp dụng và mở bài <ArrowRight size={16} />
+              Chơi thử <Play size={16} />
+            </button>
+            <button
+              type="button"
+              className="rhythm-primary"
+              onClick={() => void openExercise("graded")}
+              disabled={locked || getTapSections(track).length === 0}
+            >
+              Chấm điểm <Play size={16} />
             </button>
           </div>
           {previewError && (
@@ -650,7 +719,7 @@ export default function RhythmTrainingPage() {
                 onClick={() => transitionTo("setup")}
                 disabled={locked}
               >
-                Đổi bài
+                Thiết lập lại
               </button>
             )}
           </div>
@@ -689,72 +758,14 @@ export default function RhythmTrainingPage() {
             </div>
           )}
 
-          {view.exercise &&
-            practiceStage === "mode" &&
-            view.phase !== "empty" && (
-              <div
-                className="rhythm-mode-chooser"
-                aria-label="Chọn chế độ thực hành"
-                data-testid="practice-mode-chooser"
-              >
-                <div>
-                  <span className="module-kicker">CHỌN CÁCH THỰC HIỆN</span>
-                  <h3>Bạn muốn chơi thử hay chấm điểm?</h3>
-                  <p>
-                    Hai chế độ dùng cùng bài tập. Chơi thử không tạo answer hay
-                    điểm chính thức.
-                  </p>
-                </div>
-                <div className="rhythm-mode-options">
-                  <button
-                    type="button"
-                    className="rhythm-mode-card"
-                    aria-label="Chơi thử"
-                    onClick={() => chooseMode("practice")}
-                    disabled={locked}
-                  >
-                    <span className="rhythm-mode-icon">
-                      <RotateCcw size={19} />
-                    </span>
-                    <strong>Chơi thử</strong>
-                    <span>
-                      Luyện lại, nghe reference và xem Timing Accuracy tham
-                      khảo. Không cộng điểm.
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="rhythm-mode-card is-graded"
-                    aria-label="Chấm điểm"
-                    onClick={() => chooseMode("graded")}
-                    disabled={
-                      locked ||
-                      (view.gradedResult !== null &&
-                        view.gradedResult.status === "completed")
-                    }
-                  >
-                    <span className="rhythm-mode-icon">
-                      <Play size={19} />
-                    </span>
-                    <strong>Chấm điểm</strong>
-                    <span>
-                      Một lượt chấm cho bài này. Đúng +10, sai +0; lượt dừng do
-                      kỹ thuật không ghi điểm.
-                    </span>
-                  </button>
-                </div>
-              </div>
-            )}
-
           {view.exercise && (
             <section
-              className={`rhythm-workspace-shell ${practiceStage !== "exercise" ? "is-mode-choice" : ""}`}
+              className="rhythm-workspace-shell"
               aria-label="Bài tập Tap Rhythm"
               data-exercise-id={view.exercise.id}
               data-track={view.exercise.track}
               data-section={view.exercise.section}
               data-testid="rhythm-workspace"
-              hidden={practiceStage !== "exercise"}
             >
               <ExerciseMetadata view={view} />
               <RhythmNotation
@@ -806,13 +817,29 @@ export default function RhythmTrainingPage() {
                     : "Nghe mẫu (1 lần)"}
                 </button>
                 {!locked && view.phase !== "preparing" && (
-                  <button
-                    type="button"
-                    className="rhythm-secondary"
-                    onClick={() => setPracticeStage("mode")}
+                  <div
+                    className="rhythm-inline-modes"
+                    role="group"
+                    aria-label="Chế độ cho bài này"
                   >
-                    Đổi chế độ
-                  </button>
+                    <button
+                      type="button"
+                      className={`rhythm-mode-choice ${view.selectedMode === "practice" ? "is-selected" : ""}`}
+                      aria-pressed={view.selectedMode === "practice"}
+                      onClick={() => chooseMode("practice")}
+                    >
+                      Chơi thử
+                    </button>
+                    <button
+                      type="button"
+                      className={`rhythm-mode-choice ${view.selectedMode === "graded" ? "is-selected" : ""}`}
+                      aria-pressed={view.selectedMode === "graded"}
+                      onClick={() => chooseMode("graded")}
+                      disabled={gradedModeUsed}
+                    >
+                      Chấm điểm
+                    </button>
+                  </div>
                 )}
                 {active && (
                   <button
@@ -955,6 +982,10 @@ export default function RhythmTrainingPage() {
                   </p>
                 </div>
               </div>
+              <TapResultNotation
+                exercise={view.exercise}
+                result={selectedReceipt}
+              />
               <TapResultPanel
                 result={selectedReceipt}
                 points={
@@ -969,10 +1000,6 @@ export default function RhythmTrainingPage() {
                 retryLabel="Chơi lại"
                 continueLabel="Bài tiếp theo"
                 practiceLabel="Chơi thử — Timing Accuracy tham khảo, không ghi điểm"
-              />
-              <TapResultNotation
-                exercise={view.exercise}
-                result={selectedReceipt}
               />
               {view.gradedResult && selectedReceipt !== view.gradedResult && (
                 <button
@@ -1001,8 +1028,7 @@ export default function RhythmTrainingPage() {
                     type="button"
                     className="rhythm-secondary"
                     onClick={() => {
-                      controller.chooseMode("graded");
-                      setPracticeStage("exercise");
+                      chooseMode("graded");
                       transitionTo("practice");
                     }}
                     disabled={locked}
@@ -1023,7 +1049,7 @@ export default function RhythmTrainingPage() {
                   className="rhythm-tertiary"
                   onClick={() => transitionTo("setup")}
                 >
-                  Đổi bài
+                  Thiết lập lại
                 </button>
               </div>
             </>

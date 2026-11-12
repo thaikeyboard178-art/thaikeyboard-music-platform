@@ -137,6 +137,7 @@ class FakeGainNode {
   readonly gain = {
     setValueAtTime: (value: number) => this.values.push(value),
     linearRampToValueAtTime: (value: number) => this.values.push(value),
+    exponentialRampToValueAtTime: (value: number) => this.values.push(value),
     cancelScheduledValues: () => undefined,
   };
   constructor(context: FakeAudioContext) {
@@ -171,6 +172,40 @@ class FakeBufferSource {
   }
 }
 
+class FakeOscillator {
+  type: OscillatorType = "sine";
+  readonly frequency = {
+    value: 440,
+    setValueAtTime: (value: number) => {
+      this.frequency.value = value;
+    },
+  };
+  onended: (() => void) | null = null;
+  readonly starts: number[] = [];
+  readonly stops: number[] = [];
+  private endTimer: ReturnType<typeof setTimeout> | null = null;
+  private ended = false;
+
+  constructor(private readonly context: FakeAudioContext) {}
+
+  connect() {}
+  start(time: number) {
+    this.starts.push(time);
+  }
+  stop(time = this.context.currentTime) {
+    this.stops.push(time);
+    if (this.endTimer !== null) clearTimeout(this.endTimer);
+    const delay = Math.max(0, (time - this.context.currentTime) * 1000);
+    this.endTimer = globalThis.setTimeout(() => {
+      this.endTimer = null;
+      if (this.ended) return;
+      this.ended = true;
+      this.onended?.();
+    }, delay);
+  }
+  disconnect() {}
+}
+
 class FakeAudioContext extends EventTarget {
   state = "running";
   readonly destination = {};
@@ -178,6 +213,7 @@ class FakeAudioContext extends EventTarget {
   readonly origin = performance.now();
   readonly gains: FakeGainNode[] = [];
   readonly sources: FakeBufferSource[] = [];
+  readonly oscillators: FakeOscillator[] = [];
   closeCount = 0;
   decodeAudioData: (encoded: ArrayBuffer) => Promise<AudioBuffer> = async () =>
     fakeAudioBuffer();
@@ -208,6 +244,11 @@ class FakeAudioContext extends EventTarget {
     const source = new FakeBufferSource();
     this.sources.push(source);
     return source as unknown as AudioBufferSourceNode;
+  }
+  createOscillator() {
+    const oscillator = new FakeOscillator(this);
+    this.oscillators.push(oscillator);
+    return oscillator as unknown as OscillatorNode;
   }
   async resume() {
     this.state = "running";

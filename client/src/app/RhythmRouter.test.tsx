@@ -36,9 +36,8 @@ describe("Phase5 real lazy Rhythm learner route integration", () => {
       (screen.getByRole("button", { name: /^Level 1 —/ }) as HTMLButtonElement)
         .disabled
     ).toBe(true);
-    expect(
-      screen.getByRole("button", { name: "Áp dụng và mở bài" })
-    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Chơi thử" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Chấm điểm" })).not.toBeNull();
     expect(
       screen
         .getByRole("link", { name: "Tiết tấu" })

@@ -104,9 +104,10 @@ describe("recorded piano loading and reference plan", () => {
     expect(settings.pattern.pianoBuffer).toBe(sample);
     expect(settings.pattern.level).toBeLessThan(0.4);
     expect(settings.pattern.output).toBeUndefined();
-    expect(settings.metronome.brightClick).toBe(true);
+    expect(settings.metronome.resonantKnock).toBe(true);
+    expect(settings.metronome.brightClick).toBeUndefined();
     expect(settings.metronome.output).toBe(output);
-    expect(settings.metronome.level).toBeLessThan(0.4);
+    expect(settings.metronome.level).toBeLessThanOrEqual(0.4);
     expect(defaults.metronome.output).toBeUndefined();
     expect(Object.isFrozen(settings)).toBe(true);
     expect(Object.isFrozen(settings.pattern)).toBe(true);

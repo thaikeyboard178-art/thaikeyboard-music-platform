@@ -58,7 +58,7 @@ function technicalAttempt() {
 afterEach(cleanup);
 
 describe("TapResultPanel", () => {
-  it("shows first play-only feedback without an official score or invented prior graded receipt", () => {
+  it("shows play-only feedback without an official score or invented prior graded receipt", () => {
     render(
       <TapResultPanel
         result={completedAttempt("practice")}
@@ -75,13 +75,14 @@ describe("TapResultPanel", () => {
     expect(screen.queryByTestId("tap-points")).toBeNull();
     expect(screen.queryByText(/Điểm đã ghi từ bài chấm trước/)).toBeNull();
     expect(
-      screen.getByText(/Chơi thử không tạo câu trả lời chấm điểm/)
+      screen.getByText("Chơi thử — Timing Accuracy tham khảo, không ghi điểm")
     ).toBeTruthy();
+    expect(screen.queryByText(/Chơi thử không tạo câu trả lời/)).toBeNull();
     expect(screen.getByRole("button", { name: "Chơi lại" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Bài tiếp theo" })).toBeTruthy();
   });
 
-  it("presents actual matcher statuses, Formula B accuracy, and the shared exercise points", () => {
+  it("shows Formula B accuracy, summary counts, expandable diagnostics, and shared exercise points", () => {
     const result = completedAttempt();
     expect(result.evaluation?.targetResults.map(item => item.status)).toEqual([
       "matched",
@@ -122,16 +123,24 @@ describe("TapResultPanel", () => {
     expect(screen.getByTestId("tap-result")).toBeTruthy();
     expect(screen.getByTestId("tap-accuracy").textContent).toBe("25%");
     expect(screen.getByTestId("tap-count-matched").textContent).toBe("1");
-    expect(screen.getByTestId("tap-count-early").textContent).toBe("1");
-    expect(screen.getByTestId("tap-count-late").textContent).toBe("1");
+    expect(screen.getByTestId("tap-count-misaligned").textContent).toBe("2");
     expect(screen.getByTestId("tap-count-missing").textContent).toBe("1");
     expect(screen.getByTestId("tap-count-extra").textContent).toBe("1");
     expect(screen.getByTestId("tap-points").textContent).toBe("+0 điểm");
+
+    const details = screen.getByTestId(
+      "tap-result-details"
+    ) as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    fireEvent.click(screen.getByText("Chi tiết lần chạm"));
+    expect(details.open).toBe(true);
+    expect(screen.getByTestId("tap-count-early").textContent).toBe("1");
+    expect(screen.getByTestId("tap-count-late").textContent).toBe("1");
     expect(screen.getAllByText(/ngoài vùng khớp/)).toHaveLength(2);
     expect(screen.getByText(/Sớm 30 ms/)).toBeTruthy();
     expect(screen.getByText(/Muộn 40 ms/)).toBeTruthy();
-    expect(screen.getByText(/Có 1 lần chạm thừa/)).toBeTruthy();
-    expect(screen.getByText(/không tính thành “khớp”/)).toBeTruthy();
+    expect(screen.getByText(/Lần chạm thừa: 4/)).toBeTruthy();
+    expect(screen.getByText(/N \(đầu nốt cần chạm\): 4 · K/)).toBeTruthy();
 
     view.rerender(
       <TapResultPanel
@@ -162,6 +171,7 @@ describe("TapResultPanel", () => {
     ).toBeTruthy();
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.queryByTestId("tap-count-matched")).toBeNull();
+    expect(screen.queryByTestId("tap-count-misaligned")).toBeNull();
     expect(screen.queryByText("10%")).toBeNull();
     expect(screen.getByTestId("tap-points").textContent).toBe("Chưa ghi điểm");
   });
@@ -198,6 +208,7 @@ describe("TapResultPanel", () => {
     ).toBeTruthy();
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.queryByTestId("tap-count-matched")).toBeNull();
+    expect(screen.queryByTestId("tap-count-misaligned")).toBeNull();
     expect(screen.getByTestId("tap-points").textContent).toBe("Chưa ghi điểm");
     expect(screen.queryByText("0%")).toBeNull();
   });
@@ -214,7 +225,9 @@ describe("TapResultPanel", () => {
       />
     );
 
-    expect(screen.getByText("Luyện lại — không ghi thêm điểm")).toBeTruthy();
+    expect(
+      screen.getByText("Chơi thử — không ghi điểm chính thức")
+    ).toBeTruthy();
     expect(
       screen.getByText(/Điểm đã ghi từ bài chấm trước: \+10 điểm/)
     ).toBeTruthy();
