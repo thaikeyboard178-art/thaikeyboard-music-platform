@@ -4,6 +4,7 @@ import { TapFakeClock, TEST_TAP_VOICES } from "../audio/tapTestHelpers";
 import { createTapRhythmExercise } from "../exercises/tapRhythm";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
 import type { TapEngineOptions } from "../audio/tapEngine";
+import type { RhythmScheduledEvent } from "../audio/transport";
 import type { RhythmTrack } from "../types";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import {
@@ -31,6 +32,7 @@ type Harness = {
   input: EventTarget;
   engines: TapRhythmEngine[];
   engineOptions: TapEngineOptions[];
+  scheduledEvents: RhythmScheduledEvent[];
   contextFactoryCalls: () => number;
   inputTargetCalls: () => number;
 };
@@ -49,6 +51,7 @@ function harness(
   const input = new EventTarget();
   const engines: TapRhythmEngine[] = [];
   const engineOptions: TapEngineOptions[] = [];
+  const scheduledEvents: RhythmScheduledEvent[] = [];
   let contextFactories = 0;
   let inputTargetLookups = 0;
   const controller = new TapTrainingController({
@@ -65,6 +68,7 @@ function harness(
         return clock.context as unknown as AudioContext;
       },
       visibilitySource: null,
+      onScheduled: event => scheduledEvents.push(event),
     },
     seedPrefix: overrides.seedPrefix ?? "controller-test",
     ...(overrides.createExercise === undefined
@@ -89,6 +93,7 @@ function harness(
     input,
     engines,
     engineOptions,
+    scheduledEvents,
     contextFactoryCalls: () => contextFactories,
     inputTargetCalls: () => inputTargetLookups,
   };
@@ -263,7 +268,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(state.session?.incorrectAnswers).toBe(1);
   });
 
-  it("retries the same engine in practice and preserves the original graded result and points", async () => {
+  it("retries with a new idle engine in practice and preserves the original graded result and points", async () => {
     const h = harness();
     const exercise = await prepared(h);
     await h.controller.start();
@@ -272,14 +277,22 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(original?.status).toBe("completed");
     const originalSession = h.controller.getSnapshot().session;
 
-    const retry = h.controller.retry();
-    expect(h.controller.getSnapshot().trialNumber).toBe(2);
+    const originalEngine = h.engines[0];
+    await h.controller.retry();
+    const retryEngine = h.engines.at(-1)!;
+    expect(retryEngine).not.toBe(originalEngine);
+    expect(originalEngine.state).toBe("disposed");
+    expect(retryEngine.state).toBe("idle");
+    expect(h.controller.getSnapshot().phase).toBe("ready");
+    expect(h.controller.getSnapshot().trialNumber).toBe(1);
     expect(h.controller.getSnapshot().practice).toBe(true);
     expect(h.controller.getSnapshot().result).toBeNull();
     expect(h.controller.getSnapshot().gradedResult).toBe(original);
     expect(h.controller.getSnapshot().originalPoints).toBe(10);
-    await retry;
-    expect(h.engines).toHaveLength(1);
+    expect(h.engines).toHaveLength(2);
+    await h.controller.start();
+    expect(retryEngine.state).toMatch(/^(count-in|collecting)$/);
+    expect(h.controller.getSnapshot().trialNumber).toBe(2);
     expect(h.controller.getSnapshot().exercise).toBe(exercise);
     await finishAttempt(h);
 

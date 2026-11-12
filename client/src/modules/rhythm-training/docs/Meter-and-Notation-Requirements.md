@@ -1,5 +1,23 @@
 # Rhythm Training V1 — Yêu cầu Nhịp và Ký hiệu
 
+## Owner-approved active timing supersession — 2026-11-12
+
+**APPROVED; active policy.** This supersedes conflicting older technical-pulse/BPM/default wording below, while preserving musical identity, grouping, and accents. PPQ remains 480; each eighth is 240 ticks.
+
+| Meter | Canonical technical pulse | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter, 480 ticks | 2 | 100 |
+| 3/4 | Quarter, 480 ticks | 3 | 100 |
+| 4/4 | Quarter, 480 ticks | 4 | 100 |
+| 3/8 | Eighth, 240 ticks | 3 | 180 |
+| 6/8 | Eighth, 240 ticks | 6 | 180 |
+| 9/8 | Eighth, 240 ticks | 9 | 180 |
+| 2/2 | Half, 960 ticks | 2 | 100 |
+
+Tempo is globally **30–300 BPM**, measured in the stated technical pulse unit. Musical grouping is separate and unchanged: 6/8 `3+3` / `Sww|Mww`; 9/8 `3+3+3` / `Sww|Mww|Mww`; 3/8 `Sww`. In particular, these group accents do not turn 6/8 or 9/8 into dotted-quarter technical pulses.
+
+> **Historical-reading note:** The older meter matrix and clauses below that label the 6/8 or 9/8 dotted quarter as the technical BPM/metronome pulse are retained as historical text where they conflict with this approved table. Unaffected PPQ, duration, meter, notation, grouping, and accent requirements remain in force.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
@@ -33,7 +51,9 @@ Một **measure/bar** phải có tổng tick đúng bằng capacity của meter.
 
 Các accent giảng dạy chỉ là overlay. Không tự động ghi accent mạnh vào `segment.accent` của note nếu người dùng/fixture không yêu cầu explicit accent. Accent cấu trúc và accent explicit phải được giữ tách biệt; accent chỉ thay đổi gain hoặc cách hiển thị, không thay đổi onset time.
 
-## 2. Ma trận bảy meter V1
+## 2. Ma trận bảy meter V1 — historical pulse wording superseded
+
+> This retained matrix records the earlier dotted-quarter technical pulse for 6/8 and 9/8. Its meter identities and 3+3 / 3+3+3 musical grouping remain valid; use the active pulse/BPM table above for technical timing.
 
 Các giá trị dưới đây là canonical với `PPQ = 480`. `Starts` là vị trí bắt đầu pulse trong một bar, tính bằng tick. `Structural grouping` mô tả grouping nhạc lý; `Teaching grouping/accent` là chuỗi nhấn dùng trong nội dung hướng dẫn, không phải một trường thay thế cho structural grouping.
 

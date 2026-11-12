@@ -148,7 +148,7 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     }
   );
 
-  it("uses actual-local windows to leave the midpoint between adjacent fine-grid onsets unassigned", () => {
+  it("associates an out-of-window midpoint tap diagnostically without turning it into TP", () => {
     const pattern: RhythmPattern = {
       id: "adjacent-sixteenths",
       meter: { numerator: 2, denominator: 4 },
@@ -177,23 +177,32 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
       { sequence: 0, offsetMs: midpoint },
     ]);
     expect(evaluation.targetResults.map(result => result.status)).toEqual([
-      "missing",
+      "late",
       "missing",
       "missing",
     ]);
-    expect(evaluation.tapResults[0].status).toBe("extra");
+    expect(evaluation.tapResults[0].status).toBe("late");
+    expect(evaluation.tapResults[0].targetIndex).toBe(0);
+    expect(evaluation.tp).toBe(0);
+    expect(evaluation.n).toBe(3);
+    expect(evaluation.k).toBe(1);
+    expect(evaluation.nearMiss).toBe(0);
+    expect(evaluation.farAssociation).toBe(1);
+    expect(evaluation.missing).toBe(2);
+    expect(evaluation.extra).toBe(0);
+    expect(evaluation.accuracyPercent).toBe(0);
   });
 
-  it("uses actual adjacent attack gaps finer than legal grid without extending Level 6 vocabulary", () => {
+  it("uses actual adjacent attack gaps under approved T2 caps without extending Level 6 vocabulary", () => {
     const pattern = {
       ...mixedRuntimePattern(SEVEN_METER_RUNTIME_FIXTURES[4]),
-      tempo: { pulseBpm: 72 },
+      tempo: { pulseBpm: 300 },
     };
     const targets = createTapTargets(pattern, 240);
     const fine = targets.find(target => target.id === "pattern:fine")!;
-    const gapMs = ticksToSeconds(120, pattern.meter, 72) * 1000;
-    expect(fine.passMs).toBeCloseTo(0.3 * gapMs);
-    expect(fine.associationMs).toBeCloseTo(0.4 * gapMs);
+    const gapMs = ticksToSeconds(120, pattern.meter, 300) * 1000;
+    expect(fine.passMs).toBeCloseTo(Math.min(50, 0.3 * gapMs));
+    expect(fine.associationMs).toBeCloseTo(Math.min(80, 0.4 * gapMs));
     expect(fine.associationMs).toBeLessThan(80);
     expect(() => createTapRhythmExercise({ track: 6, pattern })).toThrow();
   });
@@ -322,7 +331,7 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(exercise.targets.map(target => target.tick)).toEqual([0, 960, 1440]);
   });
 
-  it("keeps the target helper curriculum-ungated but refuses disallowed exercise placements", () => {
+  it("keeps target projection ungated but enforces approved Level1/2 and Bonus Tap placements", () => {
     const level2Pattern = generateRhythmPattern({
       level: 2,
       seed: "helper-outside-tap",
@@ -330,31 +339,46 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(createTapTargets(level2Pattern, 240).length).toBeGreaterThan(0);
 
     for (const track of [1, 2] as const) {
+      const pattern = generateRhythmPattern({
+        level: track,
+        seed: `level-${track}-tap-placement`,
+      });
+      expect(
+        createTapRhythmExercise({ track, pattern }).targets.length
+      ).toBeGreaterThan(0);
+      expect(
+        generateTapRhythmExercise({ track, seed: `level-${track}-tap-run` })
+          .track
+      ).toBe(track);
       expect(() =>
-        createTapRhythmExercise({ track, pattern: level2Pattern })
-      ).toThrow(RangeError);
-      expect(() =>
-        generateTapRhythmExercise({ track, seed: `blocked-${track}` })
+        createTapRhythmExercise({ track, section: "lessons", pattern })
       ).toThrow(RangeError);
     }
     const bonusPattern = generateRhythmPattern({
       level: "bonus",
-      seed: "bonus-assessment-blocked",
+      seed: "bonus-assessment-placement",
     });
-    expect(() =>
+    expect(
+      createTapRhythmExercise({
+        track: "bonus",
+        section: "practice",
+        pattern: bonusPattern,
+      }).section
+    ).toBe("practice");
+    expect(
       createTapRhythmExercise({
         track: "bonus",
         section: "assessment",
         pattern: bonusPattern,
-      })
-    ).toThrow(RangeError);
-    expect(() =>
+      }).section
+    ).toBe("assessment");
+    expect(
       generateTapRhythmExercise({
         track: "bonus",
         section: "assessment",
-        seed: "bonus-assessment-blocked",
-      })
-    ).toThrow(RangeError);
+        seed: "bonus-assessment-placement",
+      }).section
+    ).toBe("assessment");
 
     const level6Assessment = generateTapRhythmExercise({
       track: 6,

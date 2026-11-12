@@ -109,9 +109,13 @@ describe("Phase2 generator integration regressions", () => {
       hasTie: true,
       sourceCount: 2,
     });
-    const tied = pattern!.measures.flatMap(measure => measure.segments).filter(segment => segment.tieGroupId !== undefined);
+    const tied = pattern!.measures
+      .flatMap(measure => measure.segments)
+      .filter(segment => segment.tieGroupId !== undefined);
     expect(tied).toHaveLength(2);
-    expect(tied.every(segment => segment.duration.denominator === 16)).toBe(true);
+    expect(tied.every(segment => segment.duration.denominator === 16)).toBe(
+      true
+    );
   });
   it("rejects three interacting difficulty sources in the Level 5 integrated budget", () => {
     const input: RhythmPattern = {
@@ -156,7 +160,7 @@ describe("Phase2 generator integration regressions", () => {
       })
     ).toThrow(/at most 2/);
   });
-  it("does not introduce an offbeat sustain in basic compound focus", () => {
+  it("does not call eighth-note pulse onsets syncopated in basic compound focus", () => {
     const input: RhythmPattern = {
       id: "compound-sync",
       meter: { numerator: 6, denominator: 8 },
@@ -172,6 +176,7 @@ describe("Phase2 generator integration regressions", () => {
         },
       ],
     };
+    expect(patternMetrics(input).hasSyncopation).toBe(false);
     expect(() =>
       assertLevelConstraints(input, {
         seed: "audit",
@@ -179,7 +184,7 @@ describe("Phase2 generator integration regressions", () => {
         meter: input.meter,
         pulseBpm: 60,
       })
-    ).toThrow(/syncopated-onset/);
+    ).not.toThrow();
   });
   it("reuses ties in Level 5 syncopation items without exceeding one syncopated attack", () => {
     let tied = false;

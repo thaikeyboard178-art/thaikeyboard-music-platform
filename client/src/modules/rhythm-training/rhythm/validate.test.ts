@@ -67,15 +67,20 @@ describe("complete canonical rhythm validation", () => {
     "rejects malformed root %s",
     input => expectIssue(input, "SCHEMA_INVALID")
   );
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, "60"])(
+  it.each([0, -1, 29, 301, Number.NaN, Number.POSITIVE_INFINITY, "60"])(
     "rejects tempo %s",
     pulseBpm =>
       expectIssue({ ...FOUR_FOUR, tempo: { pulseBpm } }, "SCHEMA_INVALID")
   );
-  it("rejects a finite tempo that overflows the seconds projection", () =>
+  it.each([30, 300])("accepts the inclusive %d BPM endpoint", pulseBpm => {
+    expect(
+      validateRhythmPattern({ ...FOUR_FOUR, tempo: { pulseBpm } }).valid
+    ).toBe(true);
+  });
+  it("rejects a finite tempo below the supported range", () =>
     expectIssue(
       { ...FOUR_FOUR, tempo: { pulseBpm: Number.MIN_VALUE } },
-      "NONFINITE_TIMELINE"
+      "SCHEMA_INVALID"
     ));
   it.each([
     { numerator: 6, denominator: 4 },

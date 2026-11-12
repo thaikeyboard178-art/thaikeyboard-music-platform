@@ -1,5 +1,27 @@
 # Rhythm Training V1 — Test và Release Acceptance
 
+## Owner-approved active policy and timing acceptance — 2026-11-12
+
+**APPROVED; active policy.** This supersedes conflicting legacy activity, pulse/BPM/default, Tap scoring/matching, retry, and release-status language below. The old `AT-*` material remains proposed/historical acceptance text where it conflicts; it is not evidence of tests run or passed.
+
+| Meter | Canonical technical pulse | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter, 480 ticks | 2 | 100 |
+| 3/4 | Quarter, 480 ticks | 3 | 100 |
+| 4/4 | Quarter, 480 ticks | 4 | 100 |
+| 3/8 | Eighth, 240 ticks | 3 | 180 |
+| 6/8 | Eighth, 240 ticks | 6 | 180 |
+| 9/8 | Eighth, 240 ticks | 9 | 180 |
+| 2/2 | Half, 960 ticks | 2 | 100 |
+
+Tempo is globally **30–300 BPM** in the table's canonical pulse unit. Keep musical grouping separately: 6/8 `3+3` / `Sww|Mww`; 9/8 `3+3+3` / `Sww|Mww|Mww`; 3/8 `Sww`.
+
+Current product policy has exactly two learner-facing activities: Tap Rhythm at Levels 1–6 plus Bonus 2/2 with the fixed approved level vocabulary, and independent visual-only Rhythm Quiz (no audio, no tapping). There is no Lesson, Listen & Identify, or Count the Beat user flow. Formula B is `100 × 2TP / (N + K)` (`TP` = primary pairs inside `Wpass`; `N` = expected onsets; `K` = physical collection taps after software-duplicate removal, including physical extras; `N=0` is not applicable; technical abort has null accuracy). Approved T2-B uses `α=.30`, `β=.40`, `Cpass=50 ms`, `Cassoc=80 ms`; `AudioContext.getOutputTimestamp()` is the primary clock bridge and untrusted mapping is technical/ungraded with no graded fallback. Collection opens at first expected onset minus its association window, closes at last expected onset plus its association window, and then drains delayed delivery for at most 100 ms; only original event timestamps within the musical interval qualify. The locked primary ordered one-to-one DP and strict shared scoring (`+10` only if all targets match within `Wpass` and there are no extras; otherwise `+0`) remain active. After primary DP lock, a deterministic, ordered, bounded residual midpoint-cell association within the graded collection interval may classify residual far tap/target pairs Early/Late for diagnostics only, never TP and never replacing a primary pair. Idle Practice replay retains configuration, visible original mode, and original grade/result; it requires a fresh Play and cannot produce a second shared answer/score.
+
+Quiz question count/quota, assessment quota changes, readiness/pilot thresholds, and effectiveness claims are not approved; do not change existing quota status. These approved requirements do not assert current test pass or physical audio/device validation.
+
+> **Historical-reading note:** The older meter/timing tables, D-07 acceptance, pending timing criteria, and phase/Coming-Soon statements below are retained for audit/proposal purposes only where conflicting. This note does not blanket-rewrite unaffected tick, duration, meter identity, notation, or grouping criteria.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
@@ -36,7 +58,9 @@ V1 có **7 meter được hỗ trợ**: sáu meter core `2/4`, `3/4`, `4/4`, `3/
 
 Code hiện tại vẫn được xem là có **8 legacy data-only levels và 4 legacy meters**; curriculum mới chưa được triển khai. Kết quả lịch sử `436/436 tests trên 40 files` không phải fresh result của bộ test mới, không chứng minh hỗ trợ bảy meter, và không được ghi là release pass.
 
-## 2. Canonical PPQ và meter registry acceptance
+## 2. Canonical PPQ and meter registry acceptance — historical pulse wording superseded
+
+> The retained table and associated `AT-MTR-*` pulse expectations preserve an earlier 6/8 and 9/8 dotted-quarter technical pulse. Use the active table at the top: 240-tick eighth pulses, counts 3/6/9, defaults 180 for all X/8 meters. Musical grouping and accents are unchanged.
 
 Tất cả expected tick values dưới đây dùng `PPQ = 480`. Bar capacity, pulse duration, pulse starts, nhóm nhịp và BPM đều phải lấy từ cặp meter chính xác; không suy ra pulse chỉ từ numerator hoặc denominator.
 
@@ -268,7 +292,9 @@ Còn pending: ví dụ secondary sixteenth/rest/mixed-duration notation cụ th�
 
 **Not changed:** no source/test/TS/TSX/JS/CSS/JSON/DB/infrastructure/dependency/shared architecture/Note Reading files; no UI/catalog/audio/metronome/MIDI/microphone/Phase 3/4/5/deploy; no parent-owned TODO/README/plan. The assigned Markdown documents are the intended documentation changes. No existing tests were run because this task is documentation-only.
 
-## 11. D-07 — Multiple Choice/Tap Rhythm acceptance, chưa triển khai hoặc thực thi
+## 11. D-07 — Multiple Choice/Tap Rhythm acceptance — historical where superseded, not executed
+
+> The 2026-11-11 D-07 activity placement, four-kind product-flow, and pending technical criteria below are audit history where they conflict with the 2026-11-12 approvals above. Acceptance IDs remain proposals, not current test outcomes.
 
 Nguồn: **APPROVED OWNER DECISION** trong *Rhythm Training V1 — Curriculum Decision Update*, nhận ngày 2026-11-11 lúc 14:14 +07:00; [Decision Review](./Decision-Review.md). Đây là written acceptance requirements, không phải test source mới hoặc runtime pass. Các ID cũ giữ nguyên; criteria dưới đây bổ sung D-07 và giữ các contract còn lại.
 

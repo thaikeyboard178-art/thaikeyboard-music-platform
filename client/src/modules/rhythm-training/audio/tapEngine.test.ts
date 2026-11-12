@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "./tapEngine";
 import { createTapAttemptPlan } from "./tapPlan";
+import { getDefaultPulseBpm } from "../rhythm/meters";
 import { TapFakeClock, TEST_TAP_VOICES } from "./tapTestHelpers";
 import {
   createTapRhythmExercise,
@@ -8,11 +9,15 @@ import {
 } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import type { RhythmTrack } from "../types";
+import type { RhythmPattern } from "../types";
 
-function setup(index = 0) {
+function setup(index = 0, patternOverride?: RhythmPattern) {
   const fixture = SEVEN_METER_RUNTIME_FIXTURES[index];
   const track: RhythmTrack = index < 3 ? 3 : index === 6 ? "bonus" : 6;
-  const exercise = createTapRhythmExercise({ track, pattern: fixture.pattern });
+  const exercise = createTapRhythmExercise({
+    track,
+    pattern: patternOverride ?? fixture.pattern,
+  });
   const clock = new TapFakeClock();
   const input = new EventTarget();
   const blur = new EventTarget();
@@ -56,6 +61,55 @@ function finish(h: ReturnType<typeof setup>) {
 }
 
 describe("production Tap Engine with real canonical scheduler and deterministic clock", () => {
+  it("executes target alignment at 30/default/300 BPM for all seven meters and 1/2/4 bars", async () => {
+    for (const [index, fixture] of SEVEN_METER_RUNTIME_FIXTURES.entries()) {
+      const bpmValues = [30, getDefaultPulseBpm(fixture.pattern.meter), 300];
+      for (const pulseBpm of bpmValues) {
+        for (const bars of [1, 2, 4] as const) {
+          const pattern: RhythmPattern = {
+            ...fixture.pattern,
+            id: `${fixture.pattern.id}-engine-${pulseBpm}-${bars}`,
+            tempo: { pulseBpm },
+            measures: Array.from({ length: bars }, (_, barIndex) => ({
+              id: `bar-${barIndex + 1}`,
+              segments: fixture.pattern.measures[0].segments.map(
+                (segment, segmentIndex) => ({
+                  ...segment,
+                  id: `b${barIndex + 1}-s${segmentIndex + 1}`,
+                })
+              ),
+            })),
+          };
+          const h = setup(index, pattern);
+          const plan = createTapAttemptPlan(h.exercise);
+          expect(plan.pulseEvents).toHaveLength((bars + 1) * plan.pulseCount);
+          await h.engine.start();
+          const expectedTicks = h.exercise.targets.map(target => target.tick);
+          expect(
+            h.engine.snapshot!.expectedOnsets.map(target => target.tick)
+          ).toEqual(expectedTicks);
+          const actualRelativeSeconds = h.engine.snapshot!.expectedOnsets.map(
+            target =>
+              target.audioTime - h.engine.snapshot!.expectedOnsets[0].audioTime
+          );
+          const targetRelativeSeconds = h.exercise.targets.map(
+            target =>
+              target.offsetMs / 1000 - h.exercise.targets[0].offsetMs / 1000
+          );
+          actualRelativeSeconds.forEach((seconds, targetIndex) =>
+            expect(seconds).toBeCloseTo(targetRelativeSeconds[targetIndex], 12)
+          );
+          tapAll(h);
+          finish(h);
+          expect(h.engine.state).toBe("completed");
+          expect(h.engine.result!.evaluation!.correct).toBe(true);
+          expect(h.engine.result!.accuracyPercent).toBe(100);
+          await h.engine.dispose();
+          expect(h.clock.tasks.size).toBe(0);
+        }
+      }
+    }
+  });
   it.each(
     SEVEN_METER_RUNTIME_FIXTURES.map((fixture, index) => ({ fixture, index }))
   )(
@@ -280,14 +334,14 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.factoryCount()).toBe(1);
     await h.engine.dispose();
   });
-  it("keeps snapshot on natural transport completion and finalizes bounded drain", async () => {
+  it("keeps the snapshot while transport plays through the bounded drain", async () => {
     const clock = new TapFakeClock();
     const base = createTapRhythmExercise({
       track: 3,
       pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     });
     // Canonical stress test only, not a permitted learner tempo or curriculum change.
-    const pattern = { ...base.pattern, tempo: { pulseBpm: 1200 } };
+    const pattern = { ...base.pattern, tempo: { pulseBpm: 300 } };
     const exercise = {
       ...base,
       pattern,
@@ -313,13 +367,15 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       clock.at(target.audioTime);
       input.dispatchEvent(clock.nativeTap(target.audioTime));
     }
-    clock.at(snapshot.expectedOnsets.at(-1)!.audioTime + 0.05);
-    expect(engine.transport.state).toBe("completed");
+    clock.at(snapshot.drainEndAudioTime - 0.05);
+    expect(engine.transport.state).toBe("playing");
     expect(engine.state).toBe("draining");
     expect(engine.snapshot).toBe(snapshot);
     clock.at(snapshot.drainEndAudioTime + 0.03);
     expect(engine.result!.status).toBe("completed");
     expect(engine.result!.evaluation!.correct).toBe(true);
+    expect(engine.state).toBe("completed");
+    expect(engine.transport.state).toBe("stopped");
     await engine.dispose();
     expect(clock.tasks.size).toBe(0);
   });

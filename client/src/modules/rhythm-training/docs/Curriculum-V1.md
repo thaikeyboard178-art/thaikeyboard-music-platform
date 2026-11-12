@@ -1,5 +1,37 @@
 # Rhythm Training V1 — Curriculum V1
 
+## Owner-approved supersession — 2026-11-12
+
+**APPROVED; active policy.** This supersedes conflicting product-flow, placement, and canonical pulse/BPM wording below while preserving D-07/D-08 as historical audit trail. The only user-facing Rhythm activities are **Tap Rhythm** and a separate **visual-only Rhythm Quiz**; there is no Lesson, Listen & Identify, or Count the Beat user flow. Quiz does not require audio or tapping. No quiz question count or educational-effectiveness claim is approved.
+
+Tap is included at every Level 1–6 and Bonus, with fixed level vocabulary:
+
+| Placement | Approved Tap vocabulary |
+|---|---|
+| Level 1 | Quarter, half, whole notes; quarter rest |
+| Level 2 | Eighth notes, eighth rest; basic subdivision |
+| Level 3 | 2/4, 3/4, 4/4 |
+| Level 4 | Dotted rhythms; ties |
+| Level 5 | Sixteenth-note rhythms; complex combinations |
+| Level 6 | 3/8, 6/8, 9/8 |
+| Bonus | 2/2 |
+
+The active canonical pulse, default, and global tempo contract is:
+
+| Meter | Canonical pulse | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter note | 2 | 100 |
+| 3/4 | Quarter note | 3 | 100 |
+| 4/4 | Quarter note | 4 | 100 |
+| 3/8 | Eighth note | 3 | 180 |
+| 6/8 | Eighth note | 6 | 180 |
+| 9/8 | Eighth note | 9 | 180 |
+| 2/2 | Half note | 2 | 100 |
+
+BPM is measured in the stated pulse unit; the range is globally **30–300 BPM**. Preserve grouping/accent: 3/8 `Sww`; 6/8 `3+3`, `Sww|Mww`; 9/8 `3+3+3`, `Sww|Mww|Mww`. The grouping does not change 6/8 or 9/8 technical pulse units.
+
+Formula B, T2-B, primary ordered DP, strict `+10/+0`, primary clock policy, count-in and reference policy remain unchanged. After the primary DP assignment is locked, an approved bounded residual far-tap midpoint association may label a residual far pair Early/Late for diagnostics only, never TP; unmatched surplus taps remain Extra. Idle Practice replay is approved to preserve the visible original mode and original grade/result, with no autoplay or count-in and no second shared answer or score. Quota status is unchanged; quiz question count, readiness/effectiveness claims, and any quota change remain unapproved. This documentation does not claim runtime implementation.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
@@ -18,17 +50,19 @@ Không đồng nhất ngôn ngữ hiển thị số với ngôn ngữ phát âm 
 
 **Accent presentation — APPROVED.** Được dùng **Text-based** (Mạnh–Vừa–Nhẹ hoặc Mạnh–Nhẹ–Nhẹ tùy meter; có thể phân biệt font weight, độ đậm, ranh giới nhóm) hoặc **Symbol-based** (gạch nối, gạch dưới hoặc ký hiệu đồ họa; được phép dùng màu phân biệt cấp trọng âm). **Không bắt buộc phối hợp chữ + ký hiệu + màu**. **Nếu dùng màu**, phải đảm bảo **độ tương phản và khả năng nhận biết**; không tự thêm blanket rule bắt buộc chữ hoặc cấm màu-only trái quyết định. Strong=Mạnh, Medium=Vừa, Weak=Nhẹ; giữ hierarchy Mạnh>Vừa>Nhẹ và các vector3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`.
 
-Giữ nguyên curriculum placement, meter semantics, technical pulse, subdivision, PPQ480 và **existing `segment.accent` schema**. Không sửa VexFlow, source/test, audio engine, UI/catalog/route activation, database, shared architecture, dependencies/infra, Note Reading hoặc WordPress; không deploy. APPROVED tài liệu không phải implementation/test-pass/teacher signoff. Xem [Decision Review](./Decision-Review.md).
+Keep existing duration/tick arithmetic, subdivision, PPQ 480 and **`segment.accent` schema**. The 2026-11-11 statement that placement and technical pulse remain unchanged is historical where it conflicts with the active 2026-11-12 supersession above. This documentation does not authorize implementation, runtime, tests, or deployment. See [Decision Review](./Decision-Review.md).
 
 > **Đính chính Level 6 đã chốt bởi chủ sản phẩm — 2026-11-11:** 3/8 là Simple Triple với3 phách đơn móc đơn, **Mạnh – Nhẹ – Nhẹ**; không có một phách phức. 6/8 có 2 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. 9/8 có 3 phách phức, **Mạnh – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ | Vừa – Nhẹ – Nhẹ**. Mỗi phách phức=đen chấm dôi720 ticks gồm 3 phách đơn/subdivisions móc đơn240 ticks. Bar-level accent=Mạnh đầu ô; secondary beat accent=Vừa đầu các phách phức sau; Mạnh > Vừa > Nhẹ là quan hệ đã được xác nhận, không còn chờ hỏi lại. `S`=Mạnh, `M`=Vừa, `w`=Nhẹ: `Sww`, `Sww\|Mww`, `Sww\|Mww\|Mww`; cấp phách phức `S-M`, `S-M-M`. Trong3/8, mỗi móc đơn là một phách đơn độc lập, không phải subdivision của một phách phức giả. Beam notation, ba phương thức counting và accent presentation đã APPROVED theo quyết định03:04:52 +07:00; xem [Decision Review](./Decision-Review.md). Không hỏi lại hoặc khôi phục ba đề xuất cũ. Đính chính này chỉ sửa tài liệu, không sửa code/runtime hoặc tự triển khai gain/velocity/UI.
 
-**Trạng thái:** Curriculum authoritative, đã chốt khung nội dung; chi tiết ngưỡng sẵn sàng, tempo, quota và cách hiển thị vẫn là đề xuất coaching chờ pilot/giáo viên xác nhận. Tài liệu này chỉ mô tả nội dung và đặc tả giảng dạy; chưa triển khai code, UI, audio, generator, database, test hay route.
+**Trạng thái:** Active placement, fixed Tap vocabulary, canonical pulse/defaults, and 30–300 BPM are approved above. Readiness thresholds, quota, density, pilot, and remaining presentation details are still pending; no educational-effectiveness claim is made. This documentation does not assert code, UI, audio, generator, database, test, or route implementation.
 
 **Phạm vi:** V1 có sáu level chính và một Bonus. Sáu level chính là đường học được khuyến nghị; Bonus 2/2 là phần tùy chọn, vẫn phải được hỗ trợ trong V1 nhưng không phải điều kiện để hoàn thành đường chính. Các mức sẵn sàng trong tài liệu là tín hiệu hướng dẫn, không phải khóa cứng, không phải paywall và không tự động ngăn người học mở bài tiếp theo.
 
 ## A. Mục tiêu và nguyên tắc chung
 
-**D-07 — APPROVED OWNER DECISION, 2026-11-11 lúc 14:14 +07:00.** Nguồn: *Rhythm Training V1 — Curriculum Decision Update* của chủ sản phẩm; xem [Decision Review](./Decision-Review.md). Multiple Choice vẫn là exercise kind cốt lõi để học ký âm, nhận diện giá trị nốt/dấu lặng, hiểu cấu trúc và củng cố lý thuyết. Multiple Choice một mình không đủ cho kỹ năng thực hành. **Tap Rhythm bắt đầu từ Level 3**, tăng dần độ khó; đây là một trong bốn kind hiện có, không phải kind thứ năm. Level 1–2 dùng **Multiple Choice và Listen & Identify**, không có bài Tap Rhythm, Tap assessment hoặc Tap worked example. Hoạt động đếm để hiểu khái niệm vẫn có thể thuộc lesson, không đồng nghĩa với đưa một bài Tap vào Level 1–2.
+**D-07 — APPROVED OWNER DECISION when recorded, 2026-11-11 at 14:14 +07:00; HISTORICAL for clauses superseded on 2026-11-12.** Source: *Rhythm Training V1 — Curriculum Decision Update*; see [Decision Review](./Decision-Review.md). The original placement and four-kind activity-flow decisions remain recorded below as audit history only; current Tap placement, fixed vocabulary, and product flow are defined in the 2026-11-12 supersession above. The prior D-07 decision is not deleted.
+
+The following D-07 Tap description and pending-policy notes remain as historical audit text only where they conflict with the 2026-11-12 owner approvals.
 
 Tap Rhythm là bài thực hành: người học nhìn pattern, theo metronome/reference timing của bài, tap màn hình tại các onset dự định, rồi nhận feedback. Đánh giá đối chiếu **actual tap timestamps** với **expected onset timestamps**, matching một-một và phân loại matched, early, late, missing, extra. Không chấm bằng chọn đáp án hoặc chỉ bằng số lần tap; dấu lặng và tie continuation không tạo target. **Timing Accuracy (%)** là chỉ số thực hành riêng, không thay **Exercise Points (+10/+0)**, shared accuracy hoặc shared response time. Công thức phần trăm, tolerance windows và grades chưa chốt, cần technical specification và approval riêng.
 
@@ -47,8 +81,8 @@ Mọi bài phải giữ đúng tổng trường độ của ô nhịp. Dấu l�
 
 - Giữ PPQ = 480 và số tick hiện có: quarter = 480, half = 960, whole = 1920, eighth = 240, sixteenth = 120; dotted quarter = 720.
 - Giữ duration-authority, exact bar fill, tie group, rest duration, whole-exercise scoring `+10` đúng / `+0` sai, và một kết quả dùng chung cho mỗi bài hoàn thành.
-- Giữ Tap Rhythm là onset-only và quy trình đối chiếu timestamp thực/expected onset, one-to-one matching, technical confidence và abort/no-penalty. Các tolerance windows, latency compensation/calibration và công thức Timing Accuracy là quyết định kỹ thuật còn mở, không phải threshold đã được D-07 phê duyệt.
-- Giữ bốn exercise kind cục bộ: Multiple Choice, Tap Rhythm, Listen & Identify, Count the Beat; Free và Challenge vẫn là hai shared session wrapper duy nhất.
+- Giữ Tap Rhythm onset-only, timestamp matching và technical-abort/no-penalty policy. Formula B, T2-B, primary ordered DP, residual midpoint diagnostic rule, clock confidence, strict shared `+10/+0`, count-in and reference policy are governed by the approved owner-decision record, not by the superseded D-07 pending text.
+- Active user-facing activities are Tap Rhythm and visual-only Rhythm Quiz; the former four-kind and Free/Challenge workflow descriptions below remain historical, not active product flow.
 - Giữ ranh giới: không sửa Note Reading, shared architecture, database, WordPress, Audio Scheduler, MIDI, microphone, deployment hoặc route sản phẩm trong tài liệu này.
 - Chuẩn bị test/acceptance trong tài liệu chỉ là đề xuất chờ phê duyệt; không được diễn giải là test đã chạy. Con số lịch sử `436/436` không phải kết quả chạy mới và không xác nhận các meter mới.
 
@@ -56,15 +90,17 @@ Mọi bài phải giữ đúng tổng trường độ của ô nhịp. Dấu l�
 
 Bảng curriculum chính thức phải được đọc đúng như sau, không tự ý đổi thứ tự hoặc phân bổ nội dung:
 
-| Cấp độ | Nội dung dự kiến | Exercise direction — D-07 APPROVED |
+| Cấp độ | Nội dung dự kiến | Active exercise direction — APPROVED 2026-11-12 |
 |---|---|---|
-| Level 1 | Nốt đen, nốt trắng, nốt tròn, dấu lặng đen | Multiple Choice, Listen & Identify; chưa Tap Rhythm |
-| Level 2 | Nốt móc đơn, dấu lặng đơn, chia đôi phách | Multiple Choice, Listen & Identify; chưa Tap Rhythm |
-| Level 3 | Nhịp đơn: 2/4, 3/4, 4/4 | Giới thiệu Tap Rhythm; Multiple Choice vẫn là kind cốt lõi |
-| Level 4 | Dấu chấm dôi, nối trường độ | Tap Rhythm + Multiple Choice |
-| Level 5 | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao | Advanced Tap Rhythm |
-| Level 6 | Nhóm nhịp theo cấu trúc 3 móc đơn: 3/8, 6/8, 9/8 | Tap Rhythm theo simple/compound pulses trong một unit chung |
-| Bonus | Nhịp 2/2 (Alla Breve): hai phách chính, mỗi phách tương ứng một nốt trắng | Optional Tap Rhythm progression |
+| Level 1 | Nốt đen, nốt trắng, nốt tròn, dấu lặng đen | Tap Rhythm on fixed Level 1 vocabulary; visual Rhythm Quiz |
+| Level 2 | Nốt móc đơn, dấu lặng đơn, chia đôi phách | Tap Rhythm on fixed Level 2 vocabulary; visual Rhythm Quiz |
+| Level 3 | Nhịp đơn: 2/4, 3/4, 4/4 | Tap Rhythm on fixed Level 3 vocabulary; visual Rhythm Quiz |
+| Level 4 | Dấu chấm dôi, nối trường độ | Tap Rhythm on fixed Level 4 vocabulary; visual Rhythm Quiz |
+| Level 5 | Nốt móc kép, tổ hợp tiết tấu, tiết tấu nâng cao | Tap Rhythm on fixed Level 5 vocabulary; visual Rhythm Quiz |
+| Level 6 | Nhóm nhịp theo cấu trúc 3 móc đơn: 3/8, 6/8, 9/8 | Tap Rhythm on fixed Level 6 vocabulary; visual Rhythm Quiz |
+| Bonus | Nhịp 2/2 (Alla Breve): hai phách chính, mỗi phách tương ứng một nốt trắng | Tap Rhythm on fixed Bonus vocabulary; visual Rhythm Quiz |
+
+The table above is the active activity placement. The following Lessons/Practice/Assessment and teaching-flow narrative is retained as curriculum-planning history, not a Lesson or other active user flow.
 
 Mỗi mục trên đều có đủ **Lessons**, **Practice** và **Assessment**. Mỗi mục cũng có phần mở đầu, phần giới thiệu khái niệm, phần củng cố và một chính sách coaching. “Assessment” là đánh giá trong curriculum, không phải tuyên bố về test kỹ thuật hay chuẩn giáo dục đã được kiểm chứng.
 
@@ -77,6 +113,8 @@ Cấu trúc một bài học thống nhất:
 5. **Củng cố:** phân loại lỗi theo onset, duration, rest, meter, tie hoặc accent; đề xuất bài ôn tương ứng thay vì khóa level.
 
 ## C. Curriculum chi tiết
+
+Detailed level narratives below are historical teaching-plan material where they describe Lesson, Listen & Identify, Count the Beat, or the former Tap placement. The fixed vocabulary and current product flow in the 2026-11-12 supersession govern; no lower level receives vocabulary assigned to a later level.
 
 ### Level 1 — Nốt đen, nốt trắng, nốt tròn, dấu lặng đen
 
@@ -305,8 +343,8 @@ PPQ canonical là 480. Bảng dưới đây là hợp đồng nội dung/kỹ th
 | 3/4 | Simple triple | 1440 | quarter = 480 | 3 / `[0,480,960]` | `1+1+1` | `S-W-W` |
 | 4/4 | Simple quadruple | 1920 | quarter = 480 | 4 / `[0,480,960,1440]` | `1+1+1+1` | `S-W-M-W` hoặc minimum strong/weak |
 | 3/8 | Simple triple | 720 | eighth = 240 | 3 / `[0,240,480]` | 3 phách đơn độc lập; một nhóm minh họa không phải phách phức | **`Sww`** |
-| 6/8 | Compound duple | 1440 | dotted quarter = 720 | 2 / `[0,720]` | `3+3` | **`Sww\|Mww`** |
-| 9/8 | Compound triple | 2160 | dotted quarter = 720 | 3 / `[0,720,1440]` | `3+3+3` | **`Sww\|Mww\|Mww`** |
+| 6/8 | Compound duple | 1440 | eighth = 240 | 6 / `[0,240,480,720,960,1200]` | `3+3` | **`Sww\|Mww`** |
+| 9/8 | Compound triple | 2160 | eighth = 240 | 9 / `[0,240,480,720,960,1200,1440,1680,1920]` | `3+3+3` | **`Sww\|Mww\|Mww`** |
 | Bonus 2/2 | Alla breve | 1920 | half = 960 | 2 / `[0,960]` | `1+1` | `S-W` |
 
 Bảy dòng trên là **7 V1 supported meters**, trong đó **6 core + 1 Bonus**. Không gọi đây là sáu supported meters.
@@ -328,6 +366,8 @@ Phách đơn và phách phức không đồng nhất. Các nhóm không có tr�
 
 ## F. Cấu trúc Practice/Assessment và coaching chung
 
+**HISTORICAL planning text below; superseded 2026-11-12.** The four-kind Practice/Assessment table and Lesson/Practice/Assessment flow record earlier curriculum planning only. The active product has Tap Rhythm and a visual-only Rhythm Quiz, with no Lesson, Listen & Identify, or Count the Beat user flow. Use the approved timing/matching policies at the top and in [Tap Rhythm Owner Decisions](./Tap-Rhythm-V1-Phase-4A.2-Owner-Decisions.md), not pending statuses in this historical table.
+
 Toàn module giữ bốn exercise kinds trong đặc tả; phân bổ theo D-07, không yêu cầu mỗi Level dùng cả bốn. Level 1–2 dùng Multiple Choice và Listen & Identify; Tap Rhythm bắt đầu Level 3 và tăng độ khó. Count the Beat vẫn là kind hiện có, không bị xóa và không tự thêm vào phạm vi bắt buộc Level 1–2. Không thêm shared session mode:
 
 | Exercise kind | Mục tiêu curriculum | Quy tắc không đổi |
@@ -344,7 +384,7 @@ Coaching không khóa:
 - Có thể đề xuất ôn lại level trước, nhưng learner vẫn được mở bài sau.
 - Có thể báo riêng onset readiness, duration readiness, meter readiness và tie/dot readiness.
 - Không dùng một ngưỡng phần trăm chưa pilot để ẩn nội dung, ngăn Bonus hoặc biến Level 6 thành ba khóa tuần tự.
-- Khi khó khăn đến từ meter, feedback phải gọi đúng pulse unit: 3/8 eighth pulse 240; 6/8 và 9/8 dotted-quarter pulse 720; Bonus 2/2 half pulse 960.
+- Khi khó khăn đến từ meter, feedback phải gọi đúng pulse unit: 3/8, 6/8 và 9/8 dùng eighth pulse 240 (tương ứng 3, 6, 9 pulses/bar); Bonus 2/2 half pulse 960.
 
 ## G. Exact technical facts cần bảo toàn khi implementation tương lai
 
@@ -354,25 +394,27 @@ Coaching không khóa:
 | 3/4 | 1440 | 480 | `0,480,960` | 3 quarter pulses |
 | 4/4 | 1920 | 480 | `0,480,960,1440` | 4 quarter pulses |
 | 3/8 | 720 | 240 | `0,240,480` | 3 eighth pulses, teaching group count 1 |
-| 6/8 | 1440 | 720 | `0,720` | 2 dotted-quarter pulses, groups 3+3 |
-| 9/8 | 2160 | 720 | `0,720,1440` | 3 dotted-quarter pulses, groups 3+3+3 |
+| 6/8 | 1440 | 240 | `0,240,480,720,960,1200` | 6 eighth pulses, groups 3+3 |
+| 9/8 | 2160 | 240 | `0,240,480,720,960,1200,1440,1680,1920` | 9 eighth pulses, groups 3+3+3 |
 | 2/2 | 1920 | 960 | `0,960` | 2 half-note pulses, `S-W` |
 
-Conversion giữ nguyên: `seconds = (ticks / pulseTicks) × (60 / pulseBPM)`. Không suy pulse từ numerator/denominator một cách máy móc. Một 3/8 bar là 720 ticks nhưng kéo dài ba eighth pulses; một 6/8 bar là 1440 ticks nhưng có hai dotted-quarter pulses; một 9/8 bar là 2160 ticks nhưng có ba dotted-quarter pulses; một 2/2 bar là 1920 ticks nhưng có hai half pulses.
+Conversion giữ nguyên: `seconds = (ticks / pulseTicks) × (60 / pulseBPM)`. Không suy pulse từ numerator/denominator một cách máy móc. Một 3/8 bar là 720 ticks nhưng kéo dài ba eighth pulses; một 6/8 bar là 1440 ticks nhưng có sáu eighth pulses; một 9/8 bar là 2160 ticks nhưng có chín eighth pulses; một 2/2 bar là 1920 ticks nhưng có hai half pulses.
 
-Các quy tắc duration, tie group, rest, whole-exercise scoring, onset-only tap, currentTime, confidence, matching windows, bốn local exercise kinds, Free/Challenge và module boundaries từ đặc tả trước đó vẫn có hiệu lực. Tài liệu curriculum này không thay thế chúng và không tự tạo ra implementation.
+Duration, tie group, rest, whole-exercise scoring, onset-only tap, and technical-confidence policies remain governed by the approved owner records. The former four-kind and Free/Challenge flow statements are historical and superseded; this curriculum document does not assert implementation.
 
 ## H. Quyết định đã APPROVED và các chi tiết còn pending
 
-Semantics, meter, hierarchy và curriculum placement giữ nguyên đã chốt. Beam eighth riêng flag cho 3/8; compound beam 3+3/3+3+3; App Voice Counting tiếng Anh mặc định, Visual Counting hiện số để tự đếm, Metronome tick; accent chữ hoặc ký hiệu và màu tùy chọn đều APPROVED. Không hỏi lại, không giữ Vietnamese-first voice bắt buộc hoặc yêu cầu phối hợp chữ/ký hiệu/màu.
+Meter identity, accent/grouping, and earlier notation presentation approvals remain recorded. Active curriculum placement/product flow and canonical pulse/default/tempo are defined by the 2026-11-12 supersession above; prior D-07 activity placement is historical. Beam/counting/accent presentation approvals do not create extra active user flows or change grouping strings.
 
-Còn pending: secondary-sixteenth/rest/mixed notation examples chi tiết chưa quy định (giữ boundaries); voice assets/chi tiết đọc subdivision chưa được mô tả; tempo/quota/pilot/matching/readiness/density; Bonus display và legacy policy version. Không hard-lock curriculum bằng percentages chưa pilot, không kéo dotted eighth về Level 4 hoặc đổi placement. Acceptance chưa được chạy; historical 436/436 không phải fresh pass.
+Còn pending: secondary-sixteenth/rest/mixed notation examples; voice assets/subdivision-reading details; quota, assessment density, pilot/readiness thresholds, Quiz question count, Bonus display, and legacy policy version. Tempo/defaults and matching/scoring/clock/replay policies have later approvals above and in the owner-decision record. Do not hard-lock curriculum by unpiloted percentages or move dotted eighth into Level 4. Acceptance has not been run; historical 436/436 is not a fresh pass.
 
 ## I. Phạm vi thay đổi của tài liệu này
 
 Bản curriculum này thay thế thân bài tám-level cũ trong tài liệu curriculum active. Nó không tuyên bố triển khai curriculum mới trong code; current code/data-only legacy levels và meter registry hiện hành vẫn là trạng thái riêng cần một approval/implementation task sau này. Trong update này, chỉ các Markdown được liệt kê trong change record được chỉnh; source code, test source, TypeScript/TSX/JavaScript/CSS/JSON/database/infrastructure/dependency/shared architecture/Note Reading/UI/catalog/audio/metronome/MIDI/microphone/Phase3/deploy không bị thay đổi.
 
 ### Các quyết định kỹ thuật Tap còn mở — D-07
+
+The following D-07 statuses record the state on 2026-11-11 only; retain them as history, not current policy where the 2026-11-12 supersession or Phase 4A.2 owner decisions now provide approval. Quota remains pending and unchanged.
 
 | Hạng mục | Trạng thái |
 |---|---|
@@ -383,4 +425,4 @@ Bản curriculum này thay thế thân bài tám-level cũ trong tài liệu cur
 | Separate reference performance availability | PENDING; không mặc định mọi bài đều có reference riêng |
 | Device latency compensation/calibration policy | PENDING; giữ yêu cầu confidence/no-penalty, không tự chốt phương pháp hoặc tham số |
 
-Placement Multiple Choice/Tap đã APPROVED, không chờ các tham số trên để ghi vào curriculum. Không có Tap, audio hoặc UI nào được triển khai qua tài liệu này.
+Tap placement at Levels 1–6 + Bonus and the visual Rhythm Quiz-only product flow are APPROVED 2026-11-12. No Tap, audio, or UI implementation is asserted by this document.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RhythmPattern } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
+import { getDefaultPulseBpm } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import {
   assertLevelConstraints,
@@ -116,9 +117,33 @@ describe("seeded level-constrained rhythm generation", () => {
 
   it("executes all approved Level 6 meters with their distinct pulse semantics", () => {
     const cases = [
-      { meter: { numerator: 3, denominator: 8 }, pulseTicks: 240, groups: [1, 1, 1], capacity: 720 },
-      { meter: { numerator: 6, denominator: 8 }, pulseTicks: 720, groups: [3, 3], capacity: 1440 },
-      { meter: { numerator: 9, denominator: 8 }, pulseTicks: 720, groups: [3, 3, 3], capacity: 2160 },
+      {
+        meter: { numerator: 3, denominator: 8 },
+        pulseTicks: 240,
+        pulseCount: 3,
+        pulseStarts: [0, 240, 480],
+        groupStarts: [0, 240, 480],
+        groups: [1, 1, 1],
+        capacity: 720,
+      },
+      {
+        meter: { numerator: 6, denominator: 8 },
+        pulseTicks: 240,
+        pulseCount: 6,
+        pulseStarts: [0, 240, 480, 720, 960, 1200],
+        groupStarts: [0, 720],
+        groups: [3, 3],
+        capacity: 1440,
+      },
+      {
+        meter: { numerator: 9, denominator: 8 },
+        pulseTicks: 240,
+        pulseCount: 9,
+        pulseStarts: [0, 240, 480, 720, 960, 1200, 1440, 1680, 1920],
+        groupStarts: [0, 720, 1440],
+        groups: [3, 3, 3],
+        capacity: 2160,
+      },
     ] as const;
     for (const entry of cases) {
       for (let index = 0; index < 10; index += 1) {
@@ -131,9 +156,16 @@ describe("seeded level-constrained rhythm generation", () => {
         const timeline = deriveRhythmTimeline(pattern, 240);
         expect(pattern.meter).toEqual(entry.meter);
         expect(timeline.meter.pulseTicks).toBe(entry.pulseTicks);
+        expect(timeline.meter.pulseCount).toBe(entry.pulseCount);
+        expect(timeline.meter.pulseStarts).toEqual(entry.pulseStarts);
+        expect(timeline.meter.groupStarts).toEqual(entry.groupStarts);
         expect(timeline.meter.groups).toEqual(entry.groups);
         expect(timeline.totalTicks).toBe(entry.capacity);
-        expect(pattern.measures.flatMap(measure => measure.segments).some(segment => segment.duration.denominator === 1)).toBe(false);
+        expect(
+          pattern.measures
+            .flatMap(measure => measure.segments)
+            .some(segment => segment.duration.denominator === 1)
+        ).toBe(false);
       }
     }
   });
@@ -182,7 +214,8 @@ describe("seeded level-constrained rhythm generation", () => {
       { seed: "x", level: 6 as const, meter: { numerator: 4, denominator: 4 } },
       { seed: "x", level: 1 as const, bars: 3 as never },
       { seed: "x", level: 1 as const, focus: "dots" as never },
-      { seed: "x", level: 1 as const, pulseBpm: 200 },
+      { seed: "x", level: 1 as const, pulseBpm: 29 },
+      { seed: "x", level: 1 as const, pulseBpm: 301 },
       { seed: "", level: 1 as const },
     ];
     for (const item of bad) {
@@ -239,5 +272,36 @@ describe("seeded level-constrained rhythm generation", () => {
         pulseBpm: 72,
       })
     ).toThrow(RangeError);
+  });
+
+  it("defaults omitted BPM by canonical pulse unit and accepts exact 30/300 endpoints", () => {
+    const entries = [
+      { level: 3 as const, meter: { numerator: 2, denominator: 4 }, bpm: 100 },
+      { level: 3 as const, meter: { numerator: 3, denominator: 4 }, bpm: 100 },
+      { level: 3 as const, meter: { numerator: 4, denominator: 4 }, bpm: 100 },
+      { level: 6 as const, meter: { numerator: 3, denominator: 8 }, bpm: 180 },
+      { level: 6 as const, meter: { numerator: 6, denominator: 8 }, bpm: 180 },
+      { level: 6 as const, meter: { numerator: 9, denominator: 8 }, bpm: 180 },
+      {
+        level: "bonus" as const,
+        meter: { numerator: 2, denominator: 2 },
+        bpm: 100,
+      },
+    ] as const;
+    for (const [index, entry] of entries.entries()) {
+      const input = {
+        seed: `canonical-default-${index}`,
+        level: entry.level,
+        meter: entry.meter,
+      };
+      const first = generateRhythmPattern(input);
+      expect(first.tempo.pulseBpm).toBe(entry.bpm);
+      expect(getDefaultPulseBpm(entry.meter)).toBe(entry.bpm);
+      expect(generateRhythmPattern(input)).toEqual(first);
+      for (const pulseBpm of [30, 300]) {
+        const edged = generateRhythmPattern({ ...input, pulseBpm });
+        expect(edged.tempo.pulseBpm).toBe(pulseBpm);
+      }
+    }
   });
 });

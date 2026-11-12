@@ -170,6 +170,26 @@ export function TapResultPanel({
               : "KẾT QUẢ BÀI TẬP"}
         </p>
         <h2 id="rhythm-result-title">Kết quả lượt gõ nhịp</h2>
+        <div
+          className="rhythm-missing-legend"
+          aria-label="Chú giải marker Thiếu"
+          data-testid="tap-missing-legend"
+        >
+          <span
+            aria-hidden="true"
+            data-testid="tap-missing-legend-swatch"
+            style={{
+              background: "transparent",
+              border: "2.5px solid #c94b45",
+              borderRadius: "50%",
+              boxSizing: "border-box",
+              display: "inline-block",
+              height: "0.72rem",
+              width: "0.72rem",
+            }}
+          />
+          <span>Thiếu</span>
+        </div>
 
         {lesson && (
           <p className="rhythm-practice-label">

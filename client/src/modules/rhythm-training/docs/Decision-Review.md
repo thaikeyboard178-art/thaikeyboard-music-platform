@@ -6,6 +6,22 @@
 **Phạm vi:** music semantics của 3/8, 6/8, 9/8 và ba quyết định presentation liên quan.
 **Tính chất:** documentation-only; chưa triển khai source, test, runtime, UI, audio hoặc schema.
 
+## Owner-approved supersession — 2026-11-12
+
+**APPROVED.** This supersedes conflicting curriculum, product-flow, and technical pulse/BPM clauses in prior records, including D-07/D-08 where recorded; those decisions remain historical audit trail, not deleted or silently rewritten. Active product flow is Tap Rhythm at Levels 1–6 plus Bonus 2/2 and a separate visual-only Rhythm Quiz; no Lesson, Listen & Identify, or Count the Beat user flow. The Quiz requires neither audio nor tapping. Tap vocabulary is fixed: L1 quarter/half/whole notes and quarter rest; L2 eighth notes/rests and basic subdivision; L3 2/4, 3/4, 4/4; L4 dotted rhythms and ties; L5 sixteenth rhythms and complex combinations; L6 3/8, 6/8, 9/8; Bonus 2/2.
+
+| Meter | Active canonical pulse | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter | 2 | 100 |
+| 3/4 | Quarter | 3 | 100 |
+| 4/4 | Quarter | 4 | 100 |
+| 3/8 | Eighth | 3 | 180 |
+| 6/8 | Eighth | 6 | 180 |
+| 9/8 | Eighth | 9 | 180 |
+| 2/2 | Half | 2 | 100 |
+
+Tempo is globally 30–300 BPM, measured in the meter's canonical pulse unit. Preserve 6/8 grouping `3+3`/`Sww|Mww`, 9/8 grouping `3+3+3`/`Sww|Mww|Mww`, and 3/8 `Sww`. Formula B, T2-B, primary ordered DP, strict shared `+10/+0`, clock policy, count-in and reference policy remain unchanged. The approved bounded residual midpoint association runs only after primary DP is locked: it can label a residual far pair Early/Late, never TP; remaining surplus taps are Extra. Approved idle Practice replay preserves the visible original mode and original grade/result, does not autoplay or start count-in, and cannot create a second shared answer or score. Quiz question count, effectiveness claims, and quota changes are not approved; quota statuses remain as recorded. No runtime implementation is asserted.
+
 ## 1. Trạng thái và nguyên tắc đọc
 
 - **APPROVED OWNER DECISION:** quyết định đã được chủ sản phẩm chốt và là contract nội dung cho review/implementation planning sau này.
@@ -24,9 +40,11 @@ Không sử dụng phương án accent hierarchy Manus/ChatGPT trước đây. T
 | D-04 | Tách rõ **subdivision/phách đơn**, **compound beat/phách phức** và accent ở cấp ô nhịp. Trong compound, mỗi eighth là một phách đơn/subdivision; trong `3/8`, mỗi eighth là một phách đơn độc lập. | **APPROVED OWNER DECISION** | Cấu trúc teaching grouping không được làm đổi meter identity hoặc pulse semantics. |
 | D-05 | Hierarchy là **Mạnh > Vừa > Nhẹ**. `S` = Mạnh, `M` = Vừa, `w` = Nhẹ. `S` là bar-level accent ở đầu ô; `M` là secondary beat accent ở đầu các phách phức sau; không coi mọi đầu nhóm ngang Mạnh. | **APPROVED OWNER DECISION** | Accent structural tách khỏi explicit note articulation. Không tự suy diễn gain/velocity/numerical runtime. |
 | D-06 | Chuỗi chính xác: `3/8 = Sww`; `6/8 = Sww\|Mww`; `9/8 = Sww\|Mww\|Mww`. Pulse-level: `6/8 = S-M`; `9/8 = S-M-M`. | **APPROVED OWNER DECISION** | Các chuỗi này là shorthand structural accent, không phải yêu cầu sửa binary `segment.accent`. |
-| D-07 | Multiple Choice tiếp tục là exercise kind cốt lõi cho notation, note/rest values và theory, nhưng không đủ cho practical rhythm training; Tap Rhythm bắt đầu từ Level 3 theo progression đã duyệt. | **APPROVED OWNER DECISION** | Không tạo kind thứ năm; xem §2.2 để biết placement, Tap matching contract và pending parameters. |
+| D-07 | Multiple Choice tiếp tục là exercise kind cốt lõi cho notation, note/rest values và theory, nhưng không đủ cho practical rhythm training; Tap Rhythm bắt đầu từ Level 3 theo progression đã duyệt. | **APPROVED OWNER DECISION — HISTORICAL; curriculum/activity clauses superseded 2026-11-12** | Giữ nguyên làm audit trail; không dùng placement/activity clauses cũ làm policy hiện hành. Xem supersession ở đầu tài liệu. |
 
-### 2.1. Bảng semantics và timing contract
+### 2.1. Historical semantics and timing record (2026-11-11)
+
+The technical pulse values in this dated historical table are superseded by the active canonical pulse contract immediately below. Meter identity and the 3+3 / 3+3+3 musical groupings remain; do not interpret historical dotted-quarter grouping beats as the active 6/8 or 9/8 metronome/BPM pulse.
 
 | Meter | Loại | Bar | Đơn vị phách kỹ thuật | Phách/phách phức | Pulse starts |
 |---|---|---:|---|---|---|
@@ -36,7 +54,23 @@ Không sử dụng phương án accent hierarchy Manus/ChatGPT trước đây. T
 
 PPQ giữ nguyên là `480`; eighth giữ nguyên là `240`; dotted-quarter giữ nguyên là `720`. Các quyết định này không thay đổi duration, attack, tie, rest, onset-only matching hoặc scoring `+10/+0`.
 
-### 2.2. D-07 — progression của Multiple Choice và Tap Rhythm
+#### Active canonical pulse and default tempo — APPROVED 2026-11-12
+
+| Meter | Canonical pulse unit | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| `2/4` | quarter = `480` ticks | `2` | `100` |
+| `3/4` | quarter = `480` ticks | `3` | `100` |
+| `4/4` | quarter = `480` ticks | `4` | `100` |
+| `3/8` | eighth = `240` ticks | `3` | `180` |
+| `6/8` | eighth = `240` ticks | `6` | `180` |
+| `9/8` | eighth = `240` ticks | `9` | `180` |
+| `2/2` | half = `960` ticks | `2` | `100` |
+
+Tempo is globally `30–300 BPM`; BPM counts the canonical pulse unit. Accent/grouping remains `3/8 Sww`, `6/8 3+3 / Sww|Mww`, `9/8 3+3+3 / Sww|Mww|Mww`.
+
+### 2.2. D-07 — historical progression of Multiple Choice and Tap Rhythm
+
+This was an approved owner decision when recorded on 2026-11-11. Its Tap-from-Level-3 placement and four-exercise-kind/user-flow clauses are superseded by the 2026-11-12 approval above; the passage below is retained as historical audit trail only.
 
 **Nguồn quyết định:** latest owner **Curriculum Decision Update**, received **2026-11-11 14:14 +07**. Đây là quyết định nội dung đã được duyệt; không cấp runtime/implementation approval.
 
@@ -111,9 +145,10 @@ Các nhãn vẫn giữ nguyên: `Strong = Mạnh`, `Medium = Vừa`, `Weak = Nh�
 |---|---|
 | Secondary beam cases | **PENDING TECHNICAL DETAIL** cho sixteenths và các tổ hợp phức tạp; không mở lại quy tắc eighth đã APPROVED. |
 | Spoken counting mở rộng | Chưa quy định detailed compound mapping, speech scheduling hoặc các voice bổ sung ngoài request; không biến thành yêu cầu Vietnamese-first. |
-| Tempo, quota, lesson/practice/assessment density và pilot | Vẫn pending; chưa có validated standard, quota cuối hoặc pilot result được báo cáo trong tài liệu này. |
-| Tap Rhythm timing và device details | **PENDING TECHNICAL DETAIL**: exact Timing Accuracy (%) formula, matching windows/tolerances, performance grades, continuous metronome coverage/removal for advanced exercises, count-in/replay limits, separate reference performance, latency compensation và calibration. Approved matching contract là ordered one-to-one timestamp-to-onset matching; các tham số chưa được chốt không làm chặn placement. |
-| Curriculum placement | 6 core Levels + Bonus 2/2 và placement đã giữ nguyên; không mở lại placement. |
+| Tempo and defaults | **APPROVED 2026-11-12:** canonical pulse units, defaults, and global 30–300 BPM range are stated at the start of this record. |
+| Quota, assessment density and pilot | **PENDING** as previously recorded; no quota status is changed by this supersession, and no pilot/effectiveness claim is made. |
+| Tap Rhythm timing and device details | Formula B, T2-B, primary ordered DP, strict gate, clock policy, count-in and reference policy are **APPROVED** in the owner-decision record; bounded residual midpoint association is additionally approved as stated above. Runtime implementation remains separate. |
+| Curriculum placement and product flow | Tap at Levels 1–6 + Bonus and visual Rhythm Quiz-only product flow are **APPROVED 2026-11-12**; conflicting D-07 placement/activity language is historical. |
 | Runtime/implementation | Chưa được cấp. Baseline hiện tại vẫn có **8 legacy levels** và generator với **four-meter policies**; **seven-meter canonical-to-SVG gate** đã được implement và tested previously, nhưng điều đó không chứng minh generator/curriculum/Tap/audio/UI đã được triển khai. Tap, audio và UI chưa active. Không có test mới hoặc test-pass claim trong review này. |
 
 Không có claim về teacher expert signoff, educator signoff, pilot completion, test pass hoặc runtime approval. Không sửa code, test, runtime, UI activation, audio, metronome, MIDI, microphone, database, shared architecture, Note Reading hoặc production/deploy trong review này.
@@ -126,6 +161,6 @@ Các contract kỹ thuật không liên quan vẫn giữ nguyên: duration arith
 
 ## 7. Kết luận
 
-Owner decision ngày 2026-11-11 đã chốt music semantics: `3/8` là 3 phách đơn `Sww`; `6/8` là 2 phách phức với cấu tạo `3+3`, `Sww|Mww`, pulse `S-M`; `9/8` là 3 phách phức với cấu tạo `3+3+3`, `Sww|Mww|Mww`, pulse `S-M-M`. Mạnh > Vừa > Nhẹ, và structural accent tách khỏi explicit note articulation cũng như schema binary hiện có.
+Owner decisions ngày 2026-11-11 giữ nguyên meter identity, hierarchy và group accents; active technical pulse units/defaults ngày 2026-11-12 là eighth-note pulses for 3/8, 6/8 and 9/8 (3, 6 and 9 per bar respectively), quarter pulses for X/4, and half-note pulses for 2/2. The fixed curriculum and two-activity product flow, bounded residual matching addition, and idle Practice replay policy are recorded above.
 
 P-01 beam, P-02 counting và P-03 accent presentation đều đã **APPROVED OWNER DECISION** theo nội dung mục 4. Các proposal cũ chỉ còn là history **SUPERSEDED**; các chi tiết kỹ thuật chưa quy định vẫn pending và không reopen ba quyết định đã chốt. Đây là decision review documentation-only; implementation/runtime approval vẫn là cổng riêng.

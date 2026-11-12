@@ -18,7 +18,8 @@ const mixedTaps = [
   { sequence: 0, offsetMs: 100 },
   { sequence: 1, offsetMs: 270 },
   { sequence: 2, offsetMs: 540 },
-  { sequence: 3, offsetMs: 1000 },
+  // A true extra in onset-3's already-paired cell; onset-4 remains untouched.
+  { sequence: 3, offsetMs: 560 },
 ] as const;
 
 function completedAttempt(

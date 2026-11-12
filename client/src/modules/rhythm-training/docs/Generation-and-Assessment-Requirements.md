@@ -1,5 +1,17 @@
 # Rhythm Training V1 — Generation and Assessment Requirements
 
+## Owner-approved active-policy supersession — 2026-11-12
+
+**APPROVED; active policy.** This supersedes only conflicting product-flow/curriculum-placement, Tap scoring/matching, retry, and pending-policy statements below. This long requirements document remains a historical proposal where it conflicts; unrelated duration, PPQ, meter identity, notation/grouping/accent, and validated-data guardrails are not rewritten.
+
+The only learner-facing activities are **Tap Rhythm** and an independent **visual-only Rhythm Quiz**. Quiz requires neither audio nor tapping. No Lesson, Listen & Identify, or Count the Beat learner flow is developed. Tap is available at Levels 1–6 and Bonus 2/2 with fixed vocabulary: L1 quarter/half/whole notes and quarter rest; L2 eighth notes/rests and basic subdivision; L3 2/4, 3/4, 4/4; L4 dotted rhythms and ties; L5 sixteenth rhythms and complex combinations; L6 3/8, 6/8, 9/8; Bonus 2/2. Do not move later vocabulary down-level.
+
+Formula B is `100 × 2TP / (N + K)` (`TP` = primary pass pairs in `Wpass`; `N` = expected onsets; `K` = physical collection taps after software-duplicate removal, including physical extras; `N=0` is not applicable). Approved T2-B uses `α=.30`, `β=.40`, `Cpass=50 ms`, `Cassoc=80 ms`. The primary clock bridge is `AudioContext.getOutputTimestamp()` with no graded fallback for untrusted mapping. Collection is first expected onset minus `Wassoc(first)` through last expected onset plus `Wassoc(last)`; delayed handler delivery drains for at most 100 ms, accepting only original event timestamps inside the musical interval. The locked primary ordered one-to-one DP, technical-ungraded boundary, and strict shared scoring (`+10` only for all expected onsets matched within `Wpass` and no extras; otherwise `+0`) remain unchanged. After primary DP is locked, a deterministic ordered, bounded residual midpoint-cell association within the graded collection interval may pair residual far taps/onsets for Early/Late diagnostics only; never TP, no primary-pair reassignment. Idle Practice replay preserves configuration, the visible original mode, and original grade/result, requires a fresh Play, and any replay/retry is rehearsal only with no second shared answer or score.
+
+Quiz question count/quota, assessment quota changes, readiness/pilot thresholds, and educational-effectiveness claims are **not approved**; existing quota status remains unchanged. See [the active owner decisions](./Tap-Rhythm-V1-Phase-4A.2-Owner-Decisions.md) and current pulse table in [Meter and Notation Requirements](./Meter-and-Notation-Requirements.md). This policy summary is not a test pass or a physical-audio validation claim.
+
+> **Historical-reading note:** The pre-existing D-07, four-kind/Lesson flow, old Tap placement, pending Formula B/T2/clock/replay text, and implementation-phase/status claims below are preserved only as historical planning where they conflict with the policy above.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
@@ -51,7 +63,7 @@ Metadata không được dùng để ngầm mở rộng runtime sang microphone,
 
 ## 3. Curriculum metadata theo Level và Bonus
 
-**D-07 — APPROVED OWNER DECISION, 2026-11-11 lúc 14:14 +07:00**, theo *Rhythm Training V1 — Curriculum Decision Update*; xem [Decision Review](./Decision-Review.md). Multiple Choice giữ vai trò cốt lõi cho notation/values/theory; Tap Rhythm là practical timestamp performance từ Level 3, không phải kind thứ năm. Level 1–2 chỉ dùng Multiple Choice và Listen & Identify trong hướng exercise đã duyệt; không Tap worked examples hoặc Tap assessments sớm. Bảng dưới đây giữ nguyên lesson/vocabulary/meter content và bổ sung direction đã chốt.
+**D-07 — APPROVED OWNER DECISION, 2026-11-11 lúc 14:14 +07:00 (HISTORICAL WHERE SUPERSEDED)**, theo *Rhythm Training V1 — Curriculum Decision Update*; xem [Decision Review](./Decision-Review.md). Its historical Tap-from-Level-3 placement, four-kind flow, and Level 1–2 no-Tap clause are superseded by the active policy above.
 
 Bảng này là nguồn nội dung được duyệt cho generation/assessment. Các mục “không được” là guardrails, không phải lời mời triển khai trước khi có phê duyệt.
 
@@ -65,7 +77,9 @@ Bảng này là nguồn nội dung được duyệt cho generation/assessment. C
 | **Level 6 — Grouping in Threes** | Một knowledge group thống nhất về nhóm ba móc đơn: **3/8, 6/8, 9/8** | Không tạo ba course/level độc lập; generation phải giữ distinct meter identity, pulse unit, group count và accent model | Phải đi đúng progression ở mục 4; examples dùng note, rest, dot, tie theo capability đã mở; không dạy 3/8 như compound | Free/Challenge có thể so sánh ba meter trong cùng lesson, nhưng không được nới choice-pool guard; grouping overlay không xóa identity từng meter | Assessment tổng hợp cả ba signature; bắt buộc compare group counts, pulse units và owner-confirmed accent model, nhưng không được coi 3/8 là compound | Tap Rhythm with simple/compound pulses in one unit |
 | **Bonus — 2/2 / Alla breve** | Half-note pulse, hai phách chính, phân biệt 2/2 với 4/4 | Optional progression; bar `1920`, pulse `960`, starts `[0, 960]`, accent `S-W`; không biến Bonus thành core Level | Lesson độc lập về half pulse và comparison với 4/4; nội dung tùy chọn nhưng feature phải được V1 hỗ trợ | Free/Challenge tùy learner progression; không bắt buộc hoàn thành để mở core curriculum | Assessment optional, có thể kiểm tra half-pulse identity, duration và 2/2-vs-4/4; vẫn one whole answer +10/+0 | Optional 2/2 Tap Rhythm progression |
 
-### 3.1. Phạm vi meter và PPQ chuẩn
+### 3.1. Phạm vi meter và PPQ chuẩn — historical technical-pulse wording superseded
+
+> In the retained table, 6/8 and 9/8 dotted-quarter pulse values are historical technical-timing wording only. Active technical pulses for all X/8 meters are eighth=240 ticks, with 3/6/9 pulses per bar; the musical 3+3 and 3+3+3 groups and accents remain unchanged.
 
 PPQ chuẩn là `480`. V1 có **7 meter được hỗ trợ**: 6 core meters cộng Bonus, không phải sáu meter tổng cộng.
 
@@ -98,7 +112,9 @@ Level 6 phải được author như một group thống nhất. Lesson, practice
 
 Lesson có thể đặt ba meter cạnh nhau để dạy comparison. Điều đó **không** nới quy tắc choice pool, không cho phép fallback sang meter khác và không cho phép một distractor bằng capacity nhưng khác identity được xem là equivalent.
 
-## 5. Lessons, Practice và Assessment
+## 5. Lessons, Practice và Assessment — historical learner-flow proposal where conflicting
+
+> This section retains Lesson/Practice/Assessment and four-kind descriptions from the earlier design. These are not current learner flows where they conflict with the active Tap + visual Quiz policy above.
 
 ### 5.1. Lessons: worked examples, không grades
 
@@ -169,7 +185,9 @@ Generation policy phải dùng explicit meter metadata: bar capacity, pulse tick
 
 Generation metadata tương lai phải thể hiện đúng quy ước đã chốt:3/8 `Sww`,6/8 `Sww|Mww`,9/8 `Sww|Mww|Mww`; compound-beat accents6/8 `S-M`,9/8 `S-M-M`. Structural labels không làm thay đổi exact duration, onset, rest silence hoặc tie suppression, không tự biến thành explicit segment articulation. Không thay generator code hoặc schema trong update tài liệu này.
 
-## 7. Assessment diagnostics và mapping
+## 7. Assessment diagnostics và mapping — historical exercise-kind references where conflicting
+
+> Diagnostics that refer to Listen & Identify, Count the Beat, or the earlier Tap-from-Level-3 placement are retained as historical proposals, not additional active activities.
 
 Diagnostics là local explanation sau khi whole answer đã được xác định. Một item có thể có nhiều diagnostic flags nhưng chỉ có một shared correctness value.
 
@@ -184,13 +202,17 @@ Diagnostics là local explanation sau khi whole answer đã được xác địn
 
 Tap Rhythm tiếp tục onset-only và là practical performance từ Level 3. Bài nhìn pattern, theo metronome/reference timing của cấu hình đã duyệt, tap màn hình tại onset, rồi nhận Timing Accuracy (%) riêng với Exercise Points. Không dùng choice ID hoặc tap count làm thay thế timestamp evaluation; không tuyên bố tap chứng minh learner giữ note đủ duration. Listen & Identify phải dùng duration-aware validated data, rest silence và tie continuation không attack. Count the Beat phải so sánh derived pulse/subdivision coordinates, không dùng một ordinal whole-bar đơn giản để làm mất grouping.
 
-## 8. Release/acceptance wording cho tương lai
+## 8. Release/acceptance wording cho tương lai — historical proposal
+
+> The following future criteria describe the pre-2026-11-12 product and timing proposal where they conflict with active policy; they are not test results or a current release gate.
 
 Các test và acceptance dưới đây chỉ là **đề xuất tương lai, chưa chạy và chưa pass**. Release chỉ được xem xét sau khi curriculum, generation, validation, exercise flows, accessibility và technical no-penalty behavior được phê duyệt. Không dùng tài liệu này để tuyên bố source hiện tại đã hỗ trợ curriculum mới.
 
 Acceptance proposal tối thiểu phải chứng minh: mỗi level/Bonus có đủ Lessons, Practice, Assessment; bốn exercise kinds vẫn là bốn kinds hiện có; Lesson không graded; Practice chỉ dùng Free/Challenge; Assessment một whole answer +10/+0; exact-fill và validated-data reuse; deterministic same seed/config/policy; fail-closed small 3/8 pool; no equal-capacity identity collapse; Level 6 progression đủ sáu bước; 3/8 simple triple và 6/8/9/8 compound identities không bị trộn; Bonus 2/2 optional nhưng supported; historical test count không bị ghi là fresh result.
 
-## 9. Required future change paths (path list only)
+## 9. Required future change paths (path list only; historical plan)
+
+> The path list and future-phase language below describe the earlier implementation plan, not current route/activity status.
 
 Các path dưới đây chỉ là danh sách touchpoints tương lai để review, không phải lệnh chỉnh sửa trong nhiệm vụ này:
 
@@ -208,7 +230,9 @@ Các path dưới đây chỉ là danh sách touchpoints tương lai để revie
 - `client/src/modules/rhythm-training/validation/diagnostics.ts`
 - `client/src/modules/rhythm-training/docs/Generation-and-Assessment-Requirements.md`
 
-## 10. Open questions và giới hạn phê duyệt
+## 10. Open questions và giới hạn phê duyệt — historical D-07 list
+
+> The following D-07 list predates the approved Formula B, T2-B, primary DP, clock/collection/drain, shared scoring, and replay decisions; do not treat those approved items as pending. Quiz count/quotas, readiness/pilot thresholds, and effectiveness claims remain unapproved; existing quota status is unchanged.
 
 D-07 đã chốt Multiple Choice core, Tap từ Level 3 và progressive direction qua Level 4/5/6/Bonus. Các tham số còn mở không chặn ghi nhận placement này. **PENDING TECHNICAL SPECIFICATION AND APPROVAL:** exact Timing Accuracy percentage formula; tolerance windows; performance grades; continuous metronome trong mọi bài; bỏ continuous guidance ở advanced; count-in/replay limits; separate reference performance availability; device-latency compensation/calibration. Các numeric hypotheses cũ không phải defaults được D-07 phê duyệt.
 

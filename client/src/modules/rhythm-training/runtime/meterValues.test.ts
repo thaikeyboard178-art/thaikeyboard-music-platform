@@ -21,8 +21,8 @@ const pulseValues: Record<string, WrittenDuration> = {
   "3/4": { denominator: 4, dots: 0 },
   "4/4": { denominator: 4, dots: 0 },
   "3/8": { denominator: 8, dots: 0 },
-  "6/8": { denominator: 4, dots: 1 },
-  "9/8": { denominator: 4, dots: 1 },
+  "6/8": { denominator: 8, dots: 0 },
+  "9/8": { denominator: 8, dots: 0 },
   "2/2": { denominator: 2, dots: 0 },
 };
 
@@ -73,6 +73,50 @@ describe("Seven-meter written values and ties", () => {
           expect(glyph.textContent).toContain("\ue1e7");
       }
     });
+    if (f.name === "6/8" || f.name === "9/8") {
+      it(`7M ${f.name} written dotted-quarter groups preserve dots while metronome pulses remain eighths`, () => {
+        const groupStarts = f.name === "6/8" ? [0, 720] : [0, 720, 1440];
+        const duration = { denominator: 4, dots: 1 } as const;
+        expect(durationToTicks(duration)).toBe(720);
+        expect(f.pulseTicks).toBe(240);
+        const pattern: RhythmPattern = {
+          ...f.pattern,
+          id: `${f.pattern.id}-dotted-groups`,
+          measures: [
+            {
+              id: "dotted-groups",
+              segments: groupStarts.map((_, index) => ({
+                id: `dot-${index}`,
+                kind: "note",
+                duration,
+              })),
+            },
+          ],
+        };
+        expect(validateRhythmPattern(pattern).valid).toBe(true);
+        expect(deriveRhythmTimeline(pattern).onsets).toEqual(groupStarts);
+        const projection = projectRhythmNotation(pattern);
+        expect(
+          projection.segments.map(segment => segment.canonicalDurationTicks)
+        ).toEqual(groupStarts.map(() => 720));
+        expect(
+          projection.segments.every(
+            segment => segment.duration === "4" && segment.dotCount === 1
+          )
+        ).toBe(true);
+        const rendered = renderRhythmNotation(
+          document.createElement("div"),
+          pattern
+        );
+        expect(rendered.parity.ok).toBe(true);
+        const glyphs = rendered.svg.querySelectorAll(
+          "[data-rhythm-segment-id]"
+        );
+        expect(glyphs).toHaveLength(groupStarts.length);
+        for (const glyph of glyphs)
+          expect(glyph.textContent).toContain("\ue1e7");
+      });
+    }
     it(`7M ${f.name} intrabar tie preserves notation and suppresses continuation onset`, () => {
       const pattern: RhythmPattern = {
         ...f.pattern,

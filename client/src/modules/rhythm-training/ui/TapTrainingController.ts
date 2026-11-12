@@ -68,6 +68,8 @@ export type TapUiState = Readonly<{
   tapVisualSequence: number;
   session: RhythmTrainingSession | null;
   selectedMode: TapMode;
+  /** Replay attempts are rehearsals while preserving the visible mode choice. */
+  replayOnly: boolean;
 }>;
 
 export type TapExerciseFactory = (
@@ -111,6 +113,7 @@ function initialState(): TapUiState {
     tapVisualSequence: 0,
     session: null,
     selectedMode: "graded",
+    replayOnly: false,
   });
 }
 
@@ -267,6 +270,7 @@ export class TapTrainingController {
         !["idle", ...TERMINAL_ATTEMPT_STATES].includes(this.engine.state))
     )
       return false;
+    if (this.snapshot.replayOnly) return !this.practiceAttemptStarted;
     if (this.snapshot.exercise.section === "lessons")
       return !this.practiceAttemptStarted;
     return this.snapshot.selectedMode === "graded"
@@ -628,7 +632,6 @@ export class TapTrainingController {
       onResult: result => this.acceptEngineResult(epoch, result),
     });
     this.engine = engine;
-    this.observeEngine(engine);
     return engine;
   }
 
@@ -730,6 +733,7 @@ export class TapTrainingController {
       tapVisualSequence: 0,
       session: null,
       selectedMode: configuration.section === "lessons" ? "practice" : "graded",
+      replayOnly: false,
     });
 
     try {
@@ -775,8 +779,9 @@ export class TapTrainingController {
       : explicit
         ? this.snapshot.selectedMode
         : undefined;
-    const effectiveMode =
-      selectedMode ?? (this.hasStartedAttempt ? "practice" : "graded");
+    const effectiveMode = this.snapshot.replayOnly
+      ? "practice"
+      : (selectedMode ?? (this.hasStartedAttempt ? "practice" : "graded"));
     const trialNumber = this.hasStartedAttempt
       ? this.snapshot.trialNumber + 1
       : 1;
@@ -839,10 +844,9 @@ export class TapTrainingController {
     try {
       engine = this.ensureEngine(inputTarget);
       // Preserve legacy inference for old callers; explicit modes are passed through.
-      startup =
-        selectedMode === undefined
-          ? engine.start()
-          : engine.start(selectedMode);
+      startup = engine.start(
+        this.snapshot.replayOnly ? "practice" : selectedMode
+      );
       this.observeEngine(engine);
       this.syncEngineState(engine);
     } catch (error) {
@@ -939,56 +943,66 @@ export class TapTrainingController {
     }
   }
 
-  /** Reuse the same engine/exercise; the engine itself enforces practice mode. */
+  /** Replace a terminal attempt with an idle engine; Play remains learner-owned. */
   async retry(): Promise<void> {
     this.stopPreview();
     if (
       this.disposed ||
       this.snapshot.busy ||
       this.engine === null ||
-      !TERMINAL_ATTEMPT_STATES.includes(this.engine.state)
+      !this.isFinalizedAttempt() ||
+      this.snapshot.exercise === null
     )
       return;
 
+    const oldEngine = this.engine;
+    const inputTarget = this.getInputTarget();
+    if (!inputTarget) {
+      this.publish({ error: targetErrorMessage() });
+      return;
+    }
     const token = ++this.operationToken;
-    const engine = this.engine;
-    this.hasStartedAttempt = true;
-    this.practiceAttemptStarted = true;
+    this.engineEpoch += 1;
+    this.engine = null;
+    this.stopObservation();
+    this.practiceAttemptStarted = false;
     this.modeExplicitlySelected = true;
-    this.attemptStartedAt = Date.now();
+    this.attemptStartedAt = 0;
     this.publish({
+      phase: "preparing",
       busy: true,
       error: null,
       result: null,
       points: null,
       practice: true,
-      selectedMode: "practice",
-      trialNumber: this.snapshot.trialNumber + 1,
+      replayOnly: true,
+      tapVisualSequence: 0,
     });
 
-    let retrying: Promise<void>;
     try {
-      // Engine.retry() synchronously delegates to its practice-only start path.
-      retrying = engine.retry();
-      this.observeEngine(engine);
-      this.syncEngineState(engine);
-    } catch {
+      await oldEngine.dispose();
+      if (this.disposed || token !== this.operationToken) return;
+      const idleEngine = this.ensureEngine(inputTarget);
+      if (idleEngine.state !== "idle")
+        throw new Error("Replay engine was not created idle.");
       this.publish({
+        phase: "ready",
         busy: false,
-        phase: phaseForEngine(engine.state),
-        error: audioStartErrorMessage(),
+        error: null,
+        result: null,
+        points: null,
+        practice: true,
+        replayOnly: true,
+        tapVisualSequence: 0,
       });
-      return;
-    }
-    try {
-      await retrying;
     } catch {
-      if (!this.disposed && token === this.operationToken)
-        this.publish({ error: audioStartErrorMessage() });
-    } finally {
       if (!this.disposed && token === this.operationToken) {
-        this.syncEngineState(engine);
-        this.setBusy(false);
+        this.engine = null;
+        this.publish({
+          phase: "error",
+          busy: false,
+          error: "Không thể đặt lại engine cho lượt luyện lại. Hãy mở lại bài.",
+        });
       }
     }
   }

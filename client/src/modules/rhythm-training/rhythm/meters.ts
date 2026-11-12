@@ -1,13 +1,19 @@
 import type { RhythmMeter } from "../types";
 import { PPQ } from "./durations";
 
+export const MIN_PULSE_BPM = 30;
+export const MAX_PULSE_BPM = 300;
+
 export type MeterInfo = Readonly<{
   meter: RhythmMeter;
   measureTicks: number;
   pulseTicks: number;
   pulseCount: number;
   pulseStarts: readonly number[];
+  /** Independent notation/grouping sizes, measured in the meter's denominator unit. */
   groups: readonly number[];
+  /** Tick positions of structural group starts; not necessarily every pulse. */
+  groupStarts: readonly number[];
   pulseUnit: Readonly<{ denominator: 2 | 4 | 8; dots: 0 | 1 }>;
 }>;
 
@@ -18,6 +24,8 @@ export type MeterStructure = Readonly<{
   measureTicks: number;
   pulseTicks: number;
   pulseStarts: readonly number[];
+  groups: readonly number[];
+  groupStarts: readonly number[];
   subdivisionTicks: number;
   subdivisionStarts: readonly number[];
   accentPositions: readonly Readonly<{
@@ -37,32 +45,37 @@ function isMeterRecord(value: unknown): value is MeterShape {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function startsEvery(count: number, ticks: number): number[] {
+  return Array.from({ length: count }, (_, index) => index * ticks);
+}
+
 function meterDefinition(meter: RhythmMeter): Omit<MeterInfo, "meter"> {
   if (
     meter.denominator === 4 &&
     (meter.numerator === 2 || meter.numerator === 3 || meter.numerator === 4)
   ) {
     const pulseCount = meter.numerator;
+    const pulseStarts = startsEvery(pulseCount, PPQ);
     return {
       measureTicks: pulseCount * PPQ,
       pulseTicks: PPQ,
       pulseCount,
-      pulseStarts: Array.from(
-        { length: pulseCount },
-        (_, index) => index * PPQ
-      ),
+      pulseStarts,
       groups: Array.from({ length: pulseCount }, () => 1),
+      groupStarts: [...pulseStarts],
       pulseUnit: { denominator: 4, dots: 0 },
     };
   }
 
   if (meter.numerator === 3 && meter.denominator === 8) {
+    const starts = startsEvery(3, PPQ / 2);
     return {
       measureTicks: 3 * (PPQ / 2),
       pulseTicks: PPQ / 2,
       pulseCount: 3,
-      pulseStarts: [0, PPQ / 2, PPQ],
+      pulseStarts: starts,
       groups: [1, 1, 1],
+      groupStarts: [...starts],
       pulseUnit: { denominator: 8, dots: 0 },
     };
   }
@@ -70,32 +83,36 @@ function meterDefinition(meter: RhythmMeter): Omit<MeterInfo, "meter"> {
   if (meter.numerator === 6 && meter.denominator === 8) {
     return {
       measureTicks: (6 * PPQ) / 2,
-      pulseTicks: (3 * PPQ) / 2,
-      pulseCount: 2,
-      pulseStarts: [0, (3 * PPQ) / 2],
+      pulseTicks: PPQ / 2,
+      pulseCount: 6,
+      pulseStarts: startsEvery(6, PPQ / 2),
       groups: [3, 3],
-      pulseUnit: { denominator: 4, dots: 1 },
+      groupStarts: [0, (3 * PPQ) / 2],
+      pulseUnit: { denominator: 8, dots: 0 },
     };
   }
 
   if (meter.numerator === 9 && meter.denominator === 8) {
     return {
       measureTicks: (9 * PPQ) / 2,
-      pulseTicks: (3 * PPQ) / 2,
-      pulseCount: 3,
-      pulseStarts: [0, (3 * PPQ) / 2, 3 * PPQ],
+      pulseTicks: PPQ / 2,
+      pulseCount: 9,
+      pulseStarts: startsEvery(9, PPQ / 2),
       groups: [3, 3, 3],
-      pulseUnit: { denominator: 4, dots: 1 },
+      groupStarts: [0, (3 * PPQ) / 2, 3 * PPQ],
+      pulseUnit: { denominator: 8, dots: 0 },
     };
   }
 
   if (meter.numerator === 2 && meter.denominator === 2) {
+    const starts = [0, PPQ * 2];
     return {
       measureTicks: 2 * PPQ * 2,
       pulseTicks: PPQ * 2,
       pulseCount: 2,
-      pulseStarts: [0, PPQ * 2],
+      pulseStarts: starts,
       groups: [1, 1],
+      groupStarts: [...starts],
       pulseUnit: { denominator: 2, dots: 0 },
     };
   }
@@ -127,6 +144,7 @@ export function deriveMeter(meter: RhythmMeter): MeterInfo {
   const copiedMeter = Object.freeze({ numerator, denominator }) as RhythmMeter;
   const pulseStarts = Object.freeze([...definition.pulseStarts]);
   const groups = Object.freeze([...definition.groups]);
+  const groupStarts = Object.freeze([...definition.groupStarts]);
   const pulseUnit = Object.freeze({
     denominator: definition.pulseUnit.denominator,
     dots: definition.pulseUnit.dots,
@@ -139,8 +157,14 @@ export function deriveMeter(meter: RhythmMeter): MeterInfo {
     pulseCount: definition.pulseCount,
     pulseStarts,
     groups,
+    groupStarts,
     pulseUnit,
   });
+}
+
+/** Canonical learner default: eighth-note pulses at 180, quarter/half at 100. */
+export function getDefaultPulseBpm(meter: RhythmMeter): number {
+  return deriveMeter(meter).pulseUnit.denominator === 8 ? 180 : 100;
 }
 
 function validateSubdivisionGrid(
@@ -200,6 +224,8 @@ export function deriveMeterStructure(
     measureTicks: info.measureTicks,
     pulseTicks: info.pulseTicks,
     pulseStarts: info.pulseStarts,
+    groups: info.groups,
+    groupStarts: info.groupStarts,
     subdivisionTicks,
     subdivisionStarts,
     accentPositions,
@@ -217,9 +243,12 @@ export function ticksToSeconds(
   if (
     typeof pulseBpm !== "number" ||
     !Number.isFinite(pulseBpm) ||
-    pulseBpm <= 0
+    pulseBpm < MIN_PULSE_BPM ||
+    pulseBpm > MAX_PULSE_BPM
   ) {
-    throw new RangeError("Pulse BPM must be a finite positive number.");
+    throw new RangeError(
+      `Pulse BPM must be between ${MIN_PULSE_BPM} and ${MAX_PULSE_BPM}.`
+    );
   }
 
   const { pulseTicks } = deriveMeter(meter);

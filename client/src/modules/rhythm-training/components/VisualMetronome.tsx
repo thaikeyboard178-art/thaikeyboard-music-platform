@@ -168,8 +168,7 @@ export function VisualMetronome({
       ? `Đếm vào, phách ${activePulse.pulseIndex + 1}`
       : `Ô nhịp ${activePulse.measureIndex + 1}, phách ${activePulse.pulseIndex + 1}`
     : "Đang chờ phách";
-  const hasCompoundSubdivisions =
-    (meter.numerator === 6 || meter.numerator === 9) && meter.denominator === 8;
+  const hasCompoundGroups = structure.groups.some(size => size > 1);
 
   return (
     <section
@@ -200,33 +199,29 @@ export function VisualMetronome({
           const isActive =
             activePulse?.measureIndex !== undefined &&
             activePulse.pulseIndex === pulse.pulseIndex;
+          const startsCompoundGroup =
+            hasCompoundGroups &&
+            pulse.pulseIndex > 0 &&
+            structure.groupStarts.includes(pulse.tick);
           return (
             <div
-              className={`rhythm-metronome-beat accent-${pulse.accent}${isActive ? " is-active" : ""}`}
+              className={`rhythm-metronome-beat accent-${pulse.accent}${isActive ? " is-active" : ""}${startsCompoundGroup ? " is-group-start" : ""}`}
               data-testid="metronome-beat"
               data-accent={pulse.accent}
               data-pulse={pulse.pulseIndex + 1}
               data-active={isActive ? "true" : "false"}
+              data-group-start={startsCompoundGroup ? "true" : "false"}
               key={pulse.tick}
             >
               <span className="rhythm-metronome-dot" aria-hidden="true" />
               <strong>{pulse.pulseIndex + 1}</strong>
-              {hasCompoundSubdivisions && (
-                <span
-                  className="rhythm-metronome-subdivisions"
-                  aria-hidden="true"
-                >
-                  <i />
-                  <i />
-                  <i />
-                </span>
-              )}
             </div>
           );
         })}
       </div>
       <p className="rhythm-metronome-caption">
-        Phách mạnh, vừa và nhẹ theo cấu trúc nhịp; số trên chấm là thứ tự phách.
+        Đỏ: mạnh · Vàng: vừa · Xám: nhẹ. Số trên chấm là thứ tự phách; ranh giới
+        nhóm theo cấu trúc nhịp.
       </p>
     </section>
   );

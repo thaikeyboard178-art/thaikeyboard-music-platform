@@ -7,13 +7,14 @@ import type {
 } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { durationToTicks } from "../rhythm/durations";
-import { deriveMeter } from "../rhythm/meters";
-import { requireValidRhythmPattern } from "../rhythm/validate";
 import {
-  policyForLevel,
-  type LevelPolicy,
-  type RhythmFocus,
-} from "./levels";
+  deriveMeter,
+  getDefaultPulseBpm,
+  MAX_PULSE_BPM,
+  MIN_PULSE_BPM,
+} from "../rhythm/meters";
+import { requireValidRhythmPattern } from "../rhythm/validate";
+import { policyForLevel, type LevelPolicy, type RhythmFocus } from "./levels";
 import { createSeededRandom, seededShuffle } from "./random";
 
 export type RhythmGenerationConfig = Readonly<{
@@ -154,9 +155,14 @@ function validateBasicConfig(input: RhythmGenerationConfig): void {
   }
   if (
     input.pulseBpm !== undefined &&
-    (typeof input.pulseBpm !== "number" || !Number.isFinite(input.pulseBpm))
+    (typeof input.pulseBpm !== "number" ||
+      !Number.isFinite(input.pulseBpm) ||
+      input.pulseBpm < MIN_PULSE_BPM ||
+      input.pulseBpm > MAX_PULSE_BPM)
   ) {
-    fail("Generation config pulseBpm must be finite.");
+    fail(
+      `Generation config pulseBpm must be between ${MIN_PULSE_BPM} and ${MAX_PULSE_BPM}.`
+    );
   }
 }
 
@@ -261,16 +267,6 @@ function chooseMeter(
   return Object.freeze({ ...chosen });
 }
 
-function tempoBand(policy: LevelPolicy, meter: RhythmMeter) {
-  if (meter.denominator === 8 && meter.numerator === 3)
-    return policy.tempo.eighth ?? policy.tempo.simple;
-  if (meter.denominator === 8)
-    return policy.tempo.compound ?? policy.tempo.simple;
-  if (meter.numerator === 2 && meter.denominator === 2)
-    return policy.tempo.half ?? policy.tempo.simple;
-  return policy.tempo.simple;
-}
-
 function resolveConfig(
   config: RhythmGenerationConfig,
   random: () => number
@@ -281,18 +277,10 @@ function resolveConfig(
   if (!policy.supportedFocus.includes(focus))
     fail("Focus is not configured for this level.");
   const meter = chooseMeter(policy, config.meter, focus, random);
-  const band = tempoBand(policy, meter);
-  if (
-    config.pulseBpm !== undefined &&
-    (config.pulseBpm < band.min || config.pulseBpm > band.max)
-  ) {
-    fail(
-      `pulseBpm must be between ${band.min} and ${band.max} for this level and meter.`
-    );
-  }
-  const pulseBpm =
-    config.pulseBpm ??
-    band.min + Math.floor(random() * (band.max - band.min + 1));
+  // Keep the former single tempo draw consumed so seeded note/rest choices
+  // remain stable, while the BPM itself is now canonical and deterministic.
+  if (config.pulseBpm === undefined) random();
+  const pulseBpm = config.pulseBpm ?? getDefaultPulseBpm(meter);
   const bars = config.bars ?? 1;
   const features = featureSet(policy, focus, meter, random);
   return Object.freeze({ policy, meter, bars, pulseBpm, focus, features });
@@ -465,8 +453,7 @@ function applyIntraBarTie(
   if (resolved.features.sixteenths) {
     const finePairCandidates = candidates.flatMap(candidate => {
       const options = candidate.options.filter(
-        ([left, right]) =>
-          isSixteenthFamily(left) && isSixteenthFamily(right)
+        ([left, right]) => isSixteenthFamily(left) && isSixteenthFamily(right)
       );
       return options.length > 0 ? [{ ...candidate, options }] : [];
     });
@@ -749,7 +736,10 @@ function assertFeatures(
     fail("Syncopation focus requires an offbeat onset.");
   if (
     focus === "compound" &&
-    !(meter.denominator === 8 && (meter.numerator === 6 || meter.numerator === 9))
+    !(
+      meter.denominator === 8 &&
+      (meter.numerator === 6 || meter.numerator === 9)
+    )
   ) {
     fail("Compound focus requires 6/8 or 9/8.");
   }
@@ -803,7 +793,9 @@ function auditVocabulary(
         segment.kind === "rest" &&
         !permittedRests.has(durationKey(segment.duration))
       ) {
-        fail("Pattern contains a rest value not taught in this curriculum track.");
+        fail(
+          "Pattern contains a rest value not taught in this curriculum track."
+        );
       }
     }
   }
@@ -853,12 +845,11 @@ export function assertLevelConstraints(
   ) {
     fail("Pattern tempo does not match generation config.");
   }
-  const band = tempoBand(resolved.policy, canonical.meter);
   if (
-    canonical.tempo.pulseBpm < band.min ||
-    canonical.tempo.pulseBpm > band.max
+    canonical.tempo.pulseBpm < MIN_PULSE_BPM ||
+    canonical.tempo.pulseBpm > MAX_PULSE_BPM
   ) {
-    fail("Pattern tempo is outside the configured level band.");
+    fail("Pattern tempo is outside the supported 30–300 BPM range.");
   }
   if (canonical.measures.length !== resolved.bars)
     fail("Pattern bar count does not match generation config.");
@@ -902,12 +893,11 @@ export function assertLevelConstraints(
       count => count > resolved.policy.maxSyncopatedOnsetsPerBar
     )
   ) {
-    fail("Pattern exceeds the syncopated-onset budget for this curriculum track.");
+    fail(
+      "Pattern exceeds the syncopated-onset budget for this curriculum track."
+    );
   }
-  if (
-    resolved.policy.level === 6 &&
-    canonical.meter.denominator !== 8
-  ) {
+  if (resolved.policy.level === 6 && canonical.meter.denominator !== 8) {
     fail("Level 6 supports only its approved 3/8, 6/8 and 9/8 meters.");
   }
   const flat = canonical.measures.flatMap(measure => measure.segments);

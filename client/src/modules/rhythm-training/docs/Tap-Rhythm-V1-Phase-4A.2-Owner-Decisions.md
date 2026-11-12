@@ -1,6 +1,6 @@
 # Tap Rhythm V1 — Phase 4A.2 Owner Decision Record
 
-**Ngày cập nhật:** 11 November 2026
+**Ngày cập nhật:** 12 November 2026
 
 **Phạm vi:** Ghi nhận policy đã được Owner phê duyệt làm baseline cho Tap Rhythm Engine Phase 4B. Tài liệu này cập nhật quyết định hiện có; không triển khai production code.
 
@@ -11,6 +11,51 @@
 - **PENDING** — Cần quyết định thêm trước khi triển khai policy tương ứng.
 
 Các quyết định được nêu trong Mục 1 và Mục 2 dưới đây đã được xác nhận là **APPROVED**. Phần “không chọn” ghi lại các phương án thay thế, không phải lựa chọn đang hoạt động.
+
+## Owner-approved supersession record — 2026-11-12
+
+**APPROVED.** This dated record supersedes only conflicting curriculum, product-flow, and canonical pulse/BPM policy in earlier records. D-07/D-08 and other earlier approvals remain historical audit trail; they are not erased. Unaffected matching, scoring, clock, count-in, and reference decisions below remain in force. This is documentation-only and does not assert runtime implementation.
+
+### Active product and fixed Tap vocabulary
+
+The only user-facing Rhythm product activities are **Tap Rhythm** and an independent, visual-only **Rhythm Quiz**. There is no Lesson, Listen & Identify, or Count the Beat user flow. The Quiz does not require audio or tapping; no question count or educational-effectiveness claim is approved here.
+
+Tap Rhythm is available at Levels 1–6 and Bonus 2/2, with this fixed vocabulary and no moving later material into lower levels:
+
+| Placement | Fixed Tap vocabulary |
+|---|---|
+| Level 1 | Quarter, half, and whole notes; quarter rest |
+| Level 2 | Eighth notes, eighth rest, basic subdivision |
+| Level 3 | 2/4, 3/4, 4/4 |
+| Level 4 | Dotted rhythms, ties |
+| Level 5 | Sixteenth-note rhythms, complex combinations |
+| Level 6 | 3/8, 6/8, 9/8 |
+| Bonus | 2/2 |
+
+### Canonical pulse, tempo, and structural grouping
+
+The canonical pulse unit governs BPM, metronome, timeline/reference timing, Tap expectations, and any remaining timing consumer. BPM means pulses per minute in that meter's stated unit.
+
+| Meter | Canonical pulse unit | Pulses per bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter note | 2 | 100 |
+| 3/4 | Quarter note | 3 | 100 |
+| 4/4 | Quarter note | 4 | 100 |
+| 3/8 | Eighth note | 3 | 180 |
+| 6/8 | Eighth note | 6 | 180 |
+| 9/8 | Eighth note | 9 | 180 |
+| 2/2 | Half note | 2 | 100 |
+
+The tempo range is globally **30–300 BPM** for all seven meters. Preserve structural grouping: 6/8 is `3+3` with `Sww|Mww`; 9/8 is `3+3+3` with `Sww|Mww|Mww`; 3/8 remains `Sww`. These group accents do not redefine the 6/8 or 9/8 canonical technical pulse.
+
+### Preserved Tap-engine decisions and approved additions
+
+Formula B, T2-B, the primary ordered one-to-one DP pass and its objective/tie-breaks, strict shared `+10/+0` gate, primary clock bridge/confidence policy, one-bar graded count-in, and reference-playback policy remain unchanged from the approved decisions below. In particular, primary DP pairs are locked before the following additive diagnostic rule:
+
+- **APPROVED residual midpoint association:** after primary DP is locked, a bounded residual far-tap midpoint association may associate a remaining far tap with a remaining onset as `early` or `late`; it is diagnostic only and never a `TP`. Any unassociated surplus tap remains `extra`; an onset without an associated tap remains `missing`. This rule cannot reassign or replace a primary-DP pair.
+- **APPROVED idle Practice replay:** replay from a graded result enters Practice while preserving the originally visible mode (`Chơi thử` or `Chấm điểm`) and the original grade/result. It does not autoplay or start a count-in, and Practice replay cannot submit a second shared answer or score.
+
+Unspecified Quiz question count, quota changes, pilot/readiness thresholds, and educational-effectiveness claims remain unapproved; existing quota statuses are unchanged.
 
 ## 1. Quyết định Owner đã xác nhận
 
@@ -69,5 +114,7 @@ Trong Formula B, `TP` là số taps được ghép một-một với expected on
 | **APPROVED** | Có một bar count-in trước mỗi graded attempt. Continuous technical-pulse metronome hoạt động trong attempt. Tối đa một reference playback trước mỗi graded attempt; không phát lại reference trong attempt. Retry sau một graded attempt đã hoàn tất chỉ là practice và không thể tạo thêm shared answer/score. Không thêm voice counting hoặc voice assets. | Bỏ count-in/metronome đã duyệt, phát reference trong khi đang chấm, hoặc để retry tạo thêm shared score. | Count-in và pulse tick giúp chuẩn bị/giữ nhịp; reference trước bài cung cấp mẫu mà không can thiệp attempt. Replay/retry phải tách generation và giữ kết quả graded ban đầu bất biến; retry sau hoàn tất không ghi điểm lần nữa. |
 
 ## 3. Ranh giới triển khai
+
+The following scope statement records the boundary of the earlier 2026-11-11 decision update; its content/policy limits are superseded by the approved 2026-11-12 record at the top. It remains true that this document update does not itself authorize or assert implementation.
 
 Các policy tại Mục 1–2 là các quyết định Owner đã phê duyệt làm baseline cho Phase 4B. Bản ghi này chỉ cập nhật quyết định; không tự tạo exercise kind, không thay Level 1–6 hoặc Bonus 2/2, không đổi quota Assessment Level 6 và không sửa Phase 1–3. Không bao gồm UI, routes, database, dependencies hoặc deployment.

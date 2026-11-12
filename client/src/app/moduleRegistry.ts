@@ -23,11 +23,15 @@ export type ComingSoonModuleRegistration = ModuleMetadata & {
   readonly Page?: never;
 };
 
-export type ModuleRegistration = ActiveModuleRegistration | ComingSoonModuleRegistration;
+export type ModuleRegistration =
+  | ActiveModuleRegistration
+  | ComingSoonModuleRegistration;
 
 // An explicit source catalog, not a plugin/discovery system. Inactive entries
 // cannot bind pages or routes and never implement dummy TrainingModule methods.
-export function defineModuleCatalog(entries: readonly ModuleRegistration[]): readonly ModuleRegistration[] {
+export function defineModuleCatalog(
+  entries: readonly ModuleRegistration[]
+): readonly ModuleRegistration[] {
   const ids = new Set<string>();
   const paths = new Set<string>();
   for (const entry of entries) {
@@ -37,15 +41,31 @@ export function defineModuleCatalog(entries: readonly ModuleRegistration[]): rea
     }
     ids.add(entry.id);
     if (entry.status === "active") {
-      if (!/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(entry.path) || paths.has(entry.path) || !entry.Page) {
-        throw new Error(`Invalid or duplicate active module route: ${entry.path}`);
+      if (
+        !/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(entry.path) ||
+        paths.has(entry.path) ||
+        !entry.Page
+      ) {
+        throw new Error(
+          `Invalid or duplicate active module route: ${entry.path}`
+        );
       }
       paths.add(entry.path);
-    } else if (entry.status !== "coming-soon" || entry.path !== undefined || entry.Page !== undefined) {
-      throw new Error(`Coming Soon modules cannot register pages or routes: ${id}`);
+    } else if (
+      entry.status !== "coming-soon" ||
+      entry.path !== undefined ||
+      entry.Page !== undefined
+    ) {
+      throw new Error(
+        `Coming Soon modules cannot register pages or routes: ${id}`
+      );
     }
   }
-  return Object.freeze(entries.map((entry) => Object.freeze({ ...entry, tags: Object.freeze([...entry.tags]) })));
+  return Object.freeze(
+    entries.map(entry =>
+      Object.freeze({ ...entry, tags: Object.freeze([...entry.tags]) })
+    )
+  );
 }
 
 const modules = defineModuleCatalog([
@@ -54,7 +74,8 @@ const modules = defineModuleCatalog([
     name: "Đọc nốt nhạc",
     englishName: "Note Reading",
     navLabel: "Đọc nốt",
-    description: "Luyện nhận diện nốt trên khuông với khóa Sol, khóa Fa và khuông mở rộng.",
+    description:
+      "Luyện nhận diện nốt trên khuông với khóa Sol, khóa Fa và khuông mở rộng.",
     tags: ["Khóa Sol & Fa", "Piano ảo", "Thử thách hằng ngày"],
     Icon: Music2,
     status: "active",
@@ -66,19 +87,23 @@ const modules = defineModuleCatalog([
     name: "Luyện tiết tấu",
     englishName: "Rhythm Training",
     navLabel: "Tiết tấu",
-    description: "Nhìn ký âm, nghe metronome và chạm đúng onset. Tap Rhythm từ Level 3, thêm Bonus 2/2 tùy chọn.",
-    tags: ["Tap Rhythm", "Level 3–6", "Bonus 2/2"],
+    description:
+      "Thực hành Tap Rhythm theo Level 1–6, luyện Bonus 2/2 tùy chọn và làm Rhythm Quiz.",
+    tags: ["Tap Rhythm", "Level 1–6", "Rhythm Quiz", "Bonus 2/2"],
     Icon: Waves,
     status: "active",
     path: "/rhythm-training",
-    Page: lazy(() => import("@/modules/rhythm-training/pages/RhythmTrainingPage")),
+    Page: lazy(
+      () => import("@/modules/rhythm-training/pages/RhythmTrainingPage")
+    ),
   },
   {
     id: "chord-recognition",
     name: "Nhận diện hợp âm",
     englishName: "Chord Recognition",
     navLabel: "Hợp âm",
-    description: "Bài luyện nhận diện hợp âm chưa được triển khai. Hãy bắt đầu với đọc nốt.",
+    description:
+      "Bài luyện nhận diện hợp âm chưa được triển khai. Hãy bắt đầu với đọc nốt.",
     tags: ["Sắp ra mắt"],
     Icon: Layers3,
     status: "coming-soon",
@@ -90,9 +115,11 @@ export function getTrainingModules(): readonly ModuleRegistration[] {
 }
 
 export function getActiveTrainingModules(): readonly ActiveModuleRegistration[] {
-  return modules.filter((module): module is ActiveModuleRegistration => module.status === "active");
+  return modules.filter(
+    (module): module is ActiveModuleRegistration => module.status === "active"
+  );
 }
 
 export function getTrainingModule(id: string): ModuleRegistration | undefined {
-  return modules.find((module) => module.id === id);
+  return modules.find(module => module.id === id);
 }

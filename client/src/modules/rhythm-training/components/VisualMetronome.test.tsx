@@ -130,27 +130,56 @@ describe("VisualMetronome", () => {
   });
 
   it.each([
-    ["2/4", meters[0], ["strong", "weak"]],
-    ["3/4", meters[1], ["strong", "weak", "weak"]],
-    ["4/4", meters[2], ["strong", "weak", "medium", "weak"]],
-    ["3/8", meters[3], ["strong", "weak", "weak"]],
-    ["6/8", meters[4], ["strong", "medium"]],
-    ["9/8", meters[5], ["strong", "medium", "medium"]],
-    ["2/2", meters[6], ["strong", "weak"]],
+    ["2/4", meters[0], ["strong", "weak"], []],
+    ["3/4", meters[1], ["strong", "weak", "weak"], []],
+    ["4/4", meters[2], ["strong", "weak", "medium", "weak"], []],
+    ["3/8", meters[3], ["strong", "weak", "weak"], []],
+    [
+      "6/8",
+      meters[4],
+      ["strong", "weak", "weak", "medium", "weak", "weak"],
+      [4],
+    ],
+    [
+      "9/8",
+      meters[5],
+      [
+        "strong",
+        "weak",
+        "weak",
+        "medium",
+        "weak",
+        "weak",
+        "medium",
+        "weak",
+        "weak",
+      ],
+      [4, 7],
+    ],
+    ["2/2", meters[6], ["strong", "weak"], []],
   ] as const)(
-    "uses canonical structural accents for %s",
-    (_label, meter, accents) => {
+    "uses canonical structural accents and group starts for %s",
+    (_label, meter, accents, groupStarts) => {
       const playback: RhythmAudioPlayback = {
         audioTime: 0,
         scheduledEvents: [],
         state: "idle",
       };
       render(<VisualMetronome meter={meter} readPlayback={() => playback} />);
+      const beats = screen.getAllByTestId("metronome-beat");
+      expect(beats.map(beat => beat.getAttribute("data-accent"))).toEqual(
+        accents
+      );
+      expect(
+        beats.flatMap((beat, index) =>
+          beat.getAttribute("data-group-start") === "true" ? [index + 1] : []
+        )
+      ).toEqual(groupStarts);
       expect(
         screen
-          .getAllByTestId("metronome-beat")
-          .map(beat => beat.getAttribute("data-accent"))
-      ).toEqual(accents);
+          .getByTestId("rhythm-metronome")
+          .querySelectorAll(".rhythm-metronome-subdivisions, i")
+      ).toHaveLength(0);
     }
   );
 

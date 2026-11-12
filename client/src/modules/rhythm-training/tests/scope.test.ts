@@ -17,7 +17,7 @@ function sourceFiles(folder: string): string[] {
 const isUi = (path: string) =>
   ["pages", "components", "ui"].some(folder =>
     path.startsWith(`${moduleRoot}/${folder}/`)
-  );
+  ) || path === `${moduleRoot}/quiz/RhythmQuizNotation.tsx`;
 const isTest = (path: string) => /\.test\.tsx?$/.test(path);
 
 describe("Phase1 core isolation with explicitly approved Phase5 UI integration", () => {
@@ -103,6 +103,17 @@ describe("Phase1 core isolation with explicitly approved Phase5 UI integration",
       );
       expect(text).not.toMatch(
         /localStorage|indexedDB|mediaDevices|speechSynthesis|note-reading\//
+      );
+    }
+  });
+  it("keeps visual Quiz independent of audio, listening and native Tap capture", () => {
+    const quizSources = [
+      ...sourceFiles(resolve(moduleRoot, "quiz")),
+      resolve(moduleRoot, "pages/RhythmQuizScreen.tsx"),
+    ].filter(path => !isTest(path));
+    for (const path of quizSources) {
+      expect(readFileSync(path, "utf8")).not.toMatch(
+        /from\s+["'][^"']*(?:\/audio\/|tapEngine|tapInput|tapClock)[^"']*["']|new\s+AudioContext\b|scheduleRhythmVoice\s*\(|navigator\.mediaDevices|speechSynthesis/
       );
     }
   });

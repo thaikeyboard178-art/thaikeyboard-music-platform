@@ -8,7 +8,7 @@ import {
   type RhythmFocus,
   type TempoBand,
 } from "../generation/levels";
-import { deriveMeter } from "../rhythm/meters";
+import { deriveMeter, MAX_PULSE_BPM, MIN_PULSE_BPM } from "../rhythm/meters";
 import type { RhythmMeter, RhythmTrack } from "../types";
 
 export const SECTION_LABELS: Readonly<Record<CurriculumSection, string>> = {
@@ -69,12 +69,15 @@ export function getTapTempoBand(
   track: RhythmTrack,
   meter: RhythmMeter
 ): TempoBand {
-  const { pulseTicks } = deriveMeter(meter);
-  const tempo = policyForLevel(track).tempo;
-  if (pulseTicks === 960) return tempo.half ?? tempo.simple;
-  if (pulseTicks === 720) return tempo.compound ?? tempo.simple;
-  if (pulseTicks === 240) return tempo.eighth ?? tempo.simple;
-  return tempo.simple;
+  void track;
+  const { pulseUnit } = deriveMeter(meter);
+  const pulse: TempoBand["pulse"] =
+    pulseUnit.denominator === 8
+      ? "eighth"
+      : pulseUnit.denominator === 2
+        ? "half"
+        : "quarter";
+  return Object.freeze({ min: MIN_PULSE_BPM, max: MAX_PULSE_BPM, pulse });
 }
 
 export function getTapFocuses(
@@ -92,20 +95,17 @@ export function getTapFocuses(
 export function pulseDescription(meter: RhythmMeter): string {
   const info = deriveMeter(meter);
   const pulse =
-    info.pulseTicks === 960
+    info.pulseUnit.denominator === 2
       ? "nốt trắng"
-      : info.pulseTicks === 720
-        ? "nốt đen chấm dôi"
-        : info.pulseTicks === 240
-          ? "nốt móc đơn"
-          : "nốt đen";
-  const type = info.pulseTicks === 720 ? "phách phức" : "phách chính";
-  return `${info.pulseCount} ${type} mỗi ô · mỗi phách = ${pulse}`;
+      : info.pulseUnit.denominator === 8
+        ? "nốt móc đơn"
+        : "nốt đen";
+  return `${info.pulseCount} phách mỗi ô · mỗi phách = ${pulse}`;
 }
 
 export function groupingDescription(meter: RhythmMeter): string {
   const info = deriveMeter(meter);
-  if (info.pulseTicks === 720)
+  if (meter.denominator === 8 && info.groups.some(size => size > 1))
     return `Nhóm móc đơn ${info.groups.join(" + ")} · không chạm lại ở nốt nối tiếp`;
   if (meterKey(meter) === "3/8")
     return "Ba phách móc đơn độc lập · không gộp thành một phách phức";

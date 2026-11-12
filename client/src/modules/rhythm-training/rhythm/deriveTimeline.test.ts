@@ -48,10 +48,11 @@ describe("one authoritative rhythm timeline", () => {
       720, 960, 1440,
     ]);
   });
-  it("keeps6/8 two pulses rather than six quarter beats", () => {
+  it("keeps6/8 six eighth-note pulses rather than two dotted-quarter beats", () => {
     const timeline = deriveRhythmTimeline(SIX_EIGHT, 240);
-    expect(timeline.meter.pulseCount).toBe(2);
-    expect(timeline.meter.pulseTicks).toBe(720);
+    expect(timeline.meter.pulseCount).toBe(6);
+    expect(timeline.meter.pulseTicks).toBe(240);
+    expect(timeline.meter.pulseStarts).toEqual([0, 240, 480, 720, 960, 1200]);
     expect(timeline.onsets).toEqual([0, 720, 960]);
     expect(
       timeline.segments.map(segment => [
@@ -60,9 +61,9 @@ describe("one authoritative rhythm timeline", () => {
       ])
     ).toEqual([
       [0, 0],
-      [1, 0],
-      [1, 1],
-      [1, 2],
+      [3, 0],
+      [4, 0],
+      [5, 0],
     ]);
     expect(timeline.segments[3].isOnset).toBe(false);
   });
@@ -129,10 +130,13 @@ describe("one authoritative rhythm timeline", () => {
     expect(timeline.onsets).toEqual([0, 360, 1440]);
     expect(timeline.segments[1].subdivisionIndex).toBe(3);
   });
-  it("uses six cells per compound pulse on a sixteenth grid", () => {
+  it("uses two sixteenth cells per eighth-note pulse on a sixteenth grid", () => {
     const timeline = deriveRhythmTimeline(SIX_EIGHT, 120);
     expect(timeline.segments.map(segment => segment.subdivisionIndex)).toEqual([
-      0, 0, 2, 4,
+      0, 0, 0, 0,
+    ]);
+    expect(timeline.segments.map(segment => segment.pulseIndex)).toEqual([
+      0, 3, 4, 5,
     ]);
   });
   it.each([0, 60, 180, 300, Number.NaN])(

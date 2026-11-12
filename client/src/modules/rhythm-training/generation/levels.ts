@@ -4,6 +4,7 @@ import type {
   RhythmTrack,
   WrittenDuration,
 } from "../types";
+import { MAX_PULSE_BPM, MIN_PULSE_BPM } from "../rhythm/meters";
 
 export type { RhythmLevel, RhythmTrack } from "../types";
 export type RhythmFocus =
@@ -79,10 +80,11 @@ const durationList = (...durations: WrittenDuration[]) =>
   Object.freeze(durations);
 const focusList = (...focus: RhythmFocus[]) => Object.freeze(focus);
 const band = (
-  min: number,
-  max: number,
+  _min: number,
+  _max: number,
   pulse: TempoBand["pulse"]
-): TempoBand => Object.freeze({ min, max, pulse });
+): TempoBand =>
+  Object.freeze({ min: MIN_PULSE_BPM, max: MAX_PULSE_BPM, pulse });
 const levelPolicy = (policy: LevelPolicy): LevelPolicy =>
   Object.freeze({
     ...policy,
@@ -153,7 +155,14 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
     4: levelPolicy({
       level: 4,
       allowedMeters: simpleMeters,
-      durations: durationList(whole, half, quarter, eighth, dottedHalf, dottedQuarter),
+      durations: durationList(
+        whole,
+        half,
+        quarter,
+        eighth,
+        dottedHalf,
+        dottedQuarter
+      ),
       restDurations: durationList(quarter, eighth, dottedHalf, dottedQuarter),
       supportedFocus: focusList("dots", "ties", "combined"),
       defaultFocus: "dots",
@@ -212,7 +221,13 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowedMeters: groupingMeters,
       durations: durationList(half, quarter, eighth, dottedQuarter, dottedHalf),
       restDurations: durationList(quarter, eighth, dottedQuarter, dottedHalf),
-      supportedFocus: focusList("basic", "compound", "dots", "ties", "combined"),
+      supportedFocus: focusList(
+        "basic",
+        "compound",
+        "dots",
+        "ties",
+        "combined"
+      ),
       defaultFocus: "basic",
       maxRestsPerBar: 2,
       maxSyncopatedOnsetsPerBar: 0,
@@ -223,9 +238,9 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowSixteenths: false,
       allowSyncopation: false,
       tempo: {
-        simple: band(40, 72, "eighth"),
-        eighth: band(40, 72, "eighth"),
-        compound: band(40, 72, "dotted-quarter"),
+        simple: band(30, 300, "eighth"),
+        eighth: band(30, 300, "eighth"),
+        compound: band(30, 300, "eighth"),
       },
     }),
   });

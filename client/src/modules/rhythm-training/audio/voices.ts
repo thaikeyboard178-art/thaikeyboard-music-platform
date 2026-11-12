@@ -247,77 +247,77 @@ type ResonantProfile = Readonly<{
 const RESONANT_KNOCK_PROFILE: Readonly<Record<ClickAccent, ResonantProfile>> =
   Object.freeze({
     strong: Object.freeze({
-      levelScale: 0.98,
+      levelScale: 1,
       modes: Object.freeze([
         Object.freeze({
-          frequencyHz: 392,
-          amplitude: 0.46,
-          decaySeconds: 0.105,
+          frequencyHz: 620,
+          amplitude: 0.58,
+          decaySeconds: 0.15,
         }),
         Object.freeze({
-          frequencyHz: 1050,
-          amplitude: 0.3,
-          decaySeconds: 0.078,
+          frequencyHz: 1480,
+          amplitude: 0.25,
+          decaySeconds: 0.075,
         }),
         Object.freeze({
-          frequencyHz: 2120,
-          amplitude: 0.16,
-          decaySeconds: 0.052,
+          frequencyHz: 2720,
+          amplitude: 0.12,
+          decaySeconds: 0.04,
         }),
         Object.freeze({
-          frequencyHz: 3480,
-          amplitude: 0.08,
-          decaySeconds: 0.038,
+          frequencyHz: 3880,
+          amplitude: 0.05,
+          decaySeconds: 0.024,
         }),
       ]),
     }),
     medium: Object.freeze({
-      levelScale: 0.75,
+      levelScale: 0.8,
       modes: Object.freeze([
         Object.freeze({
-          frequencyHz: 349,
-          amplitude: 0.5,
-          decaySeconds: 0.095,
+          frequencyHz: 480,
+          amplitude: 0.58,
+          decaySeconds: 0.14,
         }),
         Object.freeze({
-          frequencyHz: 907,
-          amplitude: 0.29,
+          frequencyHz: 1117,
+          amplitude: 0.25,
           decaySeconds: 0.07,
         }),
         Object.freeze({
-          frequencyHz: 1804,
-          amplitude: 0.15,
-          decaySeconds: 0.047,
+          frequencyHz: 2050,
+          amplitude: 0.12,
+          decaySeconds: 0.038,
         }),
         Object.freeze({
-          frequencyHz: 3025,
-          amplitude: 0.08,
-          decaySeconds: 0.034,
+          frequencyHz: 3110,
+          amplitude: 0.05,
+          decaySeconds: 0.022,
         }),
       ]),
     }),
     weak: Object.freeze({
-      levelScale: 0.52,
+      levelScale: 0.6,
       modes: Object.freeze([
         Object.freeze({
-          frequencyHz: 311,
-          amplitude: 0.54,
-          decaySeconds: 0.082,
+          frequencyHz: 350,
+          amplitude: 0.58,
+          decaySeconds: 0.13,
         }),
         Object.freeze({
-          frequencyHz: 777,
-          amplitude: 0.27,
-          decaySeconds: 0.061,
+          frequencyHz: 835,
+          amplitude: 0.25,
+          decaySeconds: 0.066,
         }),
         Object.freeze({
-          frequencyHz: 1549,
-          amplitude: 0.13,
-          decaySeconds: 0.041,
+          frequencyHz: 1540,
+          amplitude: 0.12,
+          decaySeconds: 0.036,
         }),
         Object.freeze({
-          frequencyHz: 2621,
-          amplitude: 0.06,
-          decaySeconds: 0.03,
+          frequencyHz: 2450,
+          amplitude: 0.05,
+          decaySeconds: 0.02,
         }),
       ]),
     }),
@@ -346,6 +346,9 @@ function scheduleResonantKnock(
     0.004,
     ringSeconds / 4
   );
+  const terminalFadeSeconds = Math.min(0.008, ringSeconds / 4);
+  const stopTime = startTime + ringSeconds;
+  const decayEnd = stopTime - terminalFadeSeconds;
   const voices: Array<{
     oscillator: OscillatorNode;
     gain: GainNode;
@@ -395,13 +398,17 @@ function scheduleResonantKnock(
       const peak = normalizedLevel * (mode.amplitude / amplitudeTotal);
       const finalEnvelope =
         peak *
-        Math.exp(-Math.max(0, ringSeconds - attackSeconds) / mode.decaySeconds);
+        Math.exp(
+          -Math.max(0, decayEnd - (startTime + attackSeconds)) /
+            mode.decaySeconds
+        );
       gain.gain.setValueAtTime(0, startTime);
       gain.gain.linearRampToValueAtTime(peak, startTime + attackSeconds);
       gain.gain.exponentialRampToValueAtTime(
         Math.max(finalEnvelope, peak * 0.0001),
-        startTime + ringSeconds
+        decayEnd
       );
+      gain.gain.linearRampToValueAtTime(0, stopTime);
       oscillator.connect(gain);
       gain.connect(output ?? context.destination);
       oscillator.onended = () => {
@@ -410,7 +417,6 @@ function scheduleResonantKnock(
         if (endedModes === profile.modes.length) cleanup();
       };
     }
-    const stopTime = startTime + ringSeconds;
     for (const voice of voices) {
       voice.oscillator.start(startTime);
       voice.oscillator.stop(stopTime);

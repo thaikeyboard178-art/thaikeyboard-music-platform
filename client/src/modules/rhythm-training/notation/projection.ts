@@ -121,6 +121,25 @@ function deriveBeamGroups(
   const groups: NotationBeamGroup[] = [];
   let pending: NotationSegmentProjection[] = [];
 
+  const groupBounds = (measureIndex: number, measureOffset: number) => {
+    const groupIndex = timeline.meter.groupStarts.findIndex(
+      (start, index) =>
+        start <= measureOffset &&
+        (timeline.meter.groupStarts[index + 1] ?? timeline.meter.measureTicks) >
+          measureOffset
+    );
+    if (groupIndex < 0) throw new RangeError("Missing canonical meter group.");
+    const measureStart = measureIndex * timeline.meter.measureTicks;
+    return {
+      groupIndex,
+      start: measureStart + timeline.meter.groupStarts[groupIndex],
+      end:
+        measureStart +
+        (timeline.meter.groupStarts[groupIndex + 1] ??
+          timeline.meter.measureTicks),
+    };
+  };
+
   const flush = () => {
     if (pending.length >= 2) {
       const first = pending[0];
@@ -148,36 +167,30 @@ function deriveBeamGroups(
   for (const segment of segments) {
     const measureStart = segment.measureIndex * timeline.meter.measureTicks;
     const measureOffset = segment.startTicks - measureStart;
-    const pulseStart =
-      measureStart +
-      Math.floor(measureOffset / timeline.meter.pulseTicks) *
-        timeline.meter.pulseTicks;
-    const pulseEnd = pulseStart + timeline.meter.pulseTicks;
+    const group = groupBounds(segment.measureIndex, measureOffset);
     const isBeamable =
       segment.kind === "note" &&
       (segment.duration === "8" || segment.duration === "16") &&
-      segment.startTicks >= pulseStart &&
-      segment.endTicks <= pulseEnd;
+      segment.startTicks >= group.start &&
+      segment.endTicks <= group.end;
     const previous = pending[pending.length - 1];
     const previousMeasureStart =
       previous === undefined
         ? 0
         : previous.measureIndex * timeline.meter.measureTicks;
-    const previousPulseStart =
+    const previousGroupStart =
       previous === undefined
         ? 0
-        : previousMeasureStart +
-          Math.floor(
-            (previous.startTicks - previousMeasureStart) /
-              timeline.meter.pulseTicks
-          ) *
-            timeline.meter.pulseTicks;
+        : groupBounds(
+            previous.measureIndex,
+            previous.startTicks - previousMeasureStart
+          ).start;
     const contiguous =
       previous !== undefined &&
       previous.endTicks === segment.startTicks &&
       previous.measureIndex === segment.measureIndex &&
       previous.measureId === segment.measureId &&
-      previousPulseStart === pulseStart;
+      previousGroupStart === group.start;
 
     if (!isBeamable || (pending.length > 0 && !contiguous)) flush();
     if (isBeamable) pending.push(segment);

@@ -10,7 +10,11 @@ describe("curriculum-aligned immutable rhythm policies", () => {
       expect(Object.isFrozen(policy)).toBe(true);
       expect(policy.allowedMeters.length).toBeGreaterThan(0);
       expect(policy.durations.length).toBeGreaterThan(0);
-      expect(policy.tempo.simple.min).toBeLessThanOrEqual(policy.tempo.simple.max);
+      expect(policy.tempo.simple.min).toBeLessThanOrEqual(
+        policy.tempo.simple.max
+      );
+      for (const tempo of Object.values(policy.tempo).filter(Boolean))
+        expect(tempo).toMatchObject({ min: 30, max: 300 });
     }
   });
 
@@ -28,7 +32,9 @@ describe("curriculum-aligned immutable rhythm policies", () => {
     ]);
     expect(LEVEL_POLICIES[1].allowDots).toBe(false);
     expect(LEVEL_POLICIES[1].allowTies).toBe(false);
-    expect(LEVEL_POLICIES[2].allowedMeters).toEqual(LEVEL_POLICIES[1].allowedMeters);
+    expect(LEVEL_POLICIES[2].allowedMeters).toEqual(
+      LEVEL_POLICIES[1].allowedMeters
+    );
     expect(LEVEL_POLICIES[2].restDurations).toContainEqual({
       denominator: 8,
       dots: 0,
@@ -60,14 +66,14 @@ describe("curriculum-aligned immutable rhythm policies", () => {
     expect(LEVEL_POLICIES[5].allowCrossBarTies).toBe(false);
   });
 
-  it("supports all three Level 6 meters and keeps simple-triple separate from compound pulses", () => {
+  it("supports all three Level 6 meters with eighth-note pulses and independent groups", () => {
     expect(LEVEL_POLICIES[6].allowedMeters).toEqual([
       { numerator: 3, denominator: 8 },
       { numerator: 6, denominator: 8 },
       { numerator: 9, denominator: 8 },
     ]);
     expect(LEVEL_POLICIES[6].tempo.eighth?.pulse).toBe("eighth");
-    expect(LEVEL_POLICIES[6].tempo.compound?.pulse).toBe("dotted-quarter");
+    expect(LEVEL_POLICIES[6].tempo.compound?.pulse).toBe("eighth");
     expect(LEVEL_POLICIES[6].allowSixteenths).toBe(false);
   });
 

@@ -160,10 +160,24 @@ describe("opt-in resonant metronome voice", () => {
         voiceGains.every(gain => {
           const attack = gain.values.find(value => value[0] === "ramp")!;
           const decay = gain.values.find(value => value[0] === "exponential")!;
-          return decay[1] > 0 && decay[1] < attack[1] && decay[2] === 2.22;
+          const terminalFade = gain.values
+            .filter(value => value[0] === "ramp")
+            .at(-1)!;
+          return (
+            decay[1] > 0 &&
+            decay[1] < attack[1] &&
+            decay[2] < 2.22 &&
+            terminalFade[1] === 0 &&
+            terminalFade[2] === 2.22
+          );
         })
       ).toBe(true);
     }
+    expect(modalFrequencies).toEqual([
+      [620, 1480, 2720, 3880],
+      [480, 1117, 2050, 3110],
+      [350, 835, 1540, 2450],
+    ]);
     expect(
       new Set(modalFrequencies.map(frequencies => frequencies.join(","))).size
     ).toBe(3);

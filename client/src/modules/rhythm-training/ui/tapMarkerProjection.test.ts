@@ -2,7 +2,10 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { sealTapAttempt } from "../exercises/tapCompletion";
 import { matchTapRhythm } from "../exercises/tapMatcher";
-import { createTapTargets, type TapRhythmExercise } from "../exercises/tapRhythm";
+import {
+  createTapTargets,
+  type TapRhythmExercise,
+} from "../exercises/tapRhythm";
 import {
   renderRhythmNotation,
   type RhythmNotationMeasureGeometry,
@@ -15,7 +18,9 @@ beforeAll(() => {
   Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
     configurable: true,
     value: () =>
-      ({ measureText: (text: string) => ({ width: text.length * 7 }) }) as unknown as CanvasRenderingContext2D,
+      ({
+        measureText: (text: string) => ({ width: text.length * 7 }),
+      }) as unknown as CanvasRenderingContext2D,
   });
 });
 
@@ -23,7 +28,8 @@ function fourMeasureExercise(): TapRhythmExercise {
   const source = RHYTHM_NOTATION_EXAMPLES[0].pattern;
   const measures = Object.freeze(
     Array.from({ length: 4 }, (_, measureIndex) => {
-      const sourceMeasure = source.measures[measureIndex % source.measures.length];
+      const sourceMeasure =
+        source.measures[measureIndex % source.measures.length];
       return Object.freeze({
         id: `result-measure-${measureIndex}`,
         segments: Object.freeze(
@@ -63,7 +69,8 @@ function fourMeasureExercise(): TapRhythmExercise {
 
 function resultWithFiveStatuses(exercise: TapRhythmExercise) {
   const [first, second, third] = exercise.targets;
-  if (!first || !second || !third) throw new Error("Fixture needs three targets");
+  if (!first || !second || !third)
+    throw new Error("Fixture needs three targets");
   const taps = Object.freeze([
     Object.freeze({
       sequence: 0,
@@ -77,6 +84,10 @@ function resultWithFiveStatuses(exercise: TapRhythmExercise) {
     Object.freeze({
       sequence: 3,
       offsetMs: exercise.targets[exercise.targets.length - 1].offsetMs + 2000,
+    }),
+    Object.freeze({
+      sequence: 4,
+      offsetMs: exercise.targets[exercise.targets.length - 1].offsetMs + 2050,
     }),
   ]);
   const evaluation = matchTapRhythm(exercise.targets, taps);
@@ -119,7 +130,9 @@ describe("projectTapMarkers", () => {
     expect(Object.isFrozen(markers[0])).toBe(true);
 
     const matched = markers.find(marker => marker.status === "matched")!;
-    const actualTap = result.taps.find(tap => tap.sequence === matched.sequence)!;
+    const actualTap = result.taps.find(
+      tap => tap.sequence === matched.sequence
+    )!;
     const target = exercise.targets.find(item => item.id === matched.targetId)!;
     expect(matched.offsetMs).toBe(actualTap.offsetMs);
     expect(matched.errorMs).toBe(
@@ -127,7 +140,8 @@ describe("projectTapMarkers", () => {
         ?.errorMs
     );
     expect(matched.tick).toBeCloseTo(
-      (actualTap.offsetMs * exercise.pattern.tempo.pulseBpm *
+      (actualTap.offsetMs *
+        exercise.pattern.tempo.pulseBpm *
         deriveMeter(exercise.pattern.meter).pulseTicks) /
         60_000
     );

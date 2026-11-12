@@ -123,8 +123,24 @@ function createMarkerLayer(
 }
 
 const LEGEND = Object.freeze([
-  { state: "matched", label: "Khớp", color: STATUS_COLOR.matched },
-  { state: "misaligned", label: "Lệch", color: STATUS_COLOR.early },
+  {
+    state: "matched",
+    label: "Khớp",
+    color: STATUS_COLOR.matched,
+    hollow: false,
+  },
+  {
+    state: "misaligned",
+    label: "Lệch",
+    color: STATUS_COLOR.early,
+    hollow: false,
+  },
+  {
+    state: "missing",
+    label: "Thiếu",
+    color: STATUS_COLOR.missing,
+    hollow: true,
+  },
 ]);
 
 export function TapResultNotation({
@@ -318,7 +334,9 @@ export function TapResultNotation({
             <span
               aria-hidden="true"
               style={{
-                background: item.color,
+                background: item.hollow ? "transparent" : item.color,
+                border: `2px solid ${item.color}`,
+                boxSizing: "border-box",
                 borderRadius: "50%",
                 display: "inline-block",
                 height: "0.62rem",
@@ -329,9 +347,6 @@ export function TapResultNotation({
           </li>
         ))}
       </ul>
-      <p className="rhythm-note" style={{ marginTop: "0.35rem" }}>
-        Vòng tròn viền đỏ: chưa chạm.
-      </p>
     </section>
   );
 }

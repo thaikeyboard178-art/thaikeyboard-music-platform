@@ -1,5 +1,29 @@
 # Rhythm Training V1 — Functional and Technical Specification
 
+## Owner-approved active-policy supersession — 2026-11-12
+
+**APPROVED; active policy.** This supersedes only conflicting earlier product-flow/curriculum placement, canonical pulse/BPM/default-tempo, Tap scoring/matching, replay, and implementation-status statements below. Earlier material remains historical audit/design context where it conflicts; unaffected PPQ/tick arithmetic, meter identity, notation/grouping/accent semantics, and unrelated platform contracts are not rewritten.
+
+The only learner-facing Rhythm activities are **Tap Rhythm** and an independent **visual-only Rhythm Quiz**. Quiz requires neither audio nor tapping. There is no Lesson, Listen & Identify, or Count the Beat learner flow. Tap is included at Levels 1–6 and Bonus 2/2 with fixed vocabulary: L1 quarter/half/whole notes and quarter rest; L2 eighth notes/rest and basic subdivision; L3 2/4, 3/4, 4/4; L4 dotted rhythms and ties; L5 sixteenth rhythms and complex combinations; L6 3/8, 6/8, 9/8; Bonus 2/2. No later vocabulary moves into a lower level.
+
+| Meter | Canonical technical pulse | Pulses/bar | Default BPM |
+|---|---|---:|---:|
+| 2/4 | Quarter, 480 ticks | 2 | 100 |
+| 3/4 | Quarter, 480 ticks | 3 | 100 |
+| 4/4 | Quarter, 480 ticks | 4 | 100 |
+| 3/8 | Eighth, 240 ticks | 3 | 180 |
+| 6/8 | Eighth, 240 ticks | 6 | 180 |
+| 9/8 | Eighth, 240 ticks | 9 | 180 |
+| 2/2 | Half, 960 ticks | 2 | 100 |
+
+Tempo is globally **30–300 BPM** in the canonical pulse unit. Preserve musical grouping independently: 6/8 is `3+3` with `Sww|Mww`; 9/8 is `3+3+3` with `Sww|Mww|Mww`; 3/8 remains `Sww`.
+
+Formula B is `100 × 2TP / (N + K)`: `TP` counts primary pairs inside `Wpass`, `N` is expected onsets, and `K` is physical taps in the collection interval after software-duplicate removal (physical extras remain in K). For `N=0`, accuracy is not applicable; technical abort returns no score. Approved T2-B is symmetric actual-local with `α=.30`, `β=.40`, `Cpass=50 ms`, and `Cassoc=80 ms`. `AudioContext.getOutputTimestamp()` is the primary clock bridge; untrusted mapping is technical/ungraded, with no graded fallback. Collection opens at first expected onset minus its association window and closes at the last expected onset plus its association window; delayed handler delivery drains for at most 100 ms, but only events whose original timestamp falls within the musical interval are eligible. The locked primary ordered one-to-one DP and strict shared `+10/+0` remain in force. Only after primary DP is locked may a deterministic, ordered, bounded residual midpoint-cell association within the graded collection interval associate residual far taps/onsets for Early/Late diagnostics; it never creates a TP, changes a primary pair, or turns true surplus into anything but Extra. Idle Practice replay preserves the original configuration, visible mode, and original grade/result; it resets replay input and requires a fresh learner Play (no autoplay/count-in). Any retry is internal rehearsal and cannot submit a second shared answer or score.
+
+Quiz question count/quota, assessment quota changes, readiness/pilot thresholds, and educational-effectiveness claims are **not approved**; leave existing quota status unchanged. This policy record is not a test result and does not claim physical audio/device validation.
+
+> **Historical-reading note:** Conflicting D-07 placement/activity text, former 6/8–9/8 dotted-quarter technical pulse/default claims, pending Formula B/T2/scoring/replay wording, and pre-activation status statements below are retained as history only. The active policy above controls; this note does not blanket-rewrite unaffected technical detail.
+
 ## Presentation decisions — APPROVED OWNER DECISION, 2026-11-11
 
 Nguồn: chủ sản phẩm xác nhận lúc03:04:52 +07:00. Ba mục trước đây PROPOSED đã chuyển sang **APPROVED**; quyết định presentation không cấp quyền triển khai runtime.
@@ -26,7 +50,9 @@ Giữ nguyên curriculum placement, meter semantics, technical pulse, subdivisio
 
 The recommended product decision is to build Rhythm Training as a rhythm-owned module hosted by the existing THAIKEYBOARD training shell. The module should reuse the shared session lifecycle, exercise-level scalar scoring, aggregate progress recording, result summary, and catalog conventions, but should not import Note Reading internals or force Rhythm Training into Note Reading’s theory, generator, components, audio, piano, preferences, or layout. Rhythm-specific notation, exact rhythm mathematics, generation, audio scheduling, tap validation, diagnostics, and detailed feedback remain local to `modules/rhythm-training/`. The public product should expose only the two shared session wrappers **Free** and **Challenge** in V1; the four items Multiple Choice, Tap Rhythm, Listen & Identify, and Count the Beat are local rhythm exercise kinds, not new shared session modes.
 
-## D-07 — Multiple Choice and Tap Rhythm progression — APPROVED OWNER DECISION, 2026-11-11
+## D-07 — Multiple Choice and Tap Rhythm progression — APPROVED OWNER DECISION, 2026-11-11 (HISTORICAL WHERE SUPERSEDED)
+
+> The 2026-11-11 approval remains audit history. Its Level 1–2 no-Tap placement, four-kind activity model, and other clauses conflicting with the 2026-11-12 active policy above are not current requirements.
 
 Approved by the product owner in the 14:14 +07:00 message on 2026-11-11. See [Decision Review, D-07](./Decision-Review.md). Multiple Choice remains a core kind for notation, values, rhythmic structures, and theory. Tap Rhythm is one of the four existing local exercise kinds, not a fifth kind, and supplies practical performance training. Preserve six Levels plus optional Bonus, the seven approved meters, PPQ 480, and all prior approved music/presentation and shared-session decisions.
 
@@ -64,7 +90,9 @@ The following are verified facts from the supplied read-only source context, not
 
 Architecture decisions in the remainder of this document use the same labels: **Reuse** means an existing boundary is used unchanged; **New Rhythm** means code and behavior belong inside the future Rhythm module; **Necessary Shared Change** means a host edit required only when the approved implementation is ready. A decision marked **Proposal** is not a statement that the feature works.
 
-## 3. B. Cấu trúc bài học chính thức và progression
+## 3. B. Cấu trúc bài học chính thức và progression — historical flow where conflicting
+
+> This inherited curriculum-planning section retains Lesson/Practice/Assessment and former exercise-placement proposals. Treat those product-flow clauses as historical where they conflict with the active two-activity policy above; unaffected level vocabulary and musical progression details remain useful context.
 
 The approved V1 curriculum has six ordered Levels plus one optional Bonus track. Level access remains exploratory in V1: no mandatory locks, paywalls, or hard progression gates. Each Level and the Bonus track contains **Lessons**, **Practice**, and an **Assessment**. These are curriculum/content units, not new shared session modes; the four local exercise kinds remain Multiple Choice, Tap Rhythm, Listen & Identify, and Count the Beat. A teacher or product owner may tune practice quantities and coaching thresholds after learner/device pilot, but may not reorder or redistribute the approved content without a new curriculum decision.
 
@@ -216,7 +244,9 @@ A derived segment view adds `absoluteStartTicks`, `absoluteEndTicks`, `measureOf
 
 A note attacks when it is not a rest and is either untied or the first segment of a tie group. A tied continuation is never a second attack. A rest has no attack and still consumes its full duration. A tie group must consist of adjacent note segments with the same `tieGroupId`; it may cross a barline only by making the final segment of one bar adjacent to the first segment of the next. Ties to rests, non-adjacent tie members, mismatched pitch roles, or second attacks are invalid in V1.
 
-### Explicit seven-meter registry contract
+### Explicit seven-meter registry contract — historical pulse wording superseded
+
+> This retained 2026-11-11 table uses dotted-quarter pulse semantics for 6/8 and 9/8. Those values describe the preserved musical groups, not the active canonical technical pulse for BPM/metronome/timeline/Tap, which is eighth=240 ticks with 6/9 pulses per bar. Read the current table at the top first.
 
 The seven-meter registry is immutable and exact-pair keyed. It must not infer pulse duration from numerator alone, denominator alone, or a simple/compound shortcut. V1 supports **seven meter pairs total**: six core meters (2/4, 3/4, 4/4, 3/8, 6/8, 9/8) plus the optional but supported Bonus meter 2/2.
 
@@ -556,7 +586,9 @@ Manual acceptance must cover representative current desktop browsers, iOS/Androi
 
 After an approved implementation only, the project checks recorded in source context should be run: `pnpm check`, `pnpm test`, `pnpm build:static`, and `pnpm build`. This design task does not run them and does not claim fresh results. Historical evidence includes the prior 565-test run for the canonical-to-SVG seven-meter gate and the Phase 2 result of 436/436 tests across 40 files; neither is a new run or evidence that generator policies, Tap, audio, or UI are active.
 
-## 12. Phases, dependencies, and acceptance criteria
+## 12. Phases, dependencies, and acceptance criteria — historical implementation/status snapshot
+
+> This phase plan predates the current registered Rhythm route and implemented Tap/Quiz screens. Its future-only/Coming-Soon implementation statements are historical; they are not current status or test evidence.
 
 **Current source status; content/framework and implementation approval are separate.** The repository has an implemented canonical-to-SVG seven-meter gate, with prior 565-test evidence (historical; no fresh tests in this documentation update). The generator still has eight legacy levels and four-meter policies. Tap Rhythm, audio, and exercise UI are not active. D-07 approves curriculum placement, not runtime implementation. No phase in this specification authorizes changing source or tests during this read-only review.
 
@@ -574,7 +606,9 @@ After an approved implementation only, the project checks recorded in source con
 
 **Phase 6 — release gate and future activation.** Run project checks, browser/device matrix, theory/timing review, and content review only after all prior approved phases. Only then may normal catalog and static-manifest bindings be activated. Until that gate, Rhythm remains Coming Soon. No deploy, WordPress change, UI activation, audio activation, catalog activation, or Phase 3 work is part of this update.
 
-## 13. Risks, browser limitations, and unresolved decisions
+## 13. Risks, browser limitations, and unresolved decisions — historical pending list where superseded
+
+> The former pending Tap formula, tolerance, clock/collection, count-in/reference, and replay clauses below are superseded by the approved owner-decision record. Quiz/assessment quotas, pilot/readiness thresholds, and effectiveness claims remain unapproved.
 The six-Level curriculum, optional Bonus placement, Level 6 simple/compound/hierarchy semantics, three presentation decisions, and D-07 exercise progression are owner-approved. Previous proposals superseded by those decisions must not be reopened; no source implementation is authorized. The following Tap details remain explicitly open technical decisions and must not be silently settled:
 
 - Exact Timing Accuracy (%) formula.
@@ -667,7 +701,9 @@ The following references are numbered once and reused throughout this specificat
 
 **Read-only platform evidence used for implementation facts:** the current snapshot and area findings in `/home/ubuntu/six-meter-review/`, plus `/home/ubuntu/rhythm-training-design/current-source-context.md` as historical platform API context; and `/home/ubuntu/upload/pasted_content_4.txt` as the historical six-meter request and `/home/ubuntu/upload/pasted_content_5.txt` as the current authoritative six-Level-plus-Bonus/seven-meter curriculum request. These local context files are not product dependencies; the application source was consulted read-only.
 
-## 15. Approval record and implementation gate
+## 15. Approval record and implementation gate — historical where superseded
+
+> This earlier approval/status record is preserved for audit only where it conflicts with the active policy and current module registration above; its prior test evidence is historical, not a current run.
 
 The following status record preserves prior decisions and technical boundaries; it is not a request to re-approve settled decisions or authorization to implement. D-07 is an approved curriculum decision; Tap timing implementation details remain open as listed in Section 13.
 

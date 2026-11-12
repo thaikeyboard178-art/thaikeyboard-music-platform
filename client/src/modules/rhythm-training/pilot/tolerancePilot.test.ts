@@ -362,14 +362,14 @@ describe("Phase 4A.1 offline tolerance pilot (not production matching)", () => {
         item.legalGridTicks,
         mixedTicks
       );
-      if (["6/8", "9/8", "2/2"].includes(item.name)) {
+      if (item.name === "2/2") {
         expect(
           mixedActual.some(
             (window, targetIndex) =>
               window.latePassSeconds < mixedLegal[targetIndex].latePassSeconds
           )
         ).toBe(true);
-      } else if (item.name === "3/8") {
+      } else if (["3/8", "6/8", "9/8"].includes(item.name)) {
         // A 120-tick local gap exists in this stress fixture, but Cpass=50 ms
         // saturates both alternatives at the chosen fast eighth-note tempo.
         expect(mixedActual).toEqual(mixedLegal);

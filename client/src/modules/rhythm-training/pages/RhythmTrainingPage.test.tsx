@@ -133,17 +133,52 @@ async function openPracticeWorkspace(
 }
 
 describe("Rhythm learner page: three screens and real controller integration", () => {
-  it("keeps Levels 1/2 disabled, Bonus practice-only, and removes the section selector while preserving curriculum gates", async () => {
+  it("blocks invalid BPM rather than silently opening an old tempo, and accepts both global endpoints", async () => {
+    const user = userEvent.setup();
+    showPage();
+    const input = screen.getByRole("spinbutton", { name: "Nhập tempo BPM" });
+    const play = screen.getByRole("button", {
+      name: /^Chơi thử/,
+    }) as HTMLButtonElement;
+    const grade = screen.getByRole("button", {
+      name: /^Chấm điểm/,
+    }) as HTMLButtonElement;
+    const preview = screen.getByRole("button", {
+      name: "Nghe thử metronome",
+    }) as HTMLButtonElement;
+    for (const value of ["29", "301", ""]) {
+      await user.clear(input);
+      if (value) await user.type(input, value);
+      expect(input.getAttribute("aria-invalid")).toBe("true");
+      expect(play.disabled).toBe(true);
+      expect(grade.disabled).toBe(true);
+      expect(preview.disabled).toBe(true);
+      expect(screen.getByRole("alert").textContent).toContain("30 đến 300 BPM");
+    }
+    for (const value of ["30", "300"]) {
+      await user.clear(input);
+      await user.type(input, value);
+      expect(input.getAttribute("aria-invalid")).toBe("false");
+      expect(play.disabled).toBe(false);
+      expect(grade.disabled).toBe(false);
+      expect(preview.disabled).toBe(false);
+    }
+    await user.click(play);
+    await screen.findByTestId("rhythm-workspace");
+    expect(screen.getByTestId("rhythm-workspace").textContent).toContain("300");
+  });
+
+  it("offers Tap in Levels 1/2, keeps Bonus practice-only, and exposes no Lesson selector", async () => {
     const user = userEvent.setup();
     showPage();
     expect(
       (screen.getByRole("button", { name: /^Level 1 —/ }) as HTMLButtonElement)
         .disabled
-    ).toBe(true);
+    ).toBe(false);
     expect(
       (screen.getByRole("button", { name: /^Level 2 —/ }) as HTMLButtonElement)
         .disabled
-    ).toBe(true);
+    ).toBe(false);
     expect(screen.getAllByRole("button", { name: /^Level 6 —/ })).toHaveLength(
       1
     );
@@ -156,7 +191,33 @@ describe("Rhythm learner page: three screens and real controller integration", (
         .getAttribute("data-current-step")
     ).toBe("setup");
     expect(screen.queryByLabelText("Phần học")).toBeNull();
+    expect(isExerciseKindAllowed(1, "practice", "tap-rhythm")).toBe(true);
+    expect(isExerciseKindAllowed(2, "assessment", "tap-rhythm")).toBe(true);
     expect(isExerciseKindAllowed(6, "assessment", "tap-rhythm")).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: /^Level 1 —/ }));
+    expect(
+      within(screen.getByLabelText("Nhịp"))
+        .getAllByRole("option")
+        .map(option => option.textContent)
+    ).toEqual(["4/4"]);
+    await user.click(screen.getByRole("button", { name: /^Chơi thử/ }));
+    expect(
+      (await screen.findByTestId("rhythm-workspace")).getAttribute("data-track")
+    ).toBe("1");
+    expect(
+      screen.getByTestId("rhythm-workspace").getAttribute("data-section")
+    ).toBe("practice");
+    await user.click(screen.getByRole("button", { name: "Thiết lập lại" }));
+    await user.click(screen.getByRole("button", { name: /^Level 2 —/ }));
+    await user.click(screen.getByRole("button", { name: /^Chơi thử/ }));
+    expect(
+      (await screen.findByTestId("rhythm-workspace")).getAttribute("data-track")
+    ).toBe("2");
+    expect(
+      screen.getByTestId("rhythm-workspace").getAttribute("data-section")
+    ).toBe("practice");
+    await user.click(screen.getByRole("button", { name: "Thiết lập lại" }));
 
     await user.click(screen.getByRole("button", { name: /^Bonus 2\/2 —/ }));
     expect((screen.getByLabelText("Nhịp") as HTMLSelectElement).value).toBe(
@@ -175,6 +236,31 @@ describe("Rhythm learner page: three screens and real controller integration", (
       })
     ).toBeNull();
     expect(screen.queryByLabelText("Phần học")).toBeNull();
+  });
+
+  it("opens the independent visual-only Rhythm Quiz from Setup and returns without entering Tap practice", async () => {
+    const user = userEvent.setup();
+    showPage();
+    await user.click(screen.getByRole("button", { name: /Rhythm Quiz/ }));
+    const quiz = screen.getByTestId("screen-quiz");
+    expect(quiz.hasAttribute("hidden")).toBe(false);
+    expect(
+      within(quiz).getByRole("heading", {
+        name: "Trắc nghiệm kiến thức nhịp điệu",
+      })
+    ).not.toBeNull();
+    expect(
+      within(quiz).queryByLabelText(/metronome|vùng chạm|âm lượng/i)
+    ).toBeNull();
+    await user.click(
+      within(quiz).getByRole("button", { name: "Quay lại Rhythm Training" })
+    );
+    expect(screen.getByTestId("screen-setup").hasAttribute("hidden")).toBe(
+      false
+    );
+    expect(screen.getByTestId("screen-practice").hasAttribute("hidden")).toBe(
+      true
+    );
   });
 
   it("opens one real canonical practice exercise using the selected meter, four bars, practice gate, and explicit BPM", async () => {
@@ -218,7 +304,7 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(
       within(workspace).getByRole("heading", { name: /Nhịp 4\/4/ }).textContent
     ).toContain("4 ô nhịp");
-    expect(within(workspace).getByText(/4 phách chính mỗi ô/)).not.toBeNull();
+    expect(within(workspace).getByText(/4 phách mỗi ô/)).not.toBeNull();
     expect(
       (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).value
     ).toBe("0.8");

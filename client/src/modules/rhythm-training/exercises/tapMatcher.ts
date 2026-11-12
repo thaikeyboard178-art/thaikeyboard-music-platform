@@ -29,6 +29,7 @@ export type TapEvaluation = Readonly<{
   missing: number;
   extra: number;
   nearMiss: number;
+  farAssociation: number;
   targetResults: readonly TapTargetResult[];
   tapResults: readonly TapCaptureResult[];
 }>;
@@ -241,6 +242,112 @@ function solveOrderedAlignment(
 }
 
 /**
+ * Return the target owning a tap's midpoint/Voronoi cell. Equal onset times
+ * share a cell owned by the lower target index; midpoint boundaries likewise
+ * belong to the earlier target.
+ */
+function findCellTargetIndex(
+  offsetMs: number,
+  targets: readonly TapTarget[]
+): number | null {
+  const cellOwners: number[] = [];
+  for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
+    if (
+      targetIndex === 0 ||
+      targets[targetIndex].offsetMs !== targets[targetIndex - 1].offsetMs
+    ) {
+      cellOwners.push(targetIndex);
+    }
+  }
+  if (cellOwners.length === 0) return null;
+
+  for (let cellIndex = 0; cellIndex < cellOwners.length - 1; cellIndex += 1) {
+    const leftTarget = targets[cellOwners[cellIndex]];
+    const rightTarget = targets[cellOwners[cellIndex + 1]];
+    const midpoint =
+      leftTarget.offsetMs + (rightTarget.offsetMs - leftTarget.offsetMs) / 2;
+    if (offsetMs <= midpoint) return cellOwners[cellIndex];
+  }
+  return cellOwners[cellOwners.length - 1];
+}
+
+function crossesPrimaryPair(
+  targetIndex: number,
+  tapIndex: number,
+  primaryPairs: readonly Pair[]
+): boolean {
+  return primaryPairs.some(
+    pair =>
+      (targetIndex < pair.targetIndex && tapIndex > pair.tapIndex) ||
+      (targetIndex > pair.targetIndex && tapIndex < pair.tapIndex)
+  );
+}
+
+/**
+ * Associate leftover taps/targets only after primary DP assignments are fixed.
+ * Each residual tap belongs to one onset cell; nearest residual tap wins in
+ * that cell, with capture sequence as the deterministic equal-error tie-break.
+ * Pairs that cross a primary anchor are intentionally not introduced.
+ */
+function solveResidualAssociations(
+  targets: readonly TapTarget[],
+  taps: readonly TapMatchInput[],
+  primaryPairs: readonly Pair[]
+): readonly Pair[] {
+  if (targets.length === 0 || taps.length === 0) return [];
+
+  const primaryTargetIndices = new Set(
+    primaryPairs.map(pair => pair.targetIndex)
+  );
+  const primaryTapIndices = new Set(primaryPairs.map(pair => pair.tapIndex));
+  const tapsByCell = new Map<number, number[]>();
+
+  taps.forEach((tap, tapIndex) => {
+    if (primaryTapIndices.has(tapIndex)) return;
+    const cellTargetIndex = findCellTargetIndex(tap.offsetMs, targets);
+    if (cellTargetIndex === null) return;
+    const cellTaps = tapsByCell.get(cellTargetIndex) ?? [];
+    cellTaps.push(tapIndex);
+    tapsByCell.set(cellTargetIndex, cellTaps);
+  });
+
+  const residualPairs: Pair[] = [];
+  for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
+    if (primaryTargetIndices.has(targetIndex)) continue;
+    const cellTaps = tapsByCell.get(targetIndex) ?? [];
+    let bestTapIndex: number | undefined;
+    let bestAbsoluteError = Number.POSITIVE_INFINITY;
+
+    for (const tapIndex of cellTaps) {
+      if (crossesPrimaryPair(targetIndex, tapIndex, primaryPairs)) continue;
+      const errorMs = taps[tapIndex].offsetMs - targets[targetIndex].offsetMs;
+      const absoluteError = Math.abs(errorMs);
+      if (
+        absoluteError < bestAbsoluteError ||
+        (absoluteError === bestAbsoluteError &&
+          (bestTapIndex === undefined ||
+            taps[tapIndex].sequence < taps[bestTapIndex].sequence))
+      ) {
+        bestTapIndex = tapIndex;
+        bestAbsoluteError = absoluteError;
+      }
+    }
+
+    if (bestTapIndex !== undefined) {
+      residualPairs.push(
+        Object.freeze({
+          targetIndex,
+          tapIndex: bestTapIndex,
+          errorMs: taps[bestTapIndex].offsetMs - targets[targetIndex].offsetMs,
+          pass: false,
+        })
+      );
+    }
+  }
+  return Object.freeze(residualPairs);
+}
+
+/**
  * Assign ordered taps to ordered onsets, one-to-one, using the approved
  * objective: most pass pairs, then diagnostic pairs, least absolute error,
  * then lexicographic (target index, capture sequence).
@@ -252,9 +359,15 @@ export function matchTapRhythm(
   validateTargets(targets);
   validateTaps(taps);
   const solution = solveOrderedAlignment(targets, taps);
+  const residualPairs = solveResidualAssociations(
+    targets,
+    taps,
+    solution.pairs
+  );
+  const allPairs = [...solution.pairs, ...residualPairs];
   const pairByTarget = new Map<number, Pair>();
   const pairByTap = new Map<number, Pair>();
-  for (const pair of solution.pairs) {
+  for (const pair of allPairs) {
     pairByTarget.set(pair.targetIndex, pair);
     pairByTap.set(pair.tapIndex, pair);
   }
@@ -330,6 +443,7 @@ export function matchTapRhythm(
     missing,
     extra,
     nearMiss,
+    farAssociation: residualPairs.length,
     targetResults,
     tapResults,
   });

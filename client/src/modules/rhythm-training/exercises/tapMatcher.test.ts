@@ -17,7 +17,7 @@ function tap(sequence: number, offsetMs: number): TapMatchInput {
 }
 
 describe("Tap Rhythm ordered matcher", () => {
-  it("classifies exact, early, late, missing, and extra events and computes Formula B", () => {
+  it("classifies exact, early, late, far associations, missing, and extra events and computes Formula B", () => {
     const targets = [
       target("t0", 0, 100, 10, 30),
       target("t1", 120, 200, 10, 30),
@@ -38,14 +38,14 @@ describe("Tap Rhythm ordered matcher", () => {
       "matched",
       "late",
       "matched",
-      "missing",
+      "late",
     ]);
     expect(result.tapResults.map(item => item.status)).toEqual([
       "early",
       "matched",
       "late",
       "matched",
-      "extra",
+      "late",
     ]);
     expect(result).toMatchObject({
       correct: false,
@@ -53,9 +53,10 @@ describe("Tap Rhythm ordered matcher", () => {
       tp: 2,
       n: 5,
       k: 5,
-      missing: 1,
-      extra: 1,
+      missing: 0,
+      extra: 0,
       nearMiss: 2,
+      farAssociation: 1,
     });
   });
 
@@ -97,9 +98,27 @@ describe("Tap Rhythm ordered matcher", () => {
     expect(
       matchTapRhythm([expected], [tap(0, 140)]).targetResults[0].status
     ).toBe("late");
-    expect(
-      matchTapRhythm([expected], [tap(0, 59.99)]).targetResults[0].status
-    ).toBe("missing");
+    const farOnly = matchTapRhythm([expected], [tap(0, 59.99)]);
+    expect(farOnly).toMatchObject({
+      correct: false,
+      accuracyPercent: 0,
+      tp: 0,
+      n: 1,
+      k: 1,
+      missing: 0,
+      extra: 0,
+      nearMiss: 0,
+      farAssociation: 1,
+    });
+    expect(farOnly.targetResults[0]).toMatchObject({
+      status: "early",
+      tapSequence: 0,
+      errorMs: -40.01,
+    });
+    expect(farOnly.tapResults[0]).toMatchObject({
+      status: "early",
+      targetIndex: 0,
+    });
   });
 
   it("keeps equal-time physical double taps while rejecting duplicate identity and backwards time", () => {
@@ -121,7 +140,7 @@ describe("Tap Rhythm ordered matcher", () => {
     ).toThrow(RangeError);
   });
 
-  it("assigns an exact adjacent-target midpoint to the lexicographically first target", () => {
+  it("assigns an exact adjacent-target midpoint to the lexicographically first primary target", () => {
     const result = matchTapRhythm(
       [target("left", 0, 100, 5, 60), target("right", 120, 200, 5, 60)],
       [tap(17, 150)]
@@ -135,6 +154,131 @@ describe("Tap Rhythm ordered matcher", () => {
       status: "late",
       targetIndex: 0,
     });
+    expect(result).toMatchObject({ nearMiss: 1, farAssociation: 0 });
+  });
+
+  it("assigns a residual at the exact adjacent-target midpoint to the lower-index cell", () => {
+    const result = matchTapRhythm(
+      [target("left", 0, 100, 5, 20), target("right", 120, 200, 5, 20)],
+      [tap(17, 150)]
+    );
+    expect(result.targetResults).toMatchObject([
+      { targetIndex: 0, status: "late", tapSequence: 17, errorMs: 50 },
+      { targetIndex: 1, status: "missing", tapSequence: null },
+    ]);
+    expect(result.tapResults[0]).toMatchObject({
+      sequence: 17,
+      status: "late",
+      targetIndex: 0,
+    });
+    expect(result).toMatchObject({ nearMiss: 0, farAssociation: 1 });
+  });
+
+  it("associates residual taps in one- and two-target cells, with true missing and extra counts", () => {
+    const oneTarget = matchTapRhythm(
+      [target("only", 0, 100, 5, 10)],
+      [tap(0, 59.99)]
+    );
+    expect(oneTarget.targetResults.map(item => item.status)).toEqual(["early"]);
+    expect(oneTarget).toMatchObject({
+      missing: 0,
+      extra: 0,
+      farAssociation: 1,
+    });
+
+    const twoTargetsOneTap = matchTapRhythm(
+      [target("left", 0, 100, 5, 10), target("right", 120, 200, 5, 10)],
+      [tap(1, 30)]
+    );
+    expect(twoTargetsOneTap.targetResults.map(item => item.status)).toEqual([
+      "early",
+      "missing",
+    ]);
+    expect(twoTargetsOneTap).toMatchObject({
+      tp: 0,
+      missing: 1,
+      extra: 0,
+      farAssociation: 1,
+    });
+
+    const twoTargetsTwoTaps = matchTapRhythm(
+      [target("left", 0, 100, 5, 10), target("right", 120, 200, 5, 10)],
+      [tap(1, 30), tap(2, 260)]
+    );
+    expect(twoTargetsTwoTaps.targetResults.map(item => item.status)).toEqual([
+      "early",
+      "late",
+    ]);
+    expect(twoTargetsTwoTaps).toMatchObject({
+      tp: 0,
+      missing: 0,
+      extra: 0,
+      farAssociation: 2,
+    });
+
+    const twoTargetsThreeTaps = matchTapRhythm(
+      [target("left", 0, 100, 5, 10), target("right", 120, 200, 5, 10)],
+      [tap(0, 30), tap(1, 40), tap(2, 260)]
+    );
+    expect(twoTargetsThreeTaps.targetResults.map(item => item.status)).toEqual([
+      "early",
+      "late",
+    ]);
+    expect(
+      twoTargetsThreeTaps.targetResults.map(item => item.tapSequence)
+    ).toEqual([1, 2]);
+    expect(twoTargetsThreeTaps).toMatchObject({
+      tp: 0,
+      n: 2,
+      k: 3,
+      missing: 0,
+      extra: 1,
+      farAssociation: 2,
+      accuracyPercent: 0,
+      correct: false,
+    });
+    expect(twoTargetsThreeTaps.tapResults.map(item => item.status)).toEqual([
+      "extra",
+      "early",
+      "late",
+    ]);
+  });
+
+  it("matches at most one residual tap per target and breaks equal-error ties by capture sequence", () => {
+    const result = matchTapRhythm(
+      [target("only", 0, 100, 1, 10)],
+      [tap(9, 70), tap(2, 130)]
+    );
+    expect(result.targetResults[0]).toMatchObject({
+      status: "late",
+      tapSequence: 2,
+      errorMs: 30,
+    });
+    expect(result.tapResults.map(item => item.status)).toEqual([
+      "extra",
+      "late",
+    ]);
+    expect(result).toMatchObject({ missing: 0, extra: 1, farAssociation: 1 });
+  });
+
+  it("keeps primary assignments fixed and does not create a crossing residual pair", () => {
+    const result = matchTapRhythm(
+      [target("first", 0, 100, 0, 100), target("second", 120, 200, 0, 0)],
+      [tap(9, 180), tap(1, 180)]
+    );
+    // Equal-time primary tie-break selects capture sequence 1 (the second
+    // array entry); the remaining sequence-9 tap cannot cross that anchor to
+    // associate with target 1, even though it belongs to target 1's cell.
+    expect(result.targetResults[0]).toMatchObject({
+      status: "late",
+      tapSequence: 1,
+    });
+    expect(result.targetResults[1]).toMatchObject({ status: "missing" });
+    expect(result.tapResults.map(item => item.status)).toEqual([
+      "extra",
+      "late",
+    ]);
+    expect(result).toMatchObject({ nearMiss: 1, farAssociation: 0 });
   });
 
   it("prioritizes pass pairs over a larger number of diagnostic pairs", () => {

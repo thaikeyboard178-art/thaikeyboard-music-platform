@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from "vitest";
+import { createRhythmAudioPlan } from "../audio/plan";
+import { createTapAttemptPlan, createTapReferencePlan } from "../audio/tapPlan";
+import { createTapRhythmExercise } from "../exercises/tapRhythm";
 import { rhythmPatternInputSchema } from "../rhythm/model";
 import { durationToTicks } from "../rhythm/durations";
 import {
   deriveMeter,
   deriveMeterStructure,
+  getDefaultPulseBpm,
   ticksToSeconds,
 } from "../rhythm/meters";
 import {
@@ -45,6 +49,27 @@ function hasFlag(element: Element) {
     return code >= 0xe240 && code <= 0xe24f;
   });
 }
+
+function expectedPulseData(f: (typeof SEVEN_METER_RUNTIME_FIXTURES)[number]) {
+  const pulseTicks = f.name === "2/2" ? 960 : f.name.endsWith("/4") ? 480 : 240;
+  const pulseStarts = Array.from(
+    { length: f.capacity / pulseTicks },
+    (_, index) => index * pulseTicks
+  );
+  const groupStarts =
+    f.name === "6/8"
+      ? [0, 720]
+      : f.name === "9/8"
+        ? [0, 720, 1440]
+        : [...pulseStarts];
+  return {
+    pulseTicks,
+    pulseStarts,
+    groupStarts,
+    pulseIndices: f.eighthStarts.map(tick => Math.floor(tick / pulseTicks)),
+  };
+}
+
 function wrongFill(pattern: RhythmPattern, extra: boolean): RhythmPattern {
   const bar = pattern.measures[0];
   return {
@@ -80,6 +105,7 @@ describe("Seven-meter runtime completion gate", () => {
       expect(Object.isFrozen(canonical)).toBe(true);
     });
     it(`7M ${f.name} S02 exact duration and pulse calculations`, () => {
+      const expected = expectedPulseData(f);
       const ticks = f.pattern.measures[0].segments.map(segment =>
         durationToTicks(segment.duration)
       );
@@ -87,10 +113,12 @@ describe("Seven-meter runtime completion gate", () => {
       expect(ticks.reduce((sum, value) => sum + value, 0)).toBe(f.capacity);
       const meter = deriveMeter(f.pattern.meter);
       expect(meter.measureTicks).toBe(f.capacity);
-      expect(meter.pulseTicks).toBe(f.pulseTicks);
-      expect(meter.pulseStarts).toEqual(f.pulseStarts);
+      expect(meter.pulseTicks).toBe(expected.pulseTicks);
+      expect(meter.pulseCount).toBe(expected.pulseStarts.length);
+      expect(meter.pulseStarts).toEqual(expected.pulseStarts);
+      expect(meter.groupStarts).toEqual(expected.groupStarts);
       expect(ticksToSeconds(f.capacity, f.pattern.meter, 60)).toBe(
-        f.pulseStarts.length
+        expected.pulseStarts.length
       );
     });
     it(`7M ${f.name} S03 correctly filled bar validation`, () => {
@@ -135,20 +163,22 @@ describe("Seven-meter runtime completion gate", () => {
       expect(timeline.soundingSpans).toHaveLength(f.eighthStarts.length);
     });
     it(`7M ${f.name} S06 structural pulse and subdivision metadata`, () => {
+      const expected = expectedPulseData(f);
       const timeline = deriveRhythmTimeline(f.pattern, 240);
       const structure = deriveMeterStructure(f.pattern.meter, 240);
       expect(timeline.structure).toEqual(structure);
-      expect(structure.pulseStarts).toEqual(f.pulseStarts);
+      expect(structure.pulseStarts).toEqual(expected.pulseStarts);
+      expect(structure.groupStarts).toEqual(expected.groupStarts);
       expect(structure.subdivisionStarts).toEqual(f.eighthStarts);
       expect(structure.subdivisionTicks).toBe(240);
       expect(timeline.segments.map(segment => segment.pulseIndex)).toEqual(
-        f.pulseIndices
+        expected.pulseIndices
       );
       expect(
         timeline.segments.map(segment => segment.subdivisionIndex)
       ).toEqual(f.subdivisionIndices);
       expect(structure.accentPositions.map(point => point.pulseIndex)).toEqual(
-        f.pulseIndices
+        expected.pulseIndices
       );
       expect(
         structure.accentPositions.map(point => point.subdivisionIndex)
@@ -187,6 +217,7 @@ describe("Seven-meter runtime completion gate", () => {
       expect(JSON.stringify(f.pattern)).toBe(before);
     });
     it(`7M ${f.name} S08 notation grouping and beam projection`, () => {
+      const expected = expectedPulseData(f);
       const projection = projectRhythmNotation(f.pattern);
       expect(projection.canonicalPattern.meter).toEqual(f.pattern.meter);
       expect(projection.timeline.onsets).toEqual(f.eighthStarts);
@@ -203,15 +234,25 @@ describe("Seven-meter runtime completion gate", () => {
         const members = projection.segments.filter(segment =>
           group.segmentIds.includes(segment.segmentId)
         );
-        expect(new Set(members.map(segment => segment.pulseIndex)).size).toBe(
-          1
-        );
+        const groupStartFor = (tick: number) => {
+          const measureIndex = Math.floor(tick / f.capacity);
+          const offset = tick - measureIndex * f.capacity;
+          const localStart = expected.groupStarts
+            .filter(start => start <= offset)
+            .at(-1)!;
+          return measureIndex * f.capacity + localStart;
+        };
+        expect(
+          new Set(members.map(segment => groupStartFor(segment.startTicks)))
+            .size
+        ).toBe(1);
         expect(new Set(members.map(segment => segment.measureIndex)).size).toBe(
           1
         );
       }
     });
     it(`7M ${f.name} S09 actual VexFlow SVG rendering`, () => {
+      const expected = expectedPulseData(f);
       const result = renderRhythmNotation(
         document.createElement("div"),
         f.pattern,
@@ -247,7 +288,7 @@ describe("Seven-meter runtime completion gate", () => {
       ).toEqual(f.accents);
       expect(
         notes.map(note => Number(note.getAttribute("data-pulse-index")))
-      ).toEqual(f.pulseIndices);
+      ).toEqual(expected.pulseIndices);
       expect(
         notes.every(note => note.querySelector("text,path") !== null)
       ).toBe(true);
@@ -353,6 +394,109 @@ describe("Seven-meter runtime completion gate", () => {
       ).toHaveLength(0);
     });
   }
+  it("7M canonical endpoints align validation, duration, audio/count-in/reference and tap targets for 1/2/4 bars", () => {
+    for (const f of SEVEN_METER_RUNTIME_FIXTURES) {
+      const expected = expectedPulseData(f);
+      const track = f.name === "2/2" ? "bonus" : f.name.endsWith("/8") ? 6 : 3;
+      for (const pulseBpm of [30, getDefaultPulseBpm(f.pattern.meter), 300]) {
+        for (const bars of [1, 2, 4] as const) {
+          const pattern: RhythmPattern = {
+            ...f.pattern,
+            id: `${f.pattern.id}-${pulseBpm}-${bars}`,
+            tempo: { pulseBpm },
+            measures: Array.from({ length: bars }, (_, barIndex) => ({
+              id: `bar-${barIndex + 1}`,
+              segments: f.pattern.measures[0].segments.map(
+                (segment, index) => ({
+                  ...segment,
+                  id: `b${barIndex + 1}-s${index + 1}`,
+                })
+              ),
+            })),
+          };
+          expect(rhythmPatternInputSchema.safeParse(pattern).success).toBe(
+            true
+          );
+          expect(validateRhythmPattern(pattern).valid).toBe(true);
+          const canonical = requireValidRhythmPattern(pattern);
+          const measureTicks = f.capacity;
+          const totalTicks = measureTicks * bars;
+          const expectedSeconds = ticksToSeconds(
+            totalTicks,
+            f.pattern.meter,
+            pulseBpm
+          );
+          const audio = createRhythmAudioPlan(canonical, "both");
+          expect(audio.totalTicks).toBe(totalTicks);
+          expect(audio.durationSeconds).toBe(expectedSeconds);
+          const exercisePulseTicks = Array.from(
+            { length: bars },
+            (_, barIndex) =>
+              expected.pulseStarts.map(tick => barIndex * measureTicks + tick)
+          ).flat();
+          expect(audio.pulseEvents.map(event => event.tick)).toEqual(
+            exercisePulseTicks
+          );
+          expect(audio.pulseEvents.map(event => event.offsetSeconds)).toEqual(
+            exercisePulseTicks.map(tick =>
+              ticksToSeconds(tick, f.pattern.meter, pulseBpm)
+            )
+          );
+
+          const exercise = createTapRhythmExercise({
+            track,
+            pattern: canonical,
+          });
+          const targetTicks = Array.from({ length: bars }, (_, barIndex) =>
+            f.eighthStarts.map(tick => barIndex * measureTicks + tick)
+          ).flat();
+          expect(exercise.targets.map(target => target.tick)).toEqual(
+            targetTicks
+          );
+          expect(exercise.targets.map(target => target.offsetMs)).toEqual(
+            targetTicks.map(
+              tick => ticksToSeconds(tick, f.pattern.meter, pulseBpm) * 1000
+            )
+          );
+
+          const attempt = createTapAttemptPlan(exercise);
+          const reference = createTapReferencePlan(exercise);
+          const countInTicks = expected.pulseStarts;
+          expect(attempt.pulseEvents).toHaveLength(
+            (bars + 1) * countInTicks.length
+          );
+          expect(
+            attempt.pulseEvents
+              .slice(0, countInTicks.length)
+              .map(event => event.tick)
+          ).toEqual(countInTicks);
+          expect(
+            attempt.pulseEvents
+              .slice(0, countInTicks.length)
+              .map(event => event.offsetSeconds)
+          ).toEqual(
+            countInTicks.map(tick =>
+              ticksToSeconds(tick, f.pattern.meter, pulseBpm)
+            )
+          );
+          expect(reference.pulseEvents).toHaveLength(
+            (bars + 1) * countInTicks.length
+          );
+          expect(
+            reference.toneEvents.map(event => event.tick - measureTicks)
+          ).toEqual(targetTicks);
+          expect(
+            reference.onsetReferences.map(event => event.tick - measureTicks)
+          ).toEqual(targetTicks);
+          expect(
+            reference.visualCounting
+              .slice(0, countInTicks.length)
+              .map(item => item.tick)
+          ).toEqual(countInTicks);
+        }
+      }
+    }
+  });
   it.each([
     { numerator: 5, denominator: 8 },
     { numerator: 7, denominator: 8 },

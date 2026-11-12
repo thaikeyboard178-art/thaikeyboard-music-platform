@@ -82,6 +82,7 @@ function resultWithAllMarkerStatuses(exercise: TapRhythmExercise) {
       offsetMs: third.offsetMs + third.passMs + 1,
     }),
     Object.freeze({ sequence: 3, offsetMs: last.offsetMs + 2000 }),
+    Object.freeze({ sequence: 4, offsetMs: last.offsetMs + 2050 }),
   ]);
   const evaluation = matchTapRhythm(exercise.targets, taps);
   return sealTapAttempt({
@@ -112,7 +113,7 @@ function drawAtWidth(width = 390) {
 }
 
 describe("TapResultNotation", () => {
-  it("renders notation with a compact two-state legend and toggles only the marker overlay", () => {
+  it("renders notation with a compact three-state legend and toggles only the marker overlay", () => {
     const exercise = exerciseFixture();
     const result = resultFixture(exercise);
     render(<TapResultNotation exercise={exercise} result={result} />);
@@ -135,15 +136,23 @@ describe("TapResultNotation", () => {
     expect(overlay?.querySelectorAll("text")).toHaveLength(0);
 
     const legend = screen.getByTestId("tap-marker-legend");
-    expect(legend.querySelectorAll("li")).toHaveLength(2);
+    expect(legend.querySelectorAll("li")).toHaveLength(3);
     expect(
       [...legend.querySelectorAll("li")].map(item =>
         item.getAttribute("data-state")
       )
-    ).toEqual(["matched", "misaligned"]);
+    ).toEqual(["matched", "misaligned", "missing"]);
     expect(legend.textContent).toContain("Khớp");
     expect(legend.textContent).toContain("Lệch");
-    expect(screen.getByText("Vòng tròn viền đỏ: chưa chạm.")).toBeTruthy();
+    const missingLegend = legend.querySelector('[data-state="missing"]');
+    expect(missingLegend?.textContent).toBe("Thiếu");
+    const hollowMarker = missingLegend?.querySelector(
+      "span[aria-hidden='true']"
+    );
+    expect((hollowMarker as HTMLElement | null)?.style.background).toBe("none");
+    expect((hollowMarker as HTMLElement | null)?.style.border).toContain(
+      "rgb(201, 75, 69)"
+    );
 
     const marker = screen
       .getAllByTestId("tap-marker")

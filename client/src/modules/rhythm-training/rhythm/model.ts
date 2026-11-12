@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PULSE_BPM, MIN_PULSE_BPM } from "./meters";
 
 const identifier = z
   .string()
@@ -37,7 +38,11 @@ export const rhythmPatternInputSchema = z
   .object({
     id: identifier,
     meter: rhythmMeterSchema,
-    tempo: z.object({ pulseBpm: z.number().finite().positive() }).strict(),
+    tempo: z
+      .object({
+        pulseBpm: z.number().finite().min(MIN_PULSE_BPM).max(MAX_PULSE_BPM),
+      })
+      .strict(),
     measures: z
       .array(
         z

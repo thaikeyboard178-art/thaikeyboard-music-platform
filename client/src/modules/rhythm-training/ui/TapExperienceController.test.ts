@@ -340,7 +340,18 @@ describe("Tap practice and graded controller experience", () => {
     await h.controller.start("graded");
     expect(h.controller.getSnapshot().gradedResult).toBe(gradedReceipt);
     expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+    const gradedEngine = h.engines.at(-1)!;
     await h.controller.retry();
+    const retryEngine = h.engines.at(-1)!;
+    expect(retryEngine).not.toBe(gradedEngine);
+    expect(gradedEngine.state).toBe("disposed");
+    expect(retryEngine.state).toBe("idle");
+    expect(h.controller.getSnapshot().phase).toBe("ready");
+    expect(h.controller.getSnapshot().result).toBeNull();
+    expect(h.controller.getSnapshot().originalPoints).toBe(10);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+    await h.controller.start();
+    expect(retryEngine.state).toMatch(/^(count-in|collecting)$/);
     await finishAttempt(h);
     const retryState = h.controller.getSnapshot();
     expect(retryState.result?.mode).toBe("practice");

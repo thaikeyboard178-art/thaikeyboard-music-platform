@@ -7,20 +7,10 @@ import {
   type RhythmGenerationConfig,
 } from "./generator";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
+import { getDefaultPulseBpm } from "../rhythm/meters";
 import type { RhythmTrack } from "../types";
 
 const tracks: readonly RhythmTrack[] = [1, 2, 3, 4, 5, 6, "bonus"];
-
-function tempoForTrack(track: RhythmTrack, meter: RhythmGenerationConfig["meter"]) {
-  const policy = policyForLevel(track);
-  if (meter!.denominator === 8 && meter!.numerator === 3)
-    return (policy.tempo.eighth ?? policy.tempo.simple).min;
-  if (meter!.denominator === 8)
-    return (policy.tempo.compound ?? policy.tempo.simple).min;
-  if (meter!.numerator === 2 && meter!.denominator === 2)
-    return (policy.tempo.half ?? policy.tempo.simple).min;
-  return policy.tempo.simple.min;
-}
 
 describe("complete curriculum generator matrix", () => {
   it("generates only canonical patterns for each supported track/focus/meter/bar configuration", () => {
@@ -29,7 +19,10 @@ describe("complete curriculum generator matrix", () => {
       const policy = policyForLevel(track);
       for (const focus of policy.supportedFocus) {
         for (const meter of policy.allowedMeters) {
-          if (focus === "compound" && (meter.numerator === 3 || meter.denominator !== 8))
+          if (
+            focus === "compound" &&
+            (meter.numerator === 3 || meter.denominator !== 8)
+          )
             continue;
           // A 3/8 bar has only 720 ticks: its dotted-quarter value fills the
           // entire bar, so there is no room for a separate tie plus dot event.
@@ -49,7 +42,7 @@ describe("complete curriculum generator matrix", () => {
                 meter,
                 bars,
                 focus,
-                pulseBpm: tempoForTrack(track, meter),
+                pulseBpm: getDefaultPulseBpm(meter),
               };
               let pattern;
               try {
@@ -59,9 +52,13 @@ describe("complete curriculum generator matrix", () => {
                   `Generation failed for ${JSON.stringify(input)}: ${String(error)}`
                 );
               }
-              expect(() => assertLevelConstraints(pattern, input)).not.toThrow();
+              expect(() =>
+                assertLevelConstraints(pattern, input)
+              ).not.toThrow();
               const timeline = deriveRhythmTimeline(pattern);
-              expect(timeline.totalTicks).toBe(timeline.meter.measureTicks * bars);
+              expect(timeline.totalTicks).toBe(
+                timeline.meter.measureTicks * bars
+              );
               expect(timeline.onsets.length).toBeGreaterThan(0);
             }
           }

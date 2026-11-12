@@ -13,29 +13,35 @@ import {
 } from "./learnerConfiguration";
 
 describe("Phase5 learner configuration reads approved runtime gates", () => {
-  it("has no Tap in Levels1/2, approved sections in3–6 and Practice-only Bonus", () => {
-    expect(getTapSections(1)).toEqual([]);
-    expect(getTapSections(2)).toEqual([]);
+  it("offers Tap Practice/Assessment in Levels1/2, approved sections in3–6 and optional Bonus", () => {
+    expect(getTapSections(1)).toEqual(["practice", "assessment"]);
+    expect(getTapSections(2)).toEqual(["practice", "assessment"]);
+    expect(getCurriculumUnit(1).exerciseKinds.lessons).not.toContain(
+      "tap-rhythm"
+    );
+    expect(getCurriculumUnit(2).exerciseKinds.lessons).not.toContain(
+      "tap-rhythm"
+    );
     for (const track of [3, 4, 5, 6] as const)
       expect(getTapSections(track)).toEqual([
         "lessons",
         "practice",
         "assessment",
       ]);
-    expect(getTapSections("bonus")).toEqual(["practice"]);
+    expect(getTapSections("bonus")).toEqual(["practice", "assessment"]);
     expect(getCurriculumUnit(6).assessmentAllocation).toBe(
       "pending-technical-specification"
     );
   });
   it("describes all seven meter pulses accurately without confusing3/8 with compound6/8/9/8", () => {
     expect(pulseDescription({ numerator: 3, denominator: 8 })).toContain(
-      "3 phách chính"
+      "3 phách mỗi ô · mỗi phách = nốt móc đơn"
     );
     expect(pulseDescription({ numerator: 6, denominator: 8 })).toContain(
-      "2 phách phức"
+      "6 phách mỗi ô · mỗi phách = nốt móc đơn"
     );
     expect(pulseDescription({ numerator: 9, denominator: 8 })).toContain(
-      "3 phách phức"
+      "9 phách mỗi ô · mỗi phách = nốt móc đơn"
     );
     expect(pulseDescription({ numerator: 2, denominator: 2 })).toContain(
       "nốt trắng"
@@ -51,7 +57,7 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
     );
     for (const numerator of [2, 3, 4] as const)
       expect(pulseDescription({ numerator, denominator: 4 })).toContain(
-        `${numerator} phách chính`
+        `${numerator} phách mỗi ô`
       );
   });
   it("offers only existing tempo-band endpoints and excludes already invalid3/8 compound/combined focus", () => {
@@ -65,12 +71,16 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
     expect(getTapFocuses(6, { numerator: 6, denominator: 8 })).toContain(
       "combined"
     );
-    expect(getTapTempoBand(6, { numerator: 6, denominator: 8 })).toBe(
-      policyForLevel(6).tempo.compound
-    );
-    expect(getTapTempoBand("bonus", { numerator: 2, denominator: 2 })).toBe(
-      policyForLevel("bonus").tempo.half
-    );
+    expect(getTapTempoBand(6, { numerator: 6, denominator: 8 })).toEqual({
+      min: 30,
+      max: 300,
+      pulse: "eighth",
+    });
+    expect(getTapTempoBand("bonus", { numerator: 2, denominator: 2 })).toEqual({
+      min: 30,
+      max: 300,
+      pulse: "half",
+    });
   });
   it("executes the real generator for every exposed track/meter/focus/bar endpoint combination", () => {
     for (const track of [3, 4, 5, 6, "bonus"] as const)
