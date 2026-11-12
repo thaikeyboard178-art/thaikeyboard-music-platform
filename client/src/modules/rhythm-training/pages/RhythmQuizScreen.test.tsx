@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import RhythmQuizScreen from "./RhythmQuizScreen";
 import { RhythmQuizNotation } from "../quiz/RhythmQuizNotation";
 import type { RhythmPattern } from "../types";
@@ -28,6 +28,7 @@ beforeAll(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -451,6 +452,11 @@ describe("RhythmQuizScreen visual-only flow", () => {
   it("completes a finite run with unique question IDs, visible A–D labels, canonical option mapping, and a fresh retry", () => {
     const onBack = vi.fn();
     const { container } = render(<RhythmQuizScreen onBack={onBack} />);
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: "Tự động chuyển câu hỏi (Auto Next)",
+      })
+    );
     fireEvent.click(screen.getByRole("button", { name: /^Level 1/ }));
     fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
@@ -516,6 +522,10 @@ describe("RhythmQuizScreen visual-only flow", () => {
       )
     ).toBe(true);
     expect(screen.getByText("Quiz run · chỉ số giao diện")).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Quay về Rhythm Training" })
+    );
+    expect(onBack).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "Làm lại lượt này" }));
     const secondPrompt =
       container.querySelector(".rhythm-quiz-question")?.textContent ?? "";
@@ -531,6 +541,11 @@ describe("RhythmQuizScreen visual-only flow", () => {
 
   it("reports the correct displayed letter and canonical answer after an incorrect selection", () => {
     render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: "Tự động chuyển câu hỏi (Auto Next)",
+      })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
     const prompt =
       document.querySelector(".rhythm-quiz-question")?.textContent ?? "";
@@ -554,6 +569,119 @@ describe("RhythmQuizScreen visual-only flow", () => {
     expect(wrongButton.disabled).toBe(true);
   });
 
+  it("keeps correct feedback for two seconds, advances once, and opens final results automatically", () => {
+    const { container } = render(<RhythmQuizScreen onBack={vi.fn()} />);
+    expect(
+      screen
+        .getByRole("switch", {
+          name: "Tự động chuyển câu hỏi (Auto Next)",
+        })
+        .getAttribute("aria-checked")
+    ).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    vi.useFakeTimers();
+    const plannedCount = 5;
+    const seen = new Set<string>();
+    for (let index = 0; index < plannedCount; index += 1) {
+      const prompt =
+        container.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+      const question = bank(1).find(candidate => candidate.prompt === prompt)!;
+      expect(seen.has(question.id)).toBe(false);
+      seen.add(question.id);
+      const incorrectOptionId = question.options.find(
+        option => option.id !== question.correctOptionId
+      )!.id;
+      const chosenOptionId = index === 0 ? incorrectOptionId : question.correctOptionId;
+      const option = container.querySelector<HTMLButtonElement>(
+        `.rhythm-quiz-option[data-option-id="${chosenOptionId}"]`
+      )!;
+      fireEvent.click(option);
+      expect(screen.getByRole("status").textContent).toContain(
+        index === 0 ? "+0 điểm" : "+10 điểm"
+      );
+      expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe(
+        String(index + 1)
+      );
+      if (index === 0) {
+        act(() => vi.advanceTimersByTime(1999));
+        expect(
+          container.querySelector(".rhythm-quiz-runline")?.textContent
+        ).toContain("Câu 1 / 5");
+        expect(screen.getByRole("status").textContent).toContain("+0 điểm");
+        act(() => vi.advanceTimersByTime(1));
+        expect(
+          container.querySelector(".rhythm-quiz-runline")?.textContent
+        ).toContain("Câu 2 / 5");
+      } else if (index === plannedCount - 1) {
+        act(() => vi.advanceTimersByTime(1999));
+        expect(
+          screen.queryByRole("heading", { name: "Tổng kết Quiz" })
+        ).toBeNull();
+        expect(screen.getByText("Tổng kết sẽ tự mở sau 2 giây.")).toBeTruthy();
+        act(() => vi.advanceTimersByTime(1));
+        expect(
+          screen.getByRole("heading", { name: "Tổng kết Quiz" })
+        ).toBeTruthy();
+      } else {
+        act(() => vi.advanceTimersByTime(2000));
+        expect(
+          container.querySelector(".rhythm-quiz-runline")?.textContent
+        ).toContain(`Câu ${index + 2} / ${plannedCount}`);
+      }
+    }
+    expect(
+      Array.from(container.querySelectorAll(".rhythm-quiz-stat")).some(
+        stat => stat.textContent === "40Tổng điểm cuối"
+      )
+    ).toBe(true);
+  });
+
+  it("keeps the answered question and feedback available when Auto Next is off", () => {
+    const { container } = render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: "Tự động chuyển câu hỏi (Auto Next)",
+      })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    vi.useFakeTimers();
+    const prompt = container.querySelector(".rhythm-quiz-question")?.textContent ?? "";
+    const question = bank(1).find(candidate => candidate.prompt === prompt)!;
+    fireEvent.click(
+      container.querySelector<HTMLButtonElement>(
+        `.rhythm-quiz-option[data-option-id="${question.correctOptionId}"]`
+      )!
+    );
+    act(() => vi.advanceTimersByTime(5000));
+    expect(
+      container.querySelector(".rhythm-quiz-runline")?.textContent
+    ).toContain("Câu 1 / 5");
+    expect(screen.getByRole("button", { name: "Câu tiếp theo" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Câu tiếp theo" }));
+    expect(
+      container.querySelector(".rhythm-quiz-runline")?.textContent
+    ).toContain("Câu 2 / 5");
+  });
+
+  it("does not auto-advance a confirmed Skip when Auto Next is on", () => {
+    const { container } = render(<RhythmQuizScreen onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
+    fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "Bỏ qua câu hỏi" }));
+    fireEvent.click(screen.getByRole("button", { name: /Xác nhận bỏ qua/ }));
+    expect(
+      container.querySelector(".rhythm-quiz-runline")?.textContent
+    ).toContain("Câu 2 / 5");
+    act(() => vi.advanceTimersByTime(5000));
+    expect(
+      container.querySelector(".rhythm-quiz-runline")?.textContent
+    ).toContain("Câu 2 / 5");
+    expect(screen.getByRole("button", { name: "Bỏ qua câu hỏi" })).toBeTruthy();
+  });
+
   it("shows Mixed origin and creates a full 30-question run with no repeated source question", () => {
     render(<RhythmQuizScreen onBack={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /Hỗn hợp.*All Levels/i }));
@@ -565,7 +693,13 @@ describe("RhythmQuizScreen visual-only flow", () => {
   });
 
   it("confirms Skip once, keeps cancelled skips untouched, and reports all result score fields", () => {
-    const { container } = render(<RhythmQuizScreen onBack={vi.fn()} />);
+    const onBack = vi.fn();
+    const { container } = render(<RhythmQuizScreen onBack={onBack} />);
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: "Tự động chuyển câu hỏi (Auto Next)",
+      })
+    );
     fireEvent.click(screen.getByRole("button", { name: /^Level 1/ }));
     fireEvent.click(screen.getByRole("button", { name: "5 câu" }));
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu Quiz" }));
@@ -598,6 +732,10 @@ describe("RhythmQuizScreen visual-only flow", () => {
     expect(summaryStats).toContain("10Điểm cộng từ câu đúng");
     expect(summaryStats).toContain("10Điểm thực tế bị trừ khi bỏ qua");
     expect(summaryStats).toContain("0Tổng điểm cuối");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Quay về Rhythm Training" })
+    );
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 
   it("uses a short bank's exact available count instead of capping silently", () => {

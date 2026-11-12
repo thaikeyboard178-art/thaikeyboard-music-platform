@@ -697,17 +697,6 @@ export default function RhythmTrainingPage() {
       <div className="training-app rhythm-page">
       <TrainingHeader currentModuleId="rhythm-training" />
       <main className="module-main rhythm-main">
-        {screen === "setup" && selectedActivity === "tap" && (
-          <nav className="rhythm-top-navigation" aria-label="Rhythm Training">
-            <button
-              type="button"
-              className="rhythm-top-return"
-              onClick={() => transitionTo("chooser")}
-            >
-              Quay về Rhythm Training
-            </button>
-          </nav>
-        )}
         <div className="module-breadcrumb">
           <Link href="/">Trang chủ</Link>
           <ChevronRight size={12} />
@@ -732,9 +721,20 @@ export default function RhythmTrainingPage() {
                   : "Nhìn ký âm. Nghe nhịp. Chạm đúng lúc bắt đầu mỗi nốt."}
             </p>
           </div>
-          <span className="free-pill">
-            <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
-          </span>
+          <div className="rhythm-heading-actions" data-testid="rhythm-heading-actions">
+            <span className="free-pill">
+              <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
+            </span>
+            {screen === "setup" && selectedActivity === "tap" && (
+              <button
+                type="button"
+                className="rhythm-top-return"
+                onClick={() => transitionTo("chooser")}
+              >
+                Quay về Rhythm Training
+              </button>
+            )}
+          </div>
         </div>
 
         {progressStep !== null && <RhythmStepProgress current={progressStep} />}
@@ -1088,11 +1088,25 @@ export default function RhythmTrainingPage() {
               data-testid="rhythm-workspace"
             >
               <section
+                className="rhythm-practice-zone rhythm-info-zone"
+                aria-labelledby="rhythm-info-zone-title"
+              >
+                <h3 id="rhythm-info-zone-title" className="rhythm-zone-title">
+                  1 · EXERCISE INFO
+                </h3>
+                <ExerciseMetadata view={view} />
+                <span className="rhythm-mode-badge" aria-disabled="true">
+                  Chế độ:{" "}
+                  {view.selectedMode === "practice" ? "Chơi thử" : "Chấm điểm"}
+                </span>
+              </section>
+
+              <section
                 className="rhythm-practice-zone rhythm-metronome-zone"
                 aria-labelledby="rhythm-metronome-zone-title"
               >
                 <h3 id="rhythm-metronome-zone-title" className="rhythm-zone-title">
-                  1 · METRONOME
+                  2 · METRONOME
                 </h3>
                 <section
                   className="rhythm-tempo-control rhythm-practice-tempo"
@@ -1191,6 +1205,16 @@ export default function RhythmTrainingPage() {
                   pulseBpm={view.exercise.pattern.tempo.pulseBpm}
                   readPlayback={() => controller.getAudioPlayback()}
                 />
+                <div
+                  className={`rhythm-status phase-${view.phase}`}
+                  role="status"
+                  aria-live="polite"
+                  data-testid="rhythm-status"
+                  data-phase={view.phase}
+                >
+                  {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
+                  {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
+                </div>
                 <label className="rhythm-volume-control">
                   <Volume2 size={16} />
                   <span>Âm lượng metronome</span>
@@ -1212,27 +1236,58 @@ export default function RhythmTrainingPage() {
               </section>
 
               <section
+                className="rhythm-practice-zone rhythm-staff-tap-zone"
+                aria-labelledby="rhythm-staff-tap-zone-title"
+              >
+                <h3 id="rhythm-staff-tap-zone-title" className="rhythm-zone-title">
+                  3 · STAFF AND TAP
+                </h3>
+                <RhythmNotation
+                  pattern={view.exercise.pattern}
+                  onReady={setNotationReady}
+                />
+                <div
+                  ref={tapRef}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
+                  aria-disabled={
+                    !["count-in", "collecting", "draining"].includes(view.phase)
+                  }
+                  aria-describedby="rhythm-tap-help"
+                  className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
+                  data-testid="rhythm-tap-surface"
+                  onPointerDown={event => {
+                    if (event.isPrimary) controller.acknowledgeTap();
+                  }}
+                  onKeyDown={event => {
+                    if (event.code === "Space" || event.key === " ") {
+                      event.preventDefault();
+                      if (!event.repeat) controller.acknowledgeTap();
+                    }
+                  }}
+                >
+                  <Waves size={35} aria-hidden="true" />
+                  <strong>{tapFlash ? "Vừa chạm" : "Chạm ở đây"}</strong>
+                  <span>Hoặc ấn Space khi vùng chạm được chọn</span>
+                  <small>
+                    {view.tapVisualSequence > 0
+                      ? `Tín hiệu chạm hiển thị: ${view.tapVisualSequence} · chấm sau khi hoàn tất`
+                      : "Chạm một lần ở đầu mỗi nốt · không cần giữ"}
+                  </small>
+                </div>
+                <p id="rhythm-tap-help" className="rhythm-tap-help">
+                  Tín hiệu chạm chỉ xác nhận thao tác, chưa phải đúng/sai. Engine
+                  chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
+                </p>
+              </section>
+              <section
                 className="rhythm-practice-zone rhythm-controls-zone"
                 aria-labelledby="rhythm-controls-zone-title"
               >
                 <h3 id="rhythm-controls-zone-title" className="rhythm-zone-title">
-                  2 · EXERCISE CONTROLS
+                  4 · EXERCISE CONTROLS
                 </h3>
-                <ExerciseMetadata view={view} />
-                <div
-                  className={`rhythm-status phase-${view.phase}`}
-                  role="status"
-                  aria-live="polite"
-                  data-testid="rhythm-status"
-                  data-phase={view.phase}
-                >
-                  {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
-                  {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
-                </div>
-                <span className="rhythm-mode-badge" aria-disabled="true">
-                  Chế độ:{" "}
-                  {view.selectedMode === "practice" ? "Chơi thử" : "Chấm điểm"}
-                </span>
                 {showOfficialSessionScore && cumulativeTotalScore !== null && (
                   <SessionScore score={cumulativeTotalScore} />
                 )}
@@ -1337,52 +1392,6 @@ export default function RhythmTrainingPage() {
                 )}
               </section>
 
-              <section
-                className="rhythm-practice-zone rhythm-staff-tap-zone"
-                aria-labelledby="rhythm-staff-tap-zone-title"
-              >
-                <h3 id="rhythm-staff-tap-zone-title" className="rhythm-zone-title">
-                  3 · STAFF AND TAP
-                </h3>
-                <RhythmNotation
-                  pattern={view.exercise.pattern}
-                  onReady={setNotationReady}
-                />
-                <div
-                  ref={tapRef}
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
-                  aria-disabled={
-                    !["count-in", "collecting", "draining"].includes(view.phase)
-                  }
-                  aria-describedby="rhythm-tap-help"
-                  className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
-                  data-testid="rhythm-tap-surface"
-                  onPointerDown={event => {
-                    if (event.isPrimary) controller.acknowledgeTap();
-                  }}
-                  onKeyDown={event => {
-                    if (event.code === "Space" || event.key === " ") {
-                      event.preventDefault();
-                      if (!event.repeat) controller.acknowledgeTap();
-                    }
-                  }}
-                >
-                  <Waves size={35} aria-hidden="true" />
-                  <strong>{tapFlash ? "Vừa chạm" : "Chạm ở đây"}</strong>
-                  <span>Hoặc ấn Space khi vùng chạm được chọn</span>
-                  <small>
-                    {view.tapVisualSequence > 0
-                      ? `Tín hiệu chạm hiển thị: ${view.tapVisualSequence} · chấm sau khi hoàn tất`
-                      : "Chạm một lần ở đầu mỗi nốt · không cần giữ"}
-                  </small>
-                </div>
-                <p id="rhythm-tap-help" className="rhythm-tap-help">
-                  Tín hiệu chạm chỉ xác nhận thao tác, chưa phải đúng/sai. Engine
-                  chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
-                </p>
-              </section>
             </section>
           )}
           {skipDialogOpen && (

@@ -184,8 +184,18 @@ describe("Rhythm learner page: three screens and real controller integration", (
         name: /Rhythm Quiz/,
       })
     ).toBeNull();
+    const headingActions = screen.getByTestId("rhythm-heading-actions");
+    const setupReturn = screen.getByRole("button", {
+      name: "Quay về Rhythm Training",
+    });
+    expect(headingActions.lastElementChild).toBe(setupReturn);
+    expect(
+      within(screen.getByTestId("screen-setup")).queryByRole("button", {
+        name: "Quay về Rhythm Training",
+      })
+    ).toBeNull();
     await user.click(
-      screen.getByRole("button", { name: "Quay về Rhythm Training" })
+      setupReturn
     );
     expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
       false
@@ -205,6 +215,12 @@ describe("Rhythm learner page: three screens and real controller integration", (
         .getAttribute("data-current-step")
     ).toBe("setup");
     expect(within(quiz).queryByLabelText(/BPM|metronome|Tap/i)).toBeNull();
+    const autoNextSwitch = within(quiz).getByRole("switch", {
+      name: "Tự động chuyển câu hỏi (Auto Next)",
+    });
+    expect(autoNextSwitch.getAttribute("aria-checked")).toBe("true");
+    await user.click(autoNextSwitch);
+    expect(autoNextSwitch.getAttribute("aria-checked")).toBe("false");
     await user.click(
       within(quiz).getByRole("button", { name: "Bắt đầu Quiz" })
     );
@@ -276,7 +292,9 @@ describe("Rhythm learner page: three screens and real controller integration", (
       ).toBe("result")
     );
     await user.click(
-      within(quiz).getByRole("button", { name: "Chọn hoạt động" })
+      within(quiz).getByRole("button", {
+        name: "Quay về Rhythm Training",
+      })
     );
     expect(screen.getByTestId("screen-chooser").hasAttribute("hidden")).toBe(
       false
@@ -372,19 +390,30 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(
       zones.map(zone =>
         [
+          "rhythm-info-zone",
           "rhythm-metronome-zone",
-          "rhythm-controls-zone",
           "rhythm-staff-tap-zone",
+          "rhythm-controls-zone",
         ].find(className => zone.classList.contains(className))
       )
     ).toEqual([
+      "rhythm-info-zone",
       "rhythm-metronome-zone",
-      "rhythm-controls-zone",
       "rhythm-staff-tap-zone",
+      "rhythm-controls-zone",
     ]);
     expect(workspace.querySelectorAll(".rhythm-tempo-value")).toHaveLength(1);
     expect(workspace.querySelectorAll(".rhythm-tempo")).toHaveLength(0);
     const staffTapZone = zones[2];
+    expect(zones[1].querySelectorAll('[data-testid="rhythm-status"]')).toHaveLength(1);
+    expect(zones[3].querySelector('[data-testid="rhythm-status"]')).toBeNull();
+    expect(zones[0].querySelector(".rhythm-meta h2")?.textContent).toContain(
+      "4/4"
+    );
+    expect(zones[0].querySelector(".rhythm-mode-badge")?.textContent).toContain(
+      "Chơi thử"
+    );
+    expect(zones[3].querySelectorAll(".rhythm-controls button").length).toBeGreaterThanOrEqual(3);
     const tapTarget = staffTapZone.querySelector(
       '[data-testid="rhythm-tap-surface"]'
     )!;

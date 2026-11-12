@@ -501,7 +501,9 @@ export class TapRhythmEngine {
       rawCaptures: this.raw,
     });
     this.stateValue = "completed";
-    this.transport.stop();
+    // Scoring closes at the approved onset-based drain boundary, but the
+    // independent finite metronome plan must finish the last full measure.
+    // Explicit stop/abort/dispose paths still cancel the transport promptly.
     this.emit(result);
   }
   private abort(reason: string): void {

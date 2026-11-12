@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toTrainingResult } from "@/features/training/session";
 import { RhythmQuizNotation } from "../quiz/RhythmQuizNotation";
 import {
@@ -26,6 +26,7 @@ export type RhythmQuizScreenState =
   | "technical-error";
 
 const OPTION_LETTERS = ["A", "B", "C", "D"] as const;
+export const RHYTHM_QUIZ_AUTO_NEXT_DELAY_MS = 2000;
 
 type RhythmQuizScreenProps = {
   onBack: () => void;
@@ -41,6 +42,7 @@ export default function RhythmQuizScreen({
   const [selectedTrack, setSelectedTrack] = useState<QuizTrack>(1);
   const [selectedQuestionCount, setSelectedQuestionCount] =
     useState<number>(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT);
+  const [autoNext, setAutoNext] = useState(true);
   const [localScreen, setLocalScreen] =
     useState<RhythmQuizScreenState>("select");
   const screen = controlledScreen ?? localScreen;
@@ -59,6 +61,7 @@ export default function RhythmQuizScreen({
   const [skipDialogOpen, setSkipDialogOpen] = useState(false);
   const questionStartedAt = useRef(Date.now());
   const skipLockRef = useRef(false);
+  const advanceLockRef = useRef<string | null>(null);
 
   React.useEffect(() => {
     skipLockRef.current = false;
@@ -76,6 +79,7 @@ export default function RhythmQuizScreen({
       setSession(createRhythmQuizSession(track, deck, nextRun));
       setSelectedOptionId(null);
       setSkipDialogOpen(false);
+      advanceLockRef.current = null;
       setRunNumber(nextRun);
       setTechnicalError(null);
       questionStartedAt.current = Date.now();
@@ -106,24 +110,44 @@ export default function RhythmQuizScreen({
     );
   };
 
-  const advance = () => {
+  const advance = useCallback(() => {
     if (!session?.hasAnsweredCurrent) return;
+    const answeredQuestionId = session.currentExercise.id;
+    if (advanceLockRef.current === answeredQuestionId) return;
+    advanceLockRef.current = answeredQuestionId;
     if (session.completedAt !== null) {
       setScreen("summary");
       return;
     }
     const nextQuestion = questions[session.seenQuestionIds.length];
     if (!nextQuestion) {
+      advanceLockRef.current = null;
       setScreen("technical-error");
       setTechnicalError(
         "Không tìm thấy câu tiếp theo; lượt Quiz chưa được hoàn tất hoặc tính sai."
       );
       return;
     }
-    setSession(advanceRhythmQuizSession(session, nextQuestion));
+    const advanced = advanceRhythmQuizSession(session, nextQuestion);
+    if (advanced === session) {
+      advanceLockRef.current = null;
+      setScreen("technical-error");
+      setTechnicalError("Không thể chuyển sang câu Quiz kế tiếp an toàn.");
+      return;
+    }
+    setSession(advanced);
     setSelectedOptionId(null);
     questionStartedAt.current = Date.now();
-  };
+  }, [questions, session, setScreen]);
+
+  useEffect(() => {
+    if (!autoNext || screen !== "quiz" || !session?.hasAnsweredCurrent) return;
+    const timer = window.setTimeout(
+      advance,
+      RHYTHM_QUIZ_AUTO_NEXT_DELAY_MS
+    );
+    return () => window.clearTimeout(timer);
+  }, [autoNext, advance, screen, session]);
 
   const confirmSkip = () => {
     if (!session || skipLockRef.current || selectedOptionId !== null) return;
@@ -269,6 +293,26 @@ export default function RhythmQuizScreen({
                   )}
                 </div>
               </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autoNext}
+                aria-label="Tự động chuyển câu hỏi (Auto Next)"
+                className={`rhythm-quiz-auto-next ${autoNext ? "is-on" : ""}`}
+                onClick={() => setAutoNext(enabled => !enabled)}
+              >
+                <span className="rhythm-quiz-auto-next-copy">
+                  <strong>Tự động chuyển câu hỏi (Auto Next)</strong>
+                  <small>
+                    {autoNext
+                      ? "Bật · Phản hồi hiển thị 2 giây rồi chuyển câu."
+                      : "Tắt · Giữ phản hồi đến khi bạn chọn câu tiếp theo."}
+                  </small>
+                </span>
+                <span className="rhythm-quiz-auto-next-state">
+                  {autoNext ? "Bật" : "Tắt"}
+                </span>
+              </button>
               {questionCountAvailable ? (
                 <p className="rhythm-quiz-note" role="status">
                   Ngân hàng có {availableQuestionCount} câu khác nhau; lượt này
@@ -454,9 +498,16 @@ export default function RhythmQuizScreen({
                       . {correctOption.label}.
                     </span>
                   )}
+                  {autoNext && (
+                    <small className="rhythm-quiz-auto-next-hint">
+                      {session.completedAt !== null
+                        ? "Tổng kết sẽ tự mở sau 2 giây."
+                        : "Câu tiếp theo sẽ tự mở sau 2 giây."}
+                    </small>
+                  )}
                 </div>
               )}
-              {session.hasAnsweredCurrent && (
+              {session.hasAnsweredCurrent && !autoNext && (
                 <div className="rhythm-quiz-action-row">
                   <button
                     type="button"
@@ -557,7 +608,7 @@ export default function RhythmQuizScreen({
                   className="rhythm-quiz-secondary"
                   onClick={onBack}
                 >
-                  Chọn hoạt động
+                  Quay về Rhythm Training
                 </button>
               </div>
             </section>

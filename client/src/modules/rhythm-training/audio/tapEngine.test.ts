@@ -1,27 +1,72 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "./tapEngine";
 import { createTapAttemptPlan } from "./tapPlan";
-import { getDefaultPulseBpm } from "../rhythm/meters";
+import { deriveMeter, getDefaultPulseBpm } from "../rhythm/meters";
 import { TapFakeClock, TEST_TAP_VOICES } from "./tapTestHelpers";
 import {
   createTapRhythmExercise,
   createTapTargets,
 } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
+import { requireValidRhythmPattern } from "../rhythm/validate";
+import type { RhythmScheduledEvent } from "./transport";
 import type { RhythmTrack } from "../types";
 import type { RhythmPattern } from "../types";
+
+function sparseSustainPattern(
+  fixture: (typeof SEVEN_METER_RUNTIME_FIXTURES)[number],
+  bars: number
+): RhythmPattern {
+  const meter = fixture.pattern.meter;
+  const source = fixture.pattern.measures[0].segments;
+  const sustainCount =
+    meter.denominator === 8
+      ? meter.numerator === 3
+        ? 2
+        : 3
+      : meter.denominator === 2 || meter.numerator >= 3
+        ? 4
+        : 2;
+  return {
+    ...fixture.pattern,
+    id: `${fixture.pattern.id}-sparse-sustain-${bars}`,
+    measures: Array.from({ length: bars }, (_, barIndex) => ({
+      id: `sparse-bar-${barIndex + 1}`,
+      segments: source.map((segment, segmentIndex) => ({
+        id: `sparse-b${barIndex + 1}-s${segmentIndex + 1}`,
+        kind: segmentIndex < sustainCount ? ("note" as const) : ("rest" as const),
+        duration: segment.duration,
+        ...(segmentIndex < sustainCount
+          ? { tieGroupId: `sustain-bar-${barIndex + 1}` }
+          : {}),
+      })),
+    })),
+  };
+}
 
 function setup(index = 0, patternOverride?: RhythmPattern) {
   const fixture = SEVEN_METER_RUNTIME_FIXTURES[index];
   const track: RhythmTrack = index < 3 ? 3 : index === 6 ? "bonus" : 6;
-  const exercise = createTapRhythmExercise({
+  const baseExercise = createTapRhythmExercise({
     track,
-    pattern: patternOverride ?? fixture.pattern,
+    pattern: fixture.pattern,
   });
+  const canonicalOverride = patternOverride
+    ? requireValidRhythmPattern(patternOverride)
+    : null;
+  const exercise = canonicalOverride
+    ? Object.freeze({
+        ...baseExercise,
+        id: `${baseExercise.id}-${canonicalOverride.id}`,
+        pattern: canonicalOverride,
+        targets: createTapTargets(canonicalOverride, baseExercise.gridTicks),
+      })
+    : baseExercise;
   const clock = new TapFakeClock();
   const input = new EventTarget();
   const blur = new EventTarget();
   const visibility = Object.assign(new EventTarget(), { hidden: false });
+  const scheduledEvents: RhythmScheduledEvent[] = [];
   let factories = 0;
   const engine = new TapRhythmEngine({
     exercise,
@@ -37,6 +82,7 @@ function setup(index = 0, patternOverride?: RhythmPattern) {
         return clock.context as unknown as AudioContext;
       },
       visibilitySource: visibility as unknown as Document,
+      onScheduled: event => scheduledEvents.push(event),
     },
   });
   return {
@@ -46,6 +92,7 @@ function setup(index = 0, patternOverride?: RhythmPattern) {
     input,
     blur,
     visibility,
+    scheduledEvents,
     engine,
     factoryCount: () => factories,
   };
@@ -334,7 +381,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.factoryCount()).toBe(1);
     await h.engine.dispose();
   });
-  it("keeps the snapshot while transport plays through the bounded drain", async () => {
+  it("keeps the snapshot at bounded drain while the finite transport finishes the complete bar", async () => {
     const clock = new TapFakeClock();
     const base = createTapRhythmExercise({
       track: 3,
@@ -362,6 +409,8 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       },
     });
     await engine.start();
+    const plan = createTapAttemptPlan(exercise);
+    const timing = engine.transport.getReferenceTiming()!;
     const snapshot = engine.snapshot!;
     for (const target of snapshot.expectedOnsets) {
       clock.at(target.audioTime);
@@ -375,8 +424,53 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(engine.result!.status).toBe("completed");
     expect(engine.result!.evaluation!.correct).toBe(true);
     expect(engine.state).toBe("completed");
-    expect(engine.transport.state).toBe("stopped");
+    expect(["playing", "completed"]).toContain(engine.transport.state);
+    const planEnd = timing.anchorTime + plan.durationSeconds;
+    clock.at(planEnd + 0.05);
+    expect(engine.transport.state).toBe("completed");
     await engine.dispose();
     expect(clock.tasks.size).toBe(0);
   });
+
+  it.each(
+    SEVEN_METER_RUNTIME_FIXTURES.map((fixture, index) => ({ fixture, index }))
+  )(
+    "plays every count-in and full-measure pulse after one early sustained onset with rest tails in $fixture.name",
+    async ({ fixture, index }) => {
+      for (const bars of [1, 2, 4] as const) {
+        const h = setup(index, sparseSustainPattern(fixture, bars));
+        const plan = createTapAttemptPlan(h.exercise);
+        const measureTicks = deriveMeter(fixture.pattern.meter).measureTicks;
+        expect(h.exercise.targets).toHaveLength(bars);
+        expect(
+          h.exercise.targets.map(target => target.tick % measureTicks)
+        ).toEqual(Array.from({ length: bars }, () => 0));
+        expect(plan.pulseEvents).toHaveLength((bars + 1) * plan.pulseCount);
+        expect(plan.pulseEvents.some(event => event.tick === plan.totalTicks)).toBe(
+          false
+        );
+
+        await h.engine.start();
+        tapAll(h);
+        finish(h);
+        expect(h.engine.state).toBe("completed");
+        expect(h.engine.result!.evaluation!.correct).toBe(true);
+        expect(h.engine.transport.state).toBe("playing");
+
+        const timing = h.engine.transport.getReferenceTiming()!;
+        const planEnd = timing.anchorTime + plan.durationSeconds;
+        h.clock.at(planEnd + 0.05);
+        expect(h.engine.transport.state).toBe("completed");
+        const scheduledPulseTicks = h.scheduledEvents
+          .filter(event => event.event.lane === "metronome")
+          .map(event => event.event.tick);
+        expect(scheduledPulseTicks).toEqual(
+          plan.pulseEvents.map(event => event.tick)
+        );
+        expect(new Set(scheduledPulseTicks).size).toBe(scheduledPulseTicks.length);
+        await h.engine.dispose();
+        expect(h.clock.tasks.size).toBe(0);
+      }
+    }
+  );
 });
