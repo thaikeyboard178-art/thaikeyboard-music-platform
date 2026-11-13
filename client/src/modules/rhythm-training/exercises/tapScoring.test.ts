@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "../audio/tapEngine";
-import { TapFakeClock, TEST_TAP_VOICES } from "../audio/tapTestHelpers";
+import {
+  dispatchFirstTapAtNextDownbeat,
+  TapFakeClock,
+  TEST_TAP_VOICES,
+} from "../audio/tapTestHelpers";
+import type { RhythmScheduledEvent } from "../audio/transport";
 import { sealTapAttempt } from "./tapCompletion";
 import { createTapRhythmExercise } from "./tapRhythm";
 import {
@@ -24,6 +29,7 @@ import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 async function setup(name: string) {
   const clock = new TapFakeClock();
   const input = new EventTarget();
+  const scheduledEvents: RhythmScheduledEvent[] = [];
   const exercise = createTapRhythmExercise({
     track: 3,
     pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
@@ -40,6 +46,7 @@ async function setup(name: string) {
       timers: clock.timers,
       contextFactory: () => clock.context as unknown as AudioContext,
       visibilitySource: null,
+      onScheduled: event => scheduledEvents.push(event),
     },
   });
   const session = createRhythmTrainingSession(
@@ -47,16 +54,26 @@ async function setup(name: string) {
     exercise
   );
   await engine.start();
-  return { clock, input, exercise, engine, session };
+  return { clock, input, exercise, engine, session, scheduledEvents };
 }
 function complete(h: Awaited<ReturnType<typeof setup>>, shifts: number[] = []) {
+  if (!h.engine.snapshot)
+    dispatchFirstTapAtNextDownbeat(
+      h.clock,
+      h.input,
+      h.exercise,
+      h.scheduledEvents
+    );
   const snapshot = h.engine.snapshot!;
-  for (let i = 0; i < snapshot.expectedOnsets.length; i++) {
-    const at = snapshot.expectedOnsets[i].audioTime + (shifts[i] ?? 0) / 1000;
+  let responseIndex = 0;
+  for (const target of snapshot.expectedOnsets) {
+    if (target.roundNumber === 1 && target.targetIndex === 0) continue;
+    const at = target.audioTime + (shifts[responseIndex] ?? 0) / 1000;
+    responseIndex++;
     h.clock.at(at);
     h.input.dispatchEvent(h.clock.nativeTap(at));
   }
-  h.clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.03);
+  h.clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.06);
   return h.engine.result!;
 }
 
@@ -130,7 +147,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
     expect(first.status).toBe("graded");
     expect(first.scoreDelta).toBe(10);
     expect(first.session.questionsAnswered).toBe(1);
-    expect(attempt.accuracyPercent).toBe(100);
+    expect(attempt.accuracyPercent).toBeCloseTo(100, 6);
     expect(toTrainingResult(first.session)!.accuracy).toBe(100);
     const duplicate = submitRhythmExerciseAnswer(first.session, h.exercise, {
       type: "answer",
@@ -237,6 +254,12 @@ describe("Tap runtime to existing shared scoring integration", () => {
   });
   it("physical extra taps are excluded from accuracy while all target notes still earn the full award", async () => {
     const h = await setup("tap-score-extra");
+    dispatchFirstTapAtNextDownbeat(
+      h.clock,
+      h.input,
+      h.exercise,
+      h.scheduledEvents
+    );
     const first = h.engine.snapshot!.expectedOnsets[0].audioTime;
     h.clock.at(first);
     h.input.dispatchEvent(h.clock.nativeTap(first));

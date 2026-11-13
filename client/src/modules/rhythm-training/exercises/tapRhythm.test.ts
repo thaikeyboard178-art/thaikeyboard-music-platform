@@ -129,6 +129,26 @@ function patternSegments(pattern: RhythmPattern) {
 }
 
 describe("Tap Rhythm canonical exercise and target projection", () => {
+  it("rejects a first-measure rest at beat one in Tap mode", () => {
+    const startsWithRest: RhythmPattern = {
+      id: "tap-first-beat-rest-rejected",
+      meter: { numerator: 2, denominator: 4 },
+      tempo: { pulseBpm: 72 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            { id: "rest", kind: "rest", duration: quarter() },
+            { id: "note", kind: "note", duration: quarter() },
+          ],
+        },
+      ],
+    };
+    expect(() =>
+      createTapRhythmExercise({ track: 3, pattern: startsWithRest })
+    ).toThrow(/sounding note on beat 1/);
+  });
+
   it.each(meterCases)(
     "projects canonical onset references for $meter.numerator/$meter.denominator",
     entry => {
@@ -156,6 +176,8 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         audioReferences.map(reference => reference.offsetSeconds * 1000)
       );
       expect(exercise.targets.length).toBeGreaterThan(0);
+      expect(exercise.pattern.measures[0].segments[0].kind).toBe("note");
+      expect(exercise.targets[0]?.tick).toBe(0);
       expect(Object.isFrozen(exercise)).toBe(true);
       expect(Object.isFrozen(exercise.targets)).toBe(true);
 
@@ -579,10 +601,10 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(createTapTargets(level2Pattern, 240).length).toBeGreaterThan(0);
 
     for (const track of [1, 2] as const) {
-      const pattern = generateRhythmPattern({
-        level: track,
+      const pattern = generateTapRhythmExercise({
+        track,
         seed: `level-${track}-tap-placement`,
-      });
+      }).pattern;
       for (const section of ["practice", "assessment"] as const) {
         expect(
           createTapRhythmExercise({ track, section, pattern }).section
@@ -606,10 +628,10 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         })
       ).toThrow(RangeError);
     }
-    const bonusPattern = generateRhythmPattern({
-      level: "bonus",
+    const bonusPattern = generateTapRhythmExercise({
+      track: "bonus",
       seed: "bonus-assessment-placement",
-    });
+    }).pattern;
     expect(
       createTapRhythmExercise({
         track: "bonus",

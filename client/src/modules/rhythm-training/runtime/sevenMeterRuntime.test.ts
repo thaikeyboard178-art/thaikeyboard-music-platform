@@ -644,42 +644,19 @@ describe("Seven-meter runtime completion gate", () => {
           const reference = createTapReferencePlan(exercise);
           const countInTicks = expected.pulseStarts;
           expect(attempt.pulseEvents).toHaveLength(
-            (2 * bars + 1) * countInTicks.length
-          );
-          expect(
-            attempt.pulseEvents
-              .slice(0, countInTicks.length)
-              .map(event => event.tick)
-          ).toEqual(countInTicks);
-          expect(
-            attempt.pulseEvents
-              .slice(0, countInTicks.length)
-              .map(event => event.offsetSeconds)
-          ).toEqual(
-            countInTicks.map(tick =>
-              ticksToSeconds(tick, f.pattern.meter, pulseBpm)
-            )
+            2 * bars * countInTicks.length
           );
           const attemptPulseRounds = [
+            { tickShift: 0, secondsShift: 0 },
             {
-              tickShift: measureTicks,
-              secondsShift: ticksToSeconds(
-                measureTicks,
-                f.pattern.meter,
-                pulseBpm
-              ),
-            },
-            {
-              tickShift: measureTicks + totalTicks,
-              secondsShift:
-                ticksToSeconds(measureTicks, f.pattern.meter, pulseBpm) +
-                expectedSeconds,
+              tickShift: totalTicks,
+              secondsShift: expectedSeconds,
             },
           ];
           for (const [roundIndex, round] of attemptPulseRounds.entries()) {
             const roundEvents = attempt.pulseEvents.slice(
-              countInTicks.length + roundIndex * bars * countInTicks.length,
-              countInTicks.length + (roundIndex + 1) * bars * countInTicks.length
+              roundIndex * bars * countInTicks.length,
+              (roundIndex + 1) * bars * countInTicks.length
             );
             expect(roundEvents.map(event => event.tick - round.tickShift)).toEqual(
               exercisePulseTicks

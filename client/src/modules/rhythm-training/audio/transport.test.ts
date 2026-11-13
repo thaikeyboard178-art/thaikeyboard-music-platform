@@ -147,6 +147,74 @@ describe("production currentTime Rhythm audio transport", () => {
     await transport.dispose();
   });
 
+  it("keeps a free metronome loop alive across bars on one generation and anchor", async () => {
+    const { clock, transport, events } = setup();
+    const plan = createRhythmAudioPlan(FOUR_FOUR, "metronome");
+    const timing = await transport.startLoop(plan);
+    clock.advance(plan.durationSeconds * 3 + 0.1);
+    expect(transport.state).toBe("playing");
+    expect(transport.getReferenceTiming()).toBeNull();
+    const pulses = events.filter(event => event.event.lane === "metronome");
+    expect(pulses.length).toBeGreaterThanOrEqual(plan.pulseCount * 3);
+    expect(new Set(pulses.map(event => event.generation))).toEqual(
+      new Set([timing.generation])
+    );
+    expect(pulses.map(event => event.startTime)).toEqual(
+      [...pulses.map(event => event.startTime)].sort((a, b) => a - b)
+    );
+    expect(new Set(pulses.map(event => event.event.id)).size).toBe(
+      pulses.length
+    );
+    transport.stop();
+    expect(transport.hasPendingWakeup).toBe(false);
+    await transport.dispose();
+  });
+
+  it("appends at a scheduled loop barline without a duplicate pulse or new generation", async () => {
+    const { clock, transport, events } = setup();
+    const loop = createRhythmAudioPlan(FOUR_FOUR, "metronome");
+    const exercise = createRhythmAudioPlan(FOUR_FOUR, "metronome");
+    const timing = await transport.startLoop(loop);
+    const boundary = timing.anchorTime + loop.durationSeconds;
+    clock.advance(boundary - clock.context.currentTime - 0.2);
+    clock.advance(0.2);
+    const before = events.filter(event => event.event.lane === "metronome");
+    expect(before.some(event => Math.abs(event.startTime - boundary) < 1e-9)).toBe(true);
+    const reference = transport.appendPlanAtLoopBoundary(exercise, boundary);
+    expect(reference.generation).toBe(timing.generation);
+    expect(reference.anchorTime).toBe(boundary);
+    expect(reference.expectedOnsets[0].audioTime).toBe(boundary);
+    clock.advance(exercise.durationSeconds + 0.2);
+    expect(transport.state).toBe("completed");
+    const allPulses = events.filter(event => event.event.lane === "metronome");
+    expect(allPulses.filter(event => Math.abs(event.startTime - boundary) < 1e-9)).toHaveLength(1);
+    expect(new Set(allPulses.map(event => event.generation))).toEqual(
+      new Set([timing.generation])
+    );
+    expect(transport.hasPendingWakeup).toBe(false);
+    await transport.dispose();
+  });
+
+  it("uses the continuation pulse when the free loop has not scheduled the boundary yet", async () => {
+    const { clock, transport, events } = setup();
+    const loop = createRhythmAudioPlan(FOUR_FOUR, "metronome");
+    const exercise = createRhythmAudioPlan(FOUR_FOUR, "metronome");
+    const timing = await transport.startLoop(loop);
+    const boundary = timing.anchorTime + loop.durationSeconds;
+    clock.advance(0.3);
+    transport.appendPlanAtLoopBoundary(exercise, boundary);
+    clock.advance(boundary - clock.context.currentTime + exercise.durationSeconds + 0.2);
+    expect(transport.state).toBe("completed");
+    expect(
+      events.filter(
+        event =>
+          event.event.lane === "metronome" &&
+          Math.abs(event.startTime - boundary) < 1e-9
+      )
+    ).toHaveLength(1);
+    await transport.dispose();
+  });
+
   it.each(SEVEN_METER_RUNTIME_FIXTURES)(
     "schedules native voice calls with exact pulse times for $name",
     async fixture => {

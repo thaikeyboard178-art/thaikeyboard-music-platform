@@ -241,6 +241,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
         "ties",
         "combined",
         "sixteenths",
+        "snap",
+        "sandwich",
         "syncopation",
         "integrated",
         "quarter-triplets",

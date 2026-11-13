@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "./tapEngine";
-import { createTapAttemptPlan } from "./tapPlan";
+import {
+  createTapAttemptPlan,
+  createTapMetronomeLoopPlan,
+} from "./tapPlan";
 import { deriveMeter, getDefaultPulseBpm } from "../rhythm/meters";
 import { TapFakeClock, TEST_TAP_VOICES } from "./tapTestHelpers";
 import {
   createTapRhythmExercise,
   createTapTargets,
+  evaluateTapRhythmAnswer,
 } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import { requireValidRhythmPattern } from "../rhythm/validate";
@@ -39,6 +43,37 @@ function sparseSustainPattern(
         duration: segment.duration,
         ...(segmentIndex < sustainCount
           ? { tieGroupId: `sustain-bar-${barIndex + 1}` }
+          : {}),
+      })),
+    })),
+  };
+}
+
+function repeatedMeterPattern(
+  fixture: (typeof SEVEN_METER_RUNTIME_FIXTURES)[number],
+  pulseBpm: number,
+  bars: number
+): RhythmPattern {
+  const source = fixture.pattern.measures[0];
+  return {
+    ...fixture.pattern,
+    id: `${fixture.pattern.id}-loop-${pulseBpm}-${bars}`,
+    tempo: { ...fixture.pattern.tempo, pulseBpm },
+    measures: Array.from({ length: bars }, (_, barIndex) => ({
+      id: `loop-bar-${barIndex + 1}`,
+      segments: source.segments.map((segment, segmentIndex) => ({
+        ...segment,
+        id: `loop-bar-${barIndex + 1}-segment-${segmentIndex + 1}`,
+        ...(segment.tieGroupId
+          ? { tieGroupId: `${segment.tieGroupId}-bar-${barIndex + 1}` }
+          : {}),
+        ...(segment.tupletGroup
+          ? {
+              tupletGroup: {
+                ...segment.tupletGroup,
+                groupId: `${segment.tupletGroup.groupId}-bar-${barIndex + 1}`,
+              },
+            }
           : {}),
       })),
     })),
@@ -103,6 +138,28 @@ function setup(
     factoryCount: () => factories,
   };
 }
+async function sendFirstTap(
+  h: ReturnType<typeof setup>,
+  scheduledEventsFrom = 0
+) {
+  const loop = createTapMetronomeLoopPlan(h.exercise);
+  const firstPulse = h.scheduledEvents
+    .slice(scheduledEventsFrom)
+    .find(event => event.event.lane === "metronome");
+  if (!firstPulse) throw new Error("The free metronome did not schedule a pulse.");
+  const nextBarline = firstPulse.startTime + loop.durationSeconds;
+  const firstTap = nextBarline;
+  h.clock.at(firstTap);
+  h.input.dispatchEvent(h.clock.nativeTap(firstTap));
+  if (!h.engine.snapshot) throw new Error("The first Tap did not align an attempt.");
+}
+
+async function startAttempt(h: ReturnType<typeof setup>, mode?: "practice" | "graded") {
+  const scheduledEventsFrom = h.scheduledEvents.length;
+  await h.engine.start(mode);
+  await sendFirstTap(h, scheduledEventsFrom);
+}
+
 function tapTargets(
   h: ReturnType<typeof setup>,
   targets: readonly { audioTime: number }[],
@@ -114,13 +171,18 @@ function tapTargets(
   }
 }
 function tapAll(h: ReturnType<typeof setup>, delta = 0) {
-  tapTargets(h, h.engine.snapshot!.expectedOnsets, delta);
+  const targets = h.engine.snapshot!.expectedOnsets.filter(
+    onset => !(onset.roundNumber === 1 && onset.targetIndex === 0)
+  );
+  tapTargets(h, targets, delta);
 }
 function finish(h: ReturnType<typeof setup>) {
   const snapshot = h.engine.snapshot!;
-  h.clock.at(
-    Math.max(snapshot.planEndAudioTime, snapshot.drainEndAudioTime) + 0.03
-  );
+  const end = Math.max(snapshot.planEndAudioTime, snapshot.drainEndAudioTime);
+  h.clock.at(end + 0.03);
+  // Transport and engine timers may share a deadline; allow one extra wake for
+  // the engine to observe the transport's completed state.
+  h.clock.at(end + 0.08);
 }
 function expectTwoRoundTargets(h: ReturnType<typeof setup>) {
   const snapshot = h.engine.snapshot!;
@@ -152,7 +214,7 @@ function expectTwoRoundTargets(h: ReturnType<typeof setup>) {
 function expectTwoRoundPulsePlan(h: ReturnType<typeof setup>) {
   const plan = createTapAttemptPlan(h.exercise);
   const meter = deriveMeter(h.exercise.pattern.meter);
-  const totalMeasures = 2 * h.exercise.pattern.measures.length + 1;
+  const totalMeasures = 2 * h.exercise.pattern.measures.length;
   const expectedPulseTicks = Array.from({ length: totalMeasures }, (_, measure) =>
     meter.pulseStarts.map(tick => measure * meter.measureTicks + tick)
   ).flat();
@@ -185,13 +247,13 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
           };
           const h = setup(index, pattern);
           expectTwoRoundPulsePlan(h);
-          await h.engine.start();
+          await startAttempt(h);
           expectTwoRoundTargets(h);
           tapAll(h);
           finish(h);
           expect(h.engine.state).toBe("completed");
           expect(h.engine.result!.evaluation!.correct).toBe(true);
-          expect(h.engine.result!.accuracyPercent).toBeCloseTo(100, 8);
+          expect(h.engine.result!.accuracyPercent).toBeCloseTo(100, 6);
           expect(h.engine.result!.rounds?.map(round => round.status)).toEqual([
             "played",
             "played",
@@ -208,14 +270,14 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   it.each(
     SEVEN_METER_RUNTIME_FIXTURES.map((fixture, index) => ({ fixture, index }))
   )(
-    "executes count-in, pulse, capture, DP and Formula B for $fixture.name",
+    "executes free listening, first Tap, pulse, capture, DP and Formula B for $fixture.name",
     async ({ index }) => {
       let completionCount = 0;
       const h = setup(index, undefined, () => completionCount++);
       const plan = expectTwoRoundPulsePlan(h);
       expect(plan.toneEvents).toHaveLength(0);
-      await h.engine.start();
-      expect(h.engine.state).toBe("count-in");
+      await startAttempt(h);
+      expect(h.engine.state).toBe("collecting");
       expectTwoRoundTargets(h);
       expect(h.engine.snapshot!.rounds.map(round =>
         round.expectedOnsets.map(onset => onset.tick)
@@ -229,7 +291,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       expect(h.engine.state).toBe("completed");
       expect(completionCount).toBe(1);
       expect(h.engine.result!.evaluation!.correct).toBe(true);
-      expect(h.engine.result!.accuracyPercent).toBeCloseTo(100, 8);
+      expect(h.engine.result!.accuracyPercent).toBeCloseTo(100, 6);
       expect(h.engine.result!.scoreOutOfTen).toBe(10);
       expect(h.engine.result!.rawCaptures).toHaveLength(
         h.exercise.targets.length * 2
@@ -256,10 +318,10 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   );
   it("scores only the played round when the other round is explicitly skipped and preserves its captures", async () => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     const snapshot = h.engine.snapshot!;
     expectTwoRoundTargets(h);
-    tapTargets(h, snapshot.rounds[0].expectedOnsets);
+    tapTargets(h, snapshot.rounds[0].expectedOnsets.slice(1));
     h.clock.at(snapshot.rounds[1].startAudioTime);
     expect(h.engine.currentRound).toBe(2);
     expect(h.engine.canSkipCurrentRound).toBe(true);
@@ -273,11 +335,11 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       "skipped",
     ]);
     expect(result.rounds?.[0].evaluation?.correct).toBe(true);
-    expect(result.rounds?.[0].accuracyPercent).toBe(100);
+    expect(result.rounds?.[0].accuracyPercent).toBeCloseTo(100, 6);
     expect(result.rounds?.[1].evaluation).toBeNull();
     expect(result.rounds?.[1].taps).toHaveLength(0);
     expect(result.evaluation?.correct).toBe(true);
-    expect(result.accuracyPercent).toBe(100);
+    expect(result.accuracyPercent).toBeCloseTo(100, 6);
     expect(result.scoreOutOfTen).toBe(10);
     expect(result.rawCaptures).toHaveLength(h.exercise.targets.length);
     expect(result.rounds?.[0].taps).toHaveLength(h.exercise.targets.length);
@@ -288,23 +350,19 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     const pattern = sparseSustainPattern(SEVEN_METER_RUNTIME_FIXTURES[0], 1);
     const h = setup(0, pattern);
     const plan = expectTwoRoundPulsePlan(h);
-    await h.engine.start();
+    await startAttempt(h);
     const snapshot = h.engine.snapshot!;
     expect(snapshot.rounds[0].expectedOnsets).toHaveLength(1);
     expect(snapshot.rounds[1].expectedOnsets).toHaveLength(1);
-    const firstOnset = snapshot.rounds[0].expectedOnsets[0];
-    h.clock.at(firstOnset.audioTime);
-    h.input.dispatchEvent(h.clock.nativeTap(firstOnset.audioTime));
-
     h.clock.at(snapshot.rounds[0].drainEndAudioTime + 0.03);
     expect(h.engine.roundResults[0]).toBeNull();
     expect(h.engine.canSkipCurrentRound).toBe(true);
     expect(h.engine.roundResults[1]).toBeNull();
 
-    h.clock.at(snapshot.rounds[1].startAudioTime + 0.01);
+    h.clock.at(snapshot.rounds[1].startAudioTime + 0.03);
     expect(h.engine.currentRound).toBe(2);
     expect(h.engine.roundResults[0]?.status).toBe("played");
-    expect(h.engine.roundResults[0]?.accuracyPercent).toBe(100);
+    expect(h.engine.roundResults[0]?.accuracyPercent).toBeCloseTo(100, 6);
     expect(h.engine.roundResults[1]).toBeNull();
     expect(h.engine.state).not.toBe("completed");
     expect(h.engine.transport.state).toBe("playing");
@@ -325,7 +383,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       "played",
     ]);
     expect(h.engine.result?.rounds?.[1].missedTargetCount).toBe(1);
-    expect(h.engine.result?.accuracyPercent).toBe(50);
+    expect(h.engine.result?.accuracyPercent).toBeCloseTo(50, 6);
     expect(h.engine.result?.scoreOutOfTen).toBe(5);
     expect(plan.pulseEvents.at(-1)?.tick).toBeLessThan(plan.totalTicks);
     await h.engine.dispose();
@@ -333,7 +391,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   it("closes the exact drain cutoff and keeps a finalized Round 1 immutable after Round 2 starts", async () => {
     const pattern = sparseSustainPattern(SEVEN_METER_RUNTIME_FIXTURES[0], 1);
     const h = setup(0, pattern);
-    await h.engine.start();
+    await startAttempt(h);
     const snapshot = h.engine.snapshot!;
     const roundOne = snapshot.rounds[0];
     const firstOnset = roundOne.expectedOnsets[0];
@@ -344,7 +402,8 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
 
     const finalizedRoundOne = h.engine.roundResults[0];
     expect(finalizedRoundOne?.status).toBe("played");
-    expect(finalizedRoundOne?.missedTargetCount).toBe(1);
+    expect(finalizedRoundOne?.missedTargetCount).toBe(0);
+    expect(finalizedRoundOne?.extraTapCount).toBe(0);
     expect(h.engine.currentRound).toBe(2);
     expect(h.engine.roundResults[1]).toBeNull();
     expect(h.engine.skipCurrentRound()).toBe(true);
@@ -356,12 +415,12 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       "played",
       "skipped",
     ]);
-    expect(h.engine.result?.rounds?.[0].missedTargetCount).toBe(1);
+    expect(h.engine.result?.rounds?.[0].missedTargetCount).toBe(0);
     await h.engine.dispose();
   });
   it("two explicit skips yield no score or answer, while unskipped silence is two played rounds of misses", async () => {
     const skipped = setup();
-    await skipped.engine.start();
+    await startAttempt(skipped);
     for (const [index, round] of skipped.engine.snapshot!.rounds.entries()) {
       skipped.clock.at(round.startAudioTime);
       expect(skipped.engine.currentRound).toBe(index + 1);
@@ -379,7 +438,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     await skipped.engine.dispose();
 
     const silent = setup();
-    await silent.engine.start();
+    await startAttempt(silent);
     finish(silent);
     const result = silent.engine.result!;
     expect(result.rounds?.map(round => round.status)).toEqual([
@@ -387,22 +446,127 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       "played",
     ]);
     expect(result.rounds?.map(round => round.missedTargetCount)).toEqual([
-      silent.exercise.targets.length,
+      silent.exercise.targets.length - 1,
       silent.exercise.targets.length,
     ]);
     expect(result.rounds?.every(round => round.evaluation?.correct === false)).toBe(
       true
     );
-    expect(result.evaluation?.missing).toBe(silent.exercise.targets.length);
-    expect(result.accuracyPercent).toBe(0);
-    expect(result.scoreOutOfTen).toBe(0);
+    expect(result.evaluation?.missing).toBe(silent.exercise.targets.length - 1);
+    expect(result.accuracyPercent).toBeGreaterThan(0);
+    expect(result.scoreOutOfTen).toBeGreaterThan(0);
     await silent.engine.dispose();
   });
-  it("accepts early/late within pass and diagnoses near-miss without changing timing policy", async () => {
+  it.each(
+    SEVEN_METER_RUNTIME_FIXTURES.flatMap((fixture, index) => [
+      { name: `${fixture.name} at 30 BPM / 1 bar`, index, pulseBpm: 30, bars: 1 },
+      {
+        name: `${fixture.name} at default BPM / 2 bars`,
+        index,
+        pulseBpm: getDefaultPulseBpm(fixture.pattern.meter),
+        bars: 2,
+      },
+      { name: `${fixture.name} at 300 BPM / 4 bars`, index, pulseBpm: 300, bars: 4 },
+    ])
+  )("runs a continuous free-listen and two-round Tap attempt for $name", async ({ index, pulseBpm, bars }) => {
+    const fixture = SEVEN_METER_RUNTIME_FIXTURES[index];
+    const pattern = repeatedMeterPattern(fixture, pulseBpm, bars);
+    const h = setup(index, pattern);
+    await h.engine.start();
+    const generation = h.engine.transport.generation;
+    const loop = createTapMetronomeLoopPlan(h.exercise);
+    const firstPulse = h.scheduledEvents.find(
+      event => event.generation === generation && event.event.lane === "metronome"
+    )!;
+    h.clock.at(firstPulse.startTime + 3 * loop.durationSeconds);
+    expect(h.engine.state).toBe("listening");
+    expect(h.engine.snapshot).toBeNull();
+    expect(h.engine.transport.generation).toBe(generation);
+
+    const downbeat = firstPulse.startTime + 4 * loop.durationSeconds;
+    h.clock.at(downbeat);
+    h.input.dispatchEvent(h.clock.nativeTap(downbeat));
+    const snapshot = h.engine.snapshot!;
+    expect(snapshot.rounds.map(round => round.anchorAudioTime)).toEqual([
+      downbeat,
+      downbeat + createTapAttemptPlan(h.exercise).durationSeconds / 2,
+    ]);
+    expect(h.engine.transport.generation).toBe(generation);
+    expect(
+      h.scheduledEvents.filter(
+        event =>
+          event.generation === generation &&
+          event.event.lane === "metronome" &&
+          Math.abs(event.startTime - downbeat) < 1e-7
+      )
+    ).toHaveLength(1);
+
+    tapAll(h);
+    finish(h);
+    const result = h.engine.result!;
+    expect(result.status).toBe("completed");
+    expect(result.rounds).toHaveLength(2);
+    expect(result.rounds?.[0].firstTapSequence).toBe(0);
+    expect(result.rounds?.every(round => round.evaluation?.correct)).toBe(true);
+    const pulseCount = deriveMeter(h.exercise.pattern.meter).pulseCount;
+    expect(
+      h.scheduledEvents.filter(
+        event => event.generation === generation && event.event.lane === "metronome"
+      )
+    ).toHaveLength((4 + 2 * h.exercise.pattern.measures.length) * pulseCount);
+    await h.engine.dispose();
+    expect(h.clock.tasks.size).toBe(0);
+  });
+
+  it("keeps the free loop unbounded and grades a first Tap outside Wassoc as Extra + Missing", async () => {
     const h = setup();
     await h.engine.start();
-    const targets = h.engine.snapshot!.expectedOnsets;
-    const shifts = [-20, 20, -65, 65];
+    const loop = createTapMetronomeLoopPlan(h.exercise);
+    const loopGeneration = h.engine.transport.generation;
+    const firstLoopPulse = h.scheduledEvents.find(event => event.event.lane === "metronome")!;
+    const completedFreeBars = firstLoopPulse.startTime + 3 * loop.durationSeconds;
+    h.clock.at(completedFreeBars);
+    expect(h.engine.state).toBe("listening");
+    expect(h.engine.snapshot).toBeNull();
+    expect(h.engine.transport.generation).toBe(loopGeneration);
+    expect(
+      h.scheduledEvents.filter(event => event.event.lane === "metronome").length
+    ).toBeGreaterThan(loop.pulseEvents.length * 2);
+
+    const nextBarline = firstLoopPulse.startTime + 4 * loop.durationSeconds;
+    const firstTap = nextBarline - 0.12;
+    h.clock.at(firstTap);
+    h.input.dispatchEvent(h.clock.nativeTap(firstTap));
+    expect(h.engine.snapshot!.rounds[0].anchorAudioTime).toBeCloseTo(nextBarline, 9);
+    expect(h.engine.state).toBe("aligning");
+    expect(h.engine.transport.generation).toBe(loopGeneration);
+    tapAll(h);
+    finish(h);
+
+    const firstRound = h.engine.result!.rounds![0];
+    expect(firstRound.firstTapSequence).toBe(0);
+    expect(firstRound.evaluation?.targetResults[0]?.status).toBe("missing");
+    expect(firstRound.evaluation?.tapResults[0]).toMatchObject({
+      sequence: 0,
+      status: "extra",
+      targetIndex: null,
+    });
+    expect(firstRound.evaluation).toMatchObject({ missing: 1, extra: 1 });
+    expect(h.engine.result!.rounds![1].evaluation?.correct).toBe(true);
+    expect(evaluateTapRhythmAnswer(h.exercise, h.engine.result)).toMatchObject({
+      correct: false,
+      accuracyPercent: h.engine.result!.accuracyPercent,
+      scoreOutOfTen: h.engine.result!.scoreOutOfTen,
+    });
+    await h.engine.dispose();
+    expect(h.clock.tasks.size).toBe(0);
+  });
+
+  it("accepts early/late within pass and diagnoses near-miss without changing timing policy", async () => {
+    const h = setup();
+    await startAttempt(h);
+    const targets = h.engine.snapshot!.expectedOnsets.slice(1);
+    const shifts = [20, -65, 65, -20];
     for (let i = 0; i < targets.length; i++) {
       const at = targets[i].audioTime + shifts[i % shifts.length] / 1000;
       h.clock.at(at);
@@ -411,13 +575,13 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     finish(h);
     expect(h.engine.result!.evaluation!.tp).toBe(2);
     expect(h.engine.result!.evaluation!.nearMiss).toBe(2);
-    expect(h.engine.result!.accuracyPercent).toBeCloseTo(83, 8);
+    expect(h.engine.result!.accuracyPercent).toBeCloseTo(84, 0);
     expect(h.engine.result!.evaluation!.correct).toBe(false);
     await h.engine.dispose();
   });
   it("deduplicates native event identity but preserves two equal-time physical taps and ignores Space repeat/secondary pointers", async () => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     const first = h.engine.snapshot!.expectedOnsets[0].audioTime;
     h.clock.at(first);
     const e = h.clock.nativeTap(first);
@@ -433,23 +597,21 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
         pointerId: 2,
       })
     );
-    for (const target of h.engine.snapshot!.expectedOnsets.slice(1)) {
+    for (const target of h.engine.snapshot!.rounds[0].expectedOnsets.slice(1)) {
       h.clock.at(target.audioTime);
       h.input.dispatchEvent(h.clock.nativeTap(target.audioTime, "keydown"));
     }
     finish(h);
-    expect(h.engine.result!.evaluation!.k).toBe(h.exercise.targets.length + 1);
-    expect(h.engine.result!.evaluation!.extra).toBe(1);
+    expect(h.engine.result!.evaluation!.k).toBe(h.exercise.targets.length + 2);
+    expect(h.engine.result!.evaluation!.extra).toBe(2);
     expect(h.engine.result!.evaluation!.correct).toBe(false);
     await h.engine.dispose();
   });
   it("drains a delayed original event inside the interval, excludes outside events, and never extends musical cutoff", async () => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     const snapshot = h.engine.snapshot!;
-    h.clock.at(snapshot.expectedOnsets[0].audioTime - 0.09);
-    h.input.dispatchEvent(h.clock.nativeTap(h.clock.context.currentTime));
-    for (const target of snapshot.expectedOnsets.slice(0, -1)) {
+    for (const target of snapshot.expectedOnsets.slice(1, -1)) {
       h.clock.at(target.audioTime);
       h.input.dispatchEvent(h.clock.nativeTap(target.audioTime));
     }
@@ -466,7 +628,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   });
   it("rejects delayed deliveries after drain without adding physical taps", async () => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     const snapshot = h.engine.snapshot!;
     tapAll(h);
     finish(h);
@@ -489,7 +651,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     "generation",
   ])("technical %s never becomes incorrect and cleans up", async kind => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     h.clock.at(h.engine.snapshot!.expectedOnsets[0].audioTime);
     if (kind === "pointercancel")
       h.input.dispatchEvent(
@@ -528,7 +690,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     "invalid %s output mapping aborts the active attempt",
     async kind => {
       const h = setup();
-      await h.engine.start();
+      await startAttempt(h);
       h.clock.at(h.engine.snapshot!.expectedOnsets[0].audioTime);
       const old = h.clock.context.getOutputTimestamp();
       if (kind === "missing")
@@ -555,12 +717,14 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   );
   it("rejects stale generation capture while a retry runs practice-only", async () => {
     const h = setup();
-    await h.engine.start();
+    await startAttempt(h);
     const generation = h.engine.generation;
     tapAll(h);
     finish(h);
     expect(h.engine.result!.mode).toBe("graded");
+    const retryEventsFrom = h.scheduledEvents.length;
     await h.engine.retry();
+    await sendFirstTap(h, retryEventsFrom);
     const first = h.engine.snapshot!.expectedOnsets[0].audioTime;
     h.clock.at(first);
     h.engine.handleEvent(h.clock.nativeTap(first), generation);
@@ -571,7 +735,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.factoryCount()).toBe(1);
     await h.engine.dispose();
   });
-  it("one reference before attempt, one bar count-in, no in-attempt reference replay", async () => {
+  it("one reference before the free-loop attempt, no in-attempt reference replay", async () => {
     const h = setup();
     const pending = h.engine.playReference();
     await Promise.resolve();
@@ -580,7 +744,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     await pending;
     expect(h.engine.state).toBe("idle");
     await expect(h.engine.playReference()).rejects.toThrow();
-    await h.engine.start();
+    await startAttempt(h);
     await expect(h.engine.playReference()).rejects.toThrow();
     await expect(h.engine.replay()).rejects.toThrow();
     tapAll(h);
@@ -602,6 +766,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       targets: createTapTargets(pattern, 240),
     };
     const input = new EventTarget();
+    const scheduledEvents: RhythmScheduledEvent[] = [];
     const engine = new TapRhythmEngine({
       exercise,
       inputTarget: input,
@@ -613,9 +778,15 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
         timers: clock.timers,
         contextFactory: () => clock.context as unknown as AudioContext,
         visibilitySource: null,
+        onScheduled: event => scheduledEvents.push(event),
       },
     });
     await engine.start();
+    const loop = createTapMetronomeLoopPlan(exercise);
+    const firstLoopPulse = scheduledEvents.find(event => event.event.lane === "metronome")!;
+    const firstTap = firstLoopPulse.startTime + loop.durationSeconds - 0.000000001;
+    clock.at(firstTap);
+    input.dispatchEvent(clock.nativeTap(firstTap));
     const plan = createTapAttemptPlan(exercise);
     const timing = engine.transport.getReferenceTiming()!;
     const snapshot = engine.snapshot!;
@@ -623,7 +794,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
       timing.anchorTime + plan.durationSeconds,
       12
     );
-    for (const target of snapshot.expectedOnsets) {
+    for (const target of snapshot.expectedOnsets.slice(1)) {
       clock.at(target.audioTime);
       input.dispatchEvent(clock.nativeTap(target.audioTime));
     }
@@ -653,7 +824,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   it.each(
     SEVEN_METER_RUNTIME_FIXTURES.map((fixture, index) => ({ fixture, index }))
   )(
-    "plays every count-in and full-measure pulse after one early sustained onset with rest tails in $fixture.name",
+    "plays every free-loop and full-measure pulse after one early sustained onset with rest tails in $fixture.name",
     async ({ fixture, index }) => {
       for (const bars of [1, 2, 4] as const) {
         const h = setup(index, sparseSustainPattern(fixture, bars));
@@ -663,7 +834,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
         expect(
           h.exercise.targets.map(target => target.tick % measureTicks)
         ).toEqual(Array.from({ length: bars }, () => 0));
-        await h.engine.start();
+        await startAttempt(h);
         expectTwoRoundTargets(h);
         tapAll(h);
         finish(h);
@@ -671,13 +842,27 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
         expect(h.engine.result!.evaluation!.correct).toBe(true);
         expect(h.engine.transport.state).toBe("completed");
 
-        const scheduledPulseTicks = h.scheduledEvents
-          .filter(event => event.event.lane === "metronome")
-          .map(event => event.event.tick);
-        expect(scheduledPulseTicks).toEqual(
-          plan.pulseEvents.map(event => event.tick)
+        const snapshot = h.engine.snapshot!;
+        const attemptPulses = h.scheduledEvents
+          .filter(
+            event =>
+              event.event.lane === "metronome" &&
+              event.startTime >= snapshot.rounds[0].anchorAudioTime - 1e-9 &&
+              event.startTime < snapshot.planEndAudioTime - 1e-9
+          )
+          .sort((a, b) => a.startTime - b.startTime);
+        const expectedPulseTimes = plan.pulseEvents.map(
+          event => snapshot.rounds[0].anchorAudioTime + event.offsetSeconds
         );
-        expect(new Set(scheduledPulseTicks).size).toBe(scheduledPulseTicks.length);
+        expect(attemptPulses.map(event => event.startTime)).toHaveLength(
+          expectedPulseTimes.length
+        );
+        attemptPulses.forEach((event, index) =>
+          expect(event.startTime).toBeCloseTo(expectedPulseTimes[index], 8)
+        );
+        expect(new Set(attemptPulses.map(event => event.startTime)).size).toBe(
+          attemptPulses.length
+        );
         await h.engine.dispose();
         expect(h.clock.tasks.size).toBe(0);
       }

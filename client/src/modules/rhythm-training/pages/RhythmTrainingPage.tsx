@@ -61,7 +61,8 @@ type TapMode = "practice" | "graded";
 const ACTIVE_PHASES = new Set([
   "preparing",
   "starting",
-  "count-in",
+  "listening",
+  "aligning",
   "collecting",
   "draining",
   "reference",
@@ -74,7 +75,8 @@ const PHASE_COPY: Record<string, string> = {
   idle: "Sẵn sàng — có thể nghe mẫu hoặc bắt đầu.",
   reference: "Đang phát mẫu — bài chưa được chấm.",
   starting: "Đang mở âm thanh…",
-  "count-in": "Đếm vào một ô nhịp — nghe click và chuẩn bị chạm.",
+  listening: "Metronome đang phát liên tục. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp.",
+  aligning: "Đã ghi nhận Tap đầu tiên; đang nối bài vào downbeat kế tiếp.",
   collecting: "Đang thực hiện — chạm ở đầu mỗi nốt, giữ nhịp qua dấu lặng.",
   draining: "Đang hoàn tất bài — vui lòng chờ kết quả.",
   completed: "Đã hoàn thành — đang mở kết quả.",
@@ -1200,6 +1202,9 @@ export default function RhythmTrainingPage() {
                     </p>
                   )}
                 </section>
+                <p className="tap-first-tap-guidance" data-testid="tap-first-tap-guidance">
+                  Metronome chạy tự do đến Tap đầu tiên. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp; nếu sớm ngoài Wassoc, hệ thống ghi Chạm thừa + phách 1 bị thiếu. Hãy Tap gần downbeat muốn bắt đầu.
+                </p>
                 <VisualMetronome
                   meter={view.exercise.pattern.meter}
                   pulseBpm={view.exercise.pattern.tempo.pulseBpm}
@@ -1224,8 +1229,10 @@ export default function RhythmTrainingPage() {
                   >
                     {view.currentRound !== null
                       ? `Đang ở vòng ${view.currentRound}/2.`
-                      : view.phase === "count-in" || view.phase === "starting"
-                        ? "Đang đếm vào trước 2 vòng liên tiếp."
+                      : view.phase === "listening"
+                        ? "Metronome chạy tự do; Tap đầu tiên được chấm theo phách 1."
+                        : view.phase === "aligning" || view.phase === "starting"
+                        ? "Đang nối bài vào downbeat kế tiếp trước 2 vòng liên tiếp."
                         : "Đang hoàn tất đối chiếu sau vòng 2."}
                     {view.skippedRounds.length > 0 &&
                       ` Đã bỏ qua vòng ${view.skippedRounds.join(", ")} theo lựa chọn; không trừ điểm.`}
@@ -1278,10 +1285,10 @@ export default function RhythmTrainingPage() {
                   tabIndex={0}
                   aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
                   aria-disabled={
-                    !["count-in", "collecting", "draining"].includes(view.phase)
+                    !["listening", "aligning", "collecting", "draining"].includes(view.phase)
                   }
                   aria-describedby="rhythm-tap-help"
-                  className={`rhythm-tap-surface ${["count-in", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
+                  className={`rhythm-tap-surface ${["listening", "aligning", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
                   data-testid="rhythm-tap-surface"
                   onPointerDown={event => {
                     if (event.isPrimary) controller.acknowledgeTap();
@@ -1303,8 +1310,9 @@ export default function RhythmTrainingPage() {
                   </small>
                 </div>
                 <p id="rhythm-tap-help" className="rhythm-tap-help">
-                  Tín hiệu chạm chỉ xác nhận thao tác, chưa phải đúng/sai. Engine
-                  chấm sau khi bài hoàn tất; không cộng điểm theo từng tap.
+                  Tap đầu tiên được chấm cho phách 1 tại downbeat kế tiếp. Kết quả
+                  và điểm hiển thị sau khi lượt tập hoàn tất; không cộng điểm theo
+                  từng tap.
                 </p>
               </section>
               <section

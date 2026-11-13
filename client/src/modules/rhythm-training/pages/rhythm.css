@@ -1434,13 +1434,6 @@
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
-.rhythm-page .rhythm-result .rhythm-metric-average {
-  background: #fff7f3;
-  border-color: #efc9bd;
-}
-.rhythm-page .rhythm-result .rhythm-metric-average strong {
-  color: #a43f2d;
-}
 .rhythm-page .rhythm-relative-feedback {
   margin-top: 14px;
   padding: 11px 12px;
@@ -1521,9 +1514,6 @@
 @media (max-width: 620px) {
   .rhythm-page .rhythm-result .rhythm-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .rhythm-page .rhythm-result .rhythm-metric-average {
-    grid-column: span 2;
   }
   .rhythm-page .rhythm-relative-feedback {
     padding: 10px;

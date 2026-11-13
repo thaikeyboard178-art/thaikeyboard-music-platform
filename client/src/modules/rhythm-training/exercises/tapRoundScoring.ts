@@ -7,6 +7,8 @@ export type TapRoundInput = Readonly<{
   roundNumber: TapRoundNumber;
   skipped: boolean;
   taps: readonly TapMatchInput[];
+  /** The first free-loop Tap; retained so re-grade applies its narrow exception. */
+  firstTapSequence?: number;
 }>;
 
 export type TapRoundNoteResult = Readonly<{
@@ -27,6 +29,8 @@ export type TapRoundResult = Readonly<{
   roundNumber: TapRoundNumber;
   status: "played" | "skipped";
   taps: readonly TapMatchInput[];
+  /** Round-one trigger metadata; null on skipped/non-trigger rounds. */
+  firstTapSequence?: number | null;
   evaluation: TapEvaluation | null;
   noteResults: readonly TapRoundNoteResult[];
   accuracyPercent: number | null;
@@ -213,6 +217,83 @@ function mean(values: readonly number[]): number | null {
 }
 
 /**
+ * Rhythm integration-only override for the identified first Tap. If it lies
+ * outside target one's inclusive association window, it is removed from both
+ * matcher passes and represented as Extra + Missing. The core matcher, all
+ * later taps, and Formula B are unchanged.
+ */
+function matchRound(
+  targets: readonly TapTarget[],
+  taps: readonly TapMatchInput[],
+  firstTapSequence?: number
+): TapEvaluation {
+  if (firstTapSequence === undefined) return matchTapRhythm(targets, taps);
+  const firstTarget = targets[0];
+  const firstTap = taps.find(tap => tap.sequence === firstTapSequence);
+  if (!firstTarget || !firstTap)
+    fail("The first Tap metadata does not identify a round-one capture.");
+  if (matchTapRhythm([firstTarget], [firstTap]).farAssociation === 0)
+    return matchTapRhythm(targets, taps);
+
+  const remainingTargets = targets.slice(1);
+  const remainingTaps = taps.filter(tap => tap.sequence !== firstTapSequence);
+  const remainder = matchTapRhythm(remainingTargets, remainingTaps);
+  const targetResults = Object.freeze([
+    Object.freeze({
+      targetIndex: 0,
+      targetId: firstTarget.id,
+      status: "missing" as const,
+      tapSequence: null,
+      errorMs: null,
+    }),
+    ...remainder.targetResults.map(result =>
+      Object.freeze({ ...result, targetIndex: result.targetIndex + 1 })
+    ),
+  ]);
+  const remainderBySequence = new Map(
+    remainder.tapResults.map(result => [result.sequence, result])
+  );
+  const tapResults = Object.freeze(
+    taps.map(tap => {
+      if (tap.sequence === firstTapSequence)
+        return Object.freeze({
+          sequence: tap.sequence,
+          status: "extra" as const,
+          targetIndex: null,
+          errorMs: null,
+        });
+      return (
+        remainderBySequence.get(tap.sequence) ??
+        Object.freeze({
+          sequence: tap.sequence,
+          status: "extra" as const,
+          targetIndex: null,
+          errorMs: null,
+        })
+      );
+    })
+  );
+  const n = targets.length;
+  const k = taps.length;
+  const tp = remainder.tp;
+  const missing = remainder.missing + 1;
+  const extra = remainder.extra + 1;
+  return Object.freeze({
+    correct: n > 0 && tp === n && extra === 0,
+    accuracyPercent: n === 0 ? null : (100 * 2 * tp) / (n + k),
+    tp,
+    n,
+    k,
+    missing,
+    extra,
+    nearMiss: remainder.nearMiss,
+    farAssociation: remainder.farAssociation,
+    targetResults,
+    tapResults,
+  });
+}
+
+/**
  * Finalizes one round using the same production matcher and note-accuracy rules
  * as the complete two-round score, with the other slot explicitly excluded.
  */
@@ -275,7 +356,10 @@ export function calculateTapTwoRoundScore(
       });
     }
     const taps = Object.freeze(input.taps.map(tap => Object.freeze({ ...tap })));
-    const evaluation = matchTapRhythm(targets, taps);
+    if (input.roundNumber === 2 && input.firstTapSequence !== undefined)
+      fail("The first Tap metadata can only belong to round one.");
+    const firstTapSequence = input.firstTapSequence;
+    const evaluation = matchRound(targets, taps, firstTapSequence);
     const noteResults = targetNotes(
       targets,
       evaluation,
@@ -291,6 +375,7 @@ export function calculateTapTwoRoundScore(
       roundNumber: input.roundNumber,
       status: "played" as const,
       taps,
+      ...(firstTapSequence === undefined ? {} : { firstTapSequence }),
       evaluation,
       noteResults,
       accuracyPercent,

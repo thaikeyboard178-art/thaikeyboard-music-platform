@@ -271,7 +271,7 @@ function featureSet(
     return {
       dots: false,
       ties: false,
-      sixteenths: false,
+      sixteenths: policy.allowSixteenths,
       syncopation: false,
       tuplets: "quarter",
     };
@@ -279,7 +279,7 @@ function featureSet(
     return {
       dots: false,
       ties: false,
-      sixteenths: false,
+      sixteenths: policy.allowSixteenths,
       syncopation: false,
       tuplets: "eighth",
     };
@@ -390,6 +390,21 @@ function featureSet(
       ? 0
       : 1 + Math.floor(random() * Math.min(2, shuffled.length));
   const selected = new Set(shuffled.slice(0, count));
+  const selectedOlderSource = (
+    ["dots", "ties", "sixteenths"] as const
+  ).some(source => selected.has(source));
+  if (
+    policy.level === 5 &&
+    selected.has("tuplets") &&
+    !selectedOlderSource &&
+    policy.allowSixteenths
+  ) {
+    // Syncopation can be infeasible in a tightly constrained one-bar triplet
+    // composition. Use the guaranteed L4 cell instead of permitting a
+    // triplet-only result or exceeding the two-source budget.
+    selected.delete("syncopation");
+    selected.add("sixteenths");
+  }
   if (
     selected.has("tuplets") &&
     bars === 1 &&
@@ -916,7 +931,10 @@ function applyTupletGroup(
   return true;
 }
 
-function requiredBarPrefix(resolved: ResolvedConfig): readonly RawSegment[] {
+function requiredBarPrefix(
+  resolved: ResolvedConfig,
+  random: () => number
+): readonly RawSegment[] {
   if (resolved.focus === "snap") {
     return [
       { kind: "note", duration: { denominator: 8, dots: 1 } },
@@ -930,11 +948,42 @@ function requiredBarPrefix(resolved: ResolvedConfig): readonly RawSegment[] {
       { kind: "note", duration: { denominator: 16, dots: 0 } },
     ];
   }
+  if (
+    resolved.policy.level === 4 &&
+    resolved.focus === "integrated" &&
+    resolved.features.sixteenths
+  ) {
+    const motifCount =
+      resolved.meter.numerator >= 3 && random() < 0.4 ? 2 : 1;
+    return Array.from({ length: motifCount }, () => {
+      const useSnap = !resolved.features.ties && random() < 0.5;
+      return useSnap
+        ? [
+            { kind: "note" as const, duration: { denominator: 8 as const, dots: 1 as const } },
+            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
+          ]
+        : [
+            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
+            { kind: "note" as const, duration: { denominator: 8 as const, dots: 0 as const } },
+            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
+          ];
+    }).flat();
+  }
   if (resolved.features.tuplets === "quarter") {
-    return [{ kind: "note", duration: { denominator: 2, dots: 0 } }];
+    return [
+      { kind: "note", duration: { denominator: 2, dots: 0 } },
+      ...(resolved.policy.level === 5 && resolved.features.sixteenths
+        ? [{ kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } }]
+        : []),
+    ];
   }
   if (resolved.features.tuplets === "eighth") {
-    return [{ kind: "note", duration: { denominator: 4, dots: 0 } }];
+    return [
+      { kind: "note", duration: { denominator: 4, dots: 0 } },
+      ...(resolved.policy.level === 5 && resolved.features.sixteenths
+        ? [{ kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } }]
+        : []),
+    ];
   }
   return [];
 }
@@ -1221,6 +1270,17 @@ function assertFeatures(
       `This curriculum track allows at most ${policy.maxDifficultySources} interacting difficulty sources.`
     );
   }
+  if (
+    policy.level === 5 &&
+    !flags.hasDotConcept &&
+    !flags.hasTie &&
+    !flags.hasFine &&
+    !flags.hasSyncopation
+  ) {
+    fail(
+      `Every Level 5 exercise must include Level 3 or Level 4 vocabulary; basic-only patterns are not allowed (dot=${flags.hasDotConcept}, tie=${flags.hasTie}, sixteenth=${flags.hasFine}, syncopation=${flags.hasSyncopation}, tuplet=${flags.hasTuplets}; configured=${JSON.stringify(features)}).`
+    );
+  }
 }
 
 function resolvedPatternDuration(
@@ -1432,10 +1492,11 @@ export function generateRhythmPattern(
   if (durations.length === 0)
     fail("No durations are available for this level and focus.");
 
+  let lastRejection = "a measure could not be filled with the required rest budget";
   for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
     const bars: RawSegment[][] = [];
     let complete = true;
-    const prefix = requiredBarPrefix(resolved);
+    const prefix = requiredBarPrefix(resolved, random);
     for (let bar = 0; bar < resolved.bars; bar += 1) {
       const result = buildBar(
         resolved,
@@ -1449,7 +1510,10 @@ export function generateRhythmPattern(
       }
       bars.push(result);
     }
-    if (!complete) continue;
+    if (!complete) {
+      lastRejection = "a measure could not be filled with the required rest budget";
+      continue;
+    }
 
     if (
       resolved.features.tuplets !== null &&
@@ -1491,11 +1555,13 @@ export function generateRhythmPattern(
     try {
       assertLevelConstraints(candidate, config);
       return candidate;
-    } catch {
+    } catch (error) {
       // A bounded retry is preferable to trimming or coercing an exact bar.
+      lastRejection =
+        error instanceof Error ? error.message : "curriculum constraints rejected the candidate";
     }
   }
   fail(
-    "Unable to generate a pattern within the bounded curriculum search budget."
+    `Unable to generate a pattern within the bounded curriculum search budget: ${lastRejection}.`
   );
 }

@@ -557,6 +557,14 @@ describe("Rhythm learner page: three screens and real controller integration", (
     ).toContain("4 ô nhịp");
     expect(within(workspace).getByText(/4 phách mỗi ô/)).not.toBeNull();
     expect(
+      within(workspace).getByText(
+        /Tap đầu tiên được chấm cho phách 1 tại downbeat kế tiếp/
+      )
+    ).not.toBeNull();
+    expect(
+      within(workspace).queryByText(/Tín hiệu chạm chỉ xác nhận thao tác/)
+    ).toBeNull();
+    expect(
       (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).value
     ).toBe("0.8");
     await waitFor(() =>

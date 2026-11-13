@@ -144,6 +144,9 @@ function auditPatternForTrack(
   ) {
     fail("Tap Rhythm exercises must contain one, two, or four bars.");
   }
+  if (pattern.measures[0]?.segments[0]?.kind !== "note") {
+    fail("The first Tap Rhythm measure must start with a sounding note on beat 1.");
+  }
   const config = {
     seed: "tap-level-audit",
     level: track,
@@ -305,25 +308,29 @@ export function generateTapRhythmExercise(
   const section = input.section ?? "practice";
   requireExerciseKindAllowed(input.track, section, "tap-rhythm");
   const seed = normalizedSeed(input.seed);
-  const config = {
+  const baseConfig = {
     level: input.track,
     seed,
     ...(input.meter === undefined ? {} : { meter: input.meter }),
     ...(input.bars === undefined ? {} : { bars: input.bars }),
     ...(input.pulseBpm === undefined ? {} : { pulseBpm: input.pulseBpm }),
-    // Preserve omission so the generator can choose a feasible default while
-    // preserving the requested meter. Explicit focuses are never substituted.
     ...(input.focus === undefined ? {} : { focus: input.focus }),
   } as const;
-  const pattern = generateRhythmPattern(config);
-  // The generator applies this audit internally as well; repeat it at this
-  // exercise boundary using the exact chosen generation configuration.
-  assertLevelConstraints(pattern, config);
-  return createTapRhythmExercise({
-    track: input.track,
-    section,
-    pattern,
-  });
+
+  // Tap begins on the next independently timed beat-one downbeat. Keep the
+  // curriculum generator unchanged; derive a deterministic candidate stream
+  // until a legal bar-one attack is found without moving rests or notes.
+  for (let attempt = 0; attempt < 128; attempt += 1) {
+    const config =
+      attempt === 0
+        ? baseConfig
+        : { ...baseConfig, seed: `${seed}-tap-beat-one-${attempt}` };
+    const pattern = generateRhythmPattern(config);
+    assertLevelConstraints(pattern, config);
+    if (pattern.measures[0]?.segments[0]?.kind !== "note") continue;
+    return createTapRhythmExercise({ track: input.track, section, pattern });
+  }
+  fail("Could not generate a Tap exercise with a sounded beat-one onset.");
 }
 
 function sameTicks(left: readonly number[], right: readonly number[]): boolean {
@@ -394,12 +401,26 @@ export function evaluateTapRhythmAnswer(
         exercise.pattern.meter,
         exercise.pattern.tempo.pulseBpm
       ) * 1000;
+    if (
+      answer.firstTapSequence !== undefined &&
+      (!Number.isSafeInteger(answer.firstTapSequence) ||
+        answer.firstTapSequence < 0 ||
+        answer.rounds[0].firstTapSequence !== answer.firstTapSequence ||
+        !answer.rounds[0].taps.some(
+          tap => tap.sequence === answer.firstTapSequence
+        ))
+    ) {
+      return null;
+    }
     const score = calculateTapTwoRoundScore(
       canonicalTargets,
       answer.rounds.map(round => ({
         roundNumber: round.roundNumber,
         skipped: round.status === "skipped",
         taps: round.taps,
+        ...(round.firstTapSequence === undefined || round.firstTapSequence === null
+          ? {}
+          : { firstTapSequence: round.firstTapSequence }),
       })),
       canonicalPulseMs
     );

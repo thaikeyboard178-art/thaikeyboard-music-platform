@@ -76,6 +76,91 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
     }
   );
 
+  it("grades the identified first Tap normally inside Wassoc and forces Extra + Missing outside it", () => {
+    const targets: readonly TapTarget[] = [
+      { id: "beat-one", tick: 0, offsetMs: 0, passMs: 50, associationMs: 80 },
+      { id: "beat-two", tick: 240, offsetMs: 500, passMs: 50, associationMs: 80 },
+    ];
+    const roundOneTaps = [
+      { sequence: 0, offsetMs: -100 },
+      { sequence: 1, offsetMs: 500 },
+    ];
+    const score = calculateTapTwoRoundScore(
+      targets,
+      [
+        {
+          roundNumber: 1,
+          skipped: false,
+          taps: roundOneTaps,
+          firstTapSequence: 0,
+        },
+        {
+          roundNumber: 2,
+          skipped: false,
+          taps: [
+            { sequence: 2, offsetMs: 0 },
+            { sequence: 3, offsetMs: 500 },
+          ],
+        },
+      ],
+      500
+    );
+    const firstRound = score.rounds[0];
+    expect(firstRound.firstTapSequence).toBe(0);
+    expect(firstRound.evaluation?.targetResults.map(result => result.status)).toEqual([
+      "missing",
+      "matched",
+    ]);
+    expect(firstRound.evaluation?.tapResults[0]).toMatchObject({
+      sequence: 0,
+      status: "extra",
+      targetIndex: null,
+    });
+    expect(firstRound.evaluation).toMatchObject({
+      tp: 1,
+      n: 2,
+      k: 2,
+      missing: 1,
+      extra: 1,
+      accuracyPercent: 50,
+    });
+    expect(score.rounds[1].accuracyPercent).toBe(100);
+
+    const withinAssociation = calculateTapTwoRoundScore(
+      targets,
+      [
+        {
+          roundNumber: 1,
+          skipped: false,
+          taps: [
+            { sequence: 4, offsetMs: -65 },
+            { sequence: 5, offsetMs: 500 },
+          ],
+          firstTapSequence: 4,
+        },
+        {
+          roundNumber: 2,
+          skipped: false,
+          taps: [
+            { sequence: 6, offsetMs: 0 },
+            { sequence: 7, offsetMs: 500 },
+          ],
+        },
+      ],
+      500
+    );
+    expect(withinAssociation.rounds[0].evaluation?.targetResults.map(result => result.status)).toEqual([
+      "early",
+      "matched",
+    ]);
+    expect(withinAssociation.rounds[0].evaluation).toMatchObject({
+      missing: 0,
+      extra: 0,
+      nearMiss: 1,
+      farAssociation: 0,
+    });
+  });
+
   it("uses the matcher's signed error and unequal left/right intervals", () => {
     const targets: readonly TapTarget[] = [
       { id: "a", tick: 0, offsetMs: 0, passMs: 1_000, associationMs: 1_000 },

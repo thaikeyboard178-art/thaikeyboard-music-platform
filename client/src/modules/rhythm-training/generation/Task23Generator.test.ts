@@ -3,8 +3,9 @@ import { createRhythmAudioPlan } from "../audio/plan";
 import { generateTapRhythmExercise } from "../exercises/tapRhythm";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { requireValidRhythmPattern } from "../rhythm/validate";
-import type { RhythmMeter, RhythmTrack } from "../types";
+import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
 import {
+  assertLevelConstraints,
   generateRhythmPattern,
   patternMetrics,
   type RhythmGenerationConfig,
@@ -234,5 +235,168 @@ describe("Task 23 production rhythm generation", () => {
       meter: { numerator: 4, denominator: 4 },
       seed: "task23-level4-retained-dot-tie-tap-roundtrip",
     });
+  });
+
+  it("never emits a basic-only Level 5 exercise across supported focus and meter combinations", () => {
+    const meters = [
+      { numerator: 2, denominator: 4 },
+      { numerator: 3, denominator: 4 },
+      { numerator: 4, denominator: 4 },
+    ] as const;
+    const focuses = [
+      "quarter-triplets",
+      "eighth-triplets",
+      "triplet-combined",
+      "snap",
+      "sandwich",
+      "integrated",
+    ] as const;
+    for (const focus of focuses) {
+      for (const meter of meters) {
+        for (const bars of barCounts) {
+          if (focus === "quarter-triplets" && meter.numerator === 2) {
+            expect(() =>
+              generateRhythmPattern({
+                level: 5,
+                focus,
+                meter,
+                bars,
+                seed: `l5-gate-impossible-${focus}-${meter.numerator}-${bars}`,
+              })
+            ).toThrow(/quarter-note triplets fill a 2\/4 measure/i);
+            continue;
+          }
+          const pattern = generateRhythmPattern({
+            level: 5,
+            focus,
+            meter,
+            bars,
+            seed: `l5-gate-${focus}-${meter.numerator}-${bars}`,
+          });
+          const metrics = patternMetrics(pattern);
+          expect(
+            metrics.hasDotConcept ||
+              metrics.hasTie ||
+              metrics.hasFine ||
+              metrics.hasSyncopation
+          ).toBe(true);
+          expect(metrics.sourceCount).toBeLessThanOrEqual(2);
+          expectPerMeasureRestRules(pattern);
+          if (focus.includes("triplet")) expect(metrics.hasTuplets).toBe(true);
+          requireValidRhythmPattern(pattern);
+        }
+      }
+    }
+  });
+
+  it("rejects an externally supplied Level5 quarter-triplet bar without Level3/4 content", () => {
+    const group = {
+      groupId: "triplet-1",
+      actualNotes: 3 as const,
+      normalNotes: 2 as const,
+    };
+    const basicOnly: RhythmPattern = {
+      id: "l5-basic-only-fixture",
+      meter: { numerator: 4, denominator: 4 },
+      tempo: { pulseBpm: 72 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            ...Array.from({ length: 3 }, (_, index) => ({
+              id: `triplet-${index + 1}`,
+              kind: "note" as const,
+              duration: { denominator: 4 as const, dots: 0 as const },
+              tupletGroup: group,
+            })),
+            {
+              id: "rest-1",
+              kind: "rest" as const,
+              duration: { denominator: 4 as const, dots: 0 as const },
+            },
+            {
+              id: "basic-note-1",
+              kind: "note" as const,
+              duration: { denominator: 4 as const, dots: 0 as const },
+            },
+          ],
+        },
+      ],
+    };
+    expect(() =>
+      assertLevelConstraints(basicOnly, {
+        level: 5,
+        focus: "quarter-triplets",
+        meter: { numerator: 4, denominator: 4 },
+        seed: "l5-basic-only-fixture",
+      })
+    ).toThrow(/must include Level 3 or Level 4 vocabulary/i);
+  });
+});
+
+
+describe("Level 4 graduated motif density", () => {
+  it("generates real snap/sandwich cells and denser same-bar combinations within the L4 source budget", () => {
+    const observedMotifs = new Set<string>();
+    const observedCounts = new Set<number>();
+    let integratedSixteenthExamples = 0;
+
+    for (let seed = 0; seed < 64; seed += 1) {
+      const pattern = expectCanonicalAudioAndTapPath(
+        {
+          level: 4,
+          focus: "integrated",
+          meter: { numerator: 4, denominator: 4 },
+          bars: 1,
+          seed: `task24-level4-density-${seed}`,
+        },
+        false
+      );
+      const metrics = patternMetrics(pattern);
+      if (!metrics.hasFine) continue;
+      integratedSixteenthExamples += 1;
+      const measure = pattern.measures[0];
+      let motifCount = 0;
+      for (let index = 0; index < measure.segments.length; index += 1) {
+        const first = measure.segments[index];
+        const second = measure.segments[index + 1];
+        const third = measure.segments[index + 2];
+        if (
+          first.kind === "note" &&
+          first.duration.denominator === 8 &&
+          first.duration.dots === 1 &&
+          second?.kind === "note" &&
+          second.duration.denominator === 16 &&
+          second.duration.dots === 0
+        ) {
+          motifCount += 1;
+          observedMotifs.add("snap");
+        }
+        if (
+          first.kind === "note" &&
+          first.duration.denominator === 16 &&
+          first.duration.dots === 0 &&
+          second?.kind === "note" &&
+          second.duration.denominator === 8 &&
+          second.duration.dots === 0 &&
+          third?.kind === "note" &&
+          third.duration.denominator === 16 &&
+          third.duration.dots === 0
+        ) {
+          motifCount += 1;
+          observedMotifs.add("sandwich");
+        }
+      }
+
+      expect(motifCount).toBeLessThanOrEqual(2);
+      if (motifCount > 0) observedCounts.add(motifCount);
+      expect(metrics.sourceCount).toBeLessThanOrEqual(2);
+      expect(metrics.hasTuplets).toBe(false);
+      expectPerMeasureRestRules(pattern);
+    }
+
+    expect(integratedSixteenthExamples).toBeGreaterThan(0);
+    expect(observedMotifs).toEqual(new Set(["snap", "sandwich"]));
+    expect(observedCounts).toContain(2);
   });
 });

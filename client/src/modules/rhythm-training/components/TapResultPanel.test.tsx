@@ -138,7 +138,7 @@ describe("TapResultPanel", () => {
         practiceLabel="Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
       />
     );
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe("73.8%");
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe(
       "57.5%"
     );
@@ -182,7 +182,7 @@ describe("TapResultPanel", () => {
     );
   });
 
-  it("keeps scorer semantics and presents the seven metrics plus a collapsed five-column detail table", () => {
+  it("keeps scorer semantics and presents six metrics plus a collapsed five-column detail table", () => {
     const result = completedAttempt();
     const firstRound = result.rounds?.[0];
     expect(result.rounds).toHaveLength(2);
@@ -210,7 +210,6 @@ describe("TapResultPanel", () => {
       targetIndex: null,
     });
     expect(summarizeTapResult(result)).toEqual({
-      accuracyPercent: 73.75,
       scoreOutOfTen: 7,
       roundAccuracies: [57.5, 90],
       roundsPlayed: 2,
@@ -231,7 +230,7 @@ describe("TapResultPanel", () => {
       />
     );
     expect(screen.getByTestId("tap-result")).toBeTruthy();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe("73.8%");
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe(
       "57.5%"
     );
@@ -311,7 +310,9 @@ describe("TapResultPanel", () => {
     expect(announcement.getAttribute("role")).toBe("status");
     expect(announcement.getAttribute("aria-live")).toBe("polite");
     expect(announcement.getAttribute("aria-atomic")).toBe("true");
-    expect(announcement.textContent).toContain("trung bình 73.8%");
+    expect(announcement.textContent).toContain("vòng 1 57.5%");
+    expect(announcement.textContent).toContain("vòng 2 90%");
+    expect(announcement.textContent).not.toMatch(/trung bình/i);
     expect(announcement.textContent).toContain("Điểm đã ghi: +7 điểm");
     expect(announcement.textContent).toContain(
       "thiếu 1/8 đầu nốt; chạm thừa 1"
@@ -366,7 +367,6 @@ describe("TapResultPanel", () => {
     expect(result.accuracyPercent).toBe(57.5);
     expect(result.scoreOutOfTen).toBe(6);
     expect(summarizeTapResult(result)).toMatchObject({
-      accuracyPercent: 57.5,
       scoreOutOfTen: 6,
       roundAccuracies: [57.5, null],
       roundsPlayed: 1,
@@ -417,7 +417,6 @@ describe("TapResultPanel", () => {
     expect(result.accuracyPercent).toBeNull();
     expect(result.scoreOutOfTen).toBeNull();
     expect(summarizeTapResult(result)).toMatchObject({
-      accuracyPercent: null,
       scoreOutOfTen: null,
       roundAccuracies: [null, null],
       roundsPlayed: 0,
@@ -438,9 +437,7 @@ describe("TapResultPanel", () => {
     );
     expect(screen.getByText("Không có điểm khả dụng.")).toBeTruthy();
     expect(screen.getByText(/Cả hai vòng đã được bỏ qua/)).toBeTruthy();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe(
-      "Không khả dụng"
-    );
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-rounds-played").textContent).toBe("0/2");
     expect(screen.getByTestId("tap-count-missing").textContent).toBe("—");
     expect(screen.getByTestId("tap-count-extra").textContent).toBe("—");
@@ -467,7 +464,7 @@ describe("TapResultPanel", () => {
     );
     expect(screen.queryByTestId("tap-relative-feedback")).toBeNull();
     expect(screen.queryByText("Bảng điểm chi tiết")).toBeNull();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe("73.8%");
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-points").textContent).toBe("+7 điểm");
   });
 
@@ -518,9 +515,7 @@ describe("TapResultPanel", () => {
     expect(
       screen.getByText(/Không có đủ khoảng đầu nốt tham chiếu hợp lệ/)
     ).toBeTruthy();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe(
-      "Không khả dụng"
-    );
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-count-missing").textContent).toBe("—");
     expect(screen.getByTestId("tap-points").textContent).toBe("Chưa ghi điểm");
     expect(screen.queryByText("0%")).toBeNull();
@@ -544,7 +539,7 @@ describe("TapResultPanel", () => {
     expect(
       screen.getByText(/Điểm đã ghi từ bài chấm trước: \+10 điểm/)
     ).toBeTruthy();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe("73.8%");
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-reference-score").textContent).toBe("7/10");
     expect(screen.queryByTestId("tap-points")).toBeNull();
   });
@@ -564,7 +559,7 @@ describe("TapResultPanel", () => {
     expect(
       screen.getByText(/Bài học — ví dụ thực hành không ghi điểm/)
     ).toBeTruthy();
-    expect(screen.getByTestId("tap-accuracy").textContent).toBe("73.8%");
+    expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.queryByTestId("tap-points")).toBeNull();
     expect(screen.queryByText(/Điểm đã ghi từ bài chấm trước/)).toBeNull();
   });

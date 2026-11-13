@@ -40,6 +40,13 @@ export type RhythmReferenceTiming = Readonly<{
     audioTime: number;
   }>[];
 }>;
+export type RhythmLoopTiming = Readonly<{
+  generation: number;
+  clock: "audio-context-seconds";
+  anchorTime: number;
+  cycleSeconds: number;
+  cycleTicks: number;
+}>;
 export type RhythmTransportOptions = Readonly<{
   voices: RhythmVoiceSettings;
   /** Engineering configuration, not Tap tolerance or a product timing grade. */
@@ -66,6 +73,19 @@ export class RhythmAudioTransport {
   private readonly lead: number;
   private context: AudioContext | null = null;
   private plan: RhythmAudioPlan | null = null;
+  private loopPlan: RhythmAudioPlan | null = null;
+  private loopAnchor = 0;
+  private loopCycle = 0;
+  private loopCursor = 0;
+  private loopStopAt: number | null = null;
+  private continuationPlan: RhythmAudioPlan | null = null;
+  private continuationAnchor: number | null = null;
+  private continuationEvents: readonly RhythmAudioEvent[] = Object.freeze([]);
+  private continuationCursor = 0;
+  private loopVoices = new Map<
+    RhythmVoiceHandle,
+    Readonly<{ startTime: number; boundaryPulse: boolean }>
+  >();
   private voices = new Set<RhythmVoiceHandle>();
   private timer: unknown = null;
   private generation = 0;
@@ -141,6 +161,9 @@ export class RhythmAudioTransport {
   get hasPendingWakeup(): boolean {
     return this.timer !== null;
   }
+  private isPlaying(): boolean {
+    return this.stateValue === "playing";
+  }
 
   private assertUsable(): void {
     if (this.stateValue === "disposed")
@@ -156,6 +179,20 @@ export class RhythmAudioTransport {
     }
     for (const voice of [...this.voices]) voice.cancel();
     this.voices.clear();
+    this.loopVoices.clear();
+  }
+
+  private resetLoopState(): void {
+    this.loopPlan = null;
+    this.loopAnchor = 0;
+    this.loopCycle = 0;
+    this.loopCursor = 0;
+    this.loopStopAt = null;
+    this.continuationPlan = null;
+    this.continuationAnchor = null;
+    this.continuationEvents = Object.freeze([]);
+    this.continuationCursor = 0;
+    this.loopVoices.clear();
   }
 
   private abort(reason: RhythmAudioAbortReason): void {
@@ -202,12 +239,129 @@ export class RhythmAudioTransport {
   async start(plan: RhythmAudioPlan): Promise<void> {
     this.assertUsable();
     this.cancelGeneration();
+    this.resetLoopState();
     this.plan = plan;
     this.position = 0;
     this.reasonValue = null;
     this.stateValue = "starting";
     await this.begin();
   }
+
+  /** Starts an indefinitely repeating, one-measure metronome on one generation. */
+  async startLoop(plan: RhythmAudioPlan): Promise<RhythmLoopTiming> {
+    this.assertUsable();
+    if (
+      plan.pattern.measures.length !== 1 ||
+      plan.durationSeconds <= 0 ||
+      !Number.isFinite(plan.durationSeconds) ||
+      plan.totalTicks <= 0 ||
+      plan.events.length === 0 ||
+      plan.events.some(event => event.lane !== "metronome")
+    )
+      throw new RangeError("A metronome loop must be one complete metronome-only measure.");
+    this.cancelGeneration();
+    this.resetLoopState();
+    this.plan = plan;
+    this.loopPlan = plan;
+    this.position = 0;
+    this.reasonValue = null;
+    this.stateValue = "starting";
+    const token = this.generation;
+    await this.begin();
+    if (token !== this.generation || !this.isPlaying())
+      throw new Error(this.reasonValue ?? "metronome-loop-start-failed");
+    return Object.freeze({
+      generation: token,
+      clock: "audio-context-seconds",
+      anchorTime: this.loopAnchor,
+      cycleSeconds: plan.durationSeconds,
+      cycleTicks: plan.totalTicks,
+    });
+  }
+
+  appendPlanAtLoopBoundary(
+    plan: RhythmAudioPlan,
+    startAudioTime: number
+  ): RhythmReferenceTiming {
+    this.assertUsable();
+    const loop = this.loopPlan;
+    const context = this.context;
+    if (
+      !loop ||
+      !context ||
+      this.stateValue !== "playing" ||
+      this.loopStopAt !== null ||
+      this.continuationPlan !== null
+    )
+      throw new Error("There is no active metronome loop to continue.");
+    if (
+      !Number.isFinite(startAudioTime) ||
+      !Number.isFinite(plan.durationSeconds) ||
+      plan.durationSeconds <= 0 ||
+      plan.events.length === 0
+    )
+      throw new RangeError("The continuation plan or barline is invalid.");
+    const cyclePosition = (startAudioTime - this.loopAnchor) / loop.durationSeconds;
+    const nearestCycle = Math.round(cyclePosition);
+    const epsilon = 1e-7;
+    if (
+      nearestCycle < 0 ||
+      Math.abs(cyclePosition - nearestCycle) * loop.durationSeconds > epsilon
+    )
+      throw new RangeError("The continuation must start on a loop barline.");
+    const boundaryWasScheduled = [...this.loopVoices.values()].some(
+      voice =>
+        voice.boundaryPulse &&
+        Math.abs(voice.startTime - startAudioTime) <= epsilon
+    );
+    if (
+      startAudioTime < context.currentTime - epsilon &&
+      !boundaryWasScheduled
+    )
+      throw new Error("The requested metronome downbeat is no longer schedulable.");
+    this.loopStopAt = startAudioTime;
+    for (const [voice, scheduled] of this.loopVoices) {
+      if (
+        scheduled.startTime >= startAudioTime - epsilon &&
+        !(scheduled.boundaryPulse &&
+          Math.abs(scheduled.startTime - startAudioTime) <= epsilon)
+      ) {
+        voice.cancel();
+        this.voices.delete(voice);
+        this.loopVoices.delete(voice);
+      }
+    }
+    this.continuationPlan = plan;
+    this.continuationAnchor = startAudioTime;
+    this.continuationEvents = Object.freeze(
+      boundaryWasScheduled
+        ? plan.events.filter(
+            event =>
+              !(
+                event.lane === "metronome" &&
+                Math.abs(event.offsetSeconds) <= epsilon
+              )
+          )
+        : [...plan.events]
+    );
+    this.continuationCursor = 0;
+    this.plan = plan;
+    return Object.freeze({
+      generation: this.generation,
+      clock: "audio-context-seconds",
+      anchorTime: startAudioTime,
+      expectedOnsets: Object.freeze(
+        plan.onsetReferences.map(event =>
+          Object.freeze({
+            id: event.id,
+            tick: event.tick,
+            audioTime: startAudioTime + event.offsetSeconds,
+          })
+        )
+      ),
+    });
+  }
+
 
   private async begin(): Promise<void> {
     const token = this.generation;
@@ -240,6 +394,11 @@ export class RhythmAudioTransport {
     }
     const plan = this.plan!;
     this.anchor = context.currentTime + this.lead - this.position;
+    if (this.loopPlan) {
+      this.loopAnchor = this.anchor;
+      this.loopCycle = 0;
+      this.loopCursor = 0;
+    }
     this.lastWake = context.currentTime;
     this.cursor = plan.events.findIndex(
       event => event.offsetSeconds >= this.position
@@ -272,7 +431,8 @@ export class RhythmAudioTransport {
     event: RhythmAudioEvent,
     start: number,
     end: number,
-    resumed: boolean
+    resumed: boolean,
+    loopBoundary: boolean | null = null
   ): void {
     let handle: RhythmVoiceHandle | undefined;
     handle = scheduleRhythmVoice(
@@ -282,10 +442,18 @@ export class RhythmAudioTransport {
       end,
       this.options.voices,
       () => {
-        if (handle) this.voices.delete(handle);
+        if (handle) {
+          this.voices.delete(handle);
+          this.loopVoices.delete(handle);
+        }
       }
     );
     this.voices.add(handle);
+    if (loopBoundary !== null)
+      this.loopVoices.set(
+        handle,
+        Object.freeze({ startTime: start, boundaryPulse: loopBoundary })
+      );
     // This is scheduled intent, not a DOM-time/audible-time measurement.
     this.options.onScheduled?.(
       Object.freeze({
@@ -312,17 +480,68 @@ export class RhythmAudioTransport {
       this.abort("visibility-hidden");
       return;
     }
-    // Fail closed instead of bunching missed attacks at 'now'. Timers only wake
-    // the queue; every event remains anchored to the same audio clock origin.
-    if (
-      now - this.lastWake > this.horizon &&
-      (now < this.anchor + plan.durationSeconds ||
-        this.cursor < plan.events.length)
-    ) {
+    const loopEnd =
+      this.continuationPlan && this.continuationAnchor !== null
+        ? this.continuationAnchor + this.continuationPlan.durationSeconds
+        : null;
+    const hasWork = this.loopPlan
+      ? loopEnd === null || now < loopEnd
+      : now < this.anchor + plan.durationSeconds ||
+        this.cursor < plan.events.length;
+    // Fail closed instead of bunching missed attacks at 'now'.
+    if (now - this.lastWake > this.horizon && hasWork) {
       this.abort("scheduler-starved");
       return;
     }
     this.lastWake = now;
+
+    if (this.loopPlan) {
+      if (loopEnd !== null && now >= loopEnd) {
+        const finalPlan = this.continuationPlan!;
+        this.cancelGeneration();
+        this.plan = finalPlan;
+        this.position = finalPlan.durationSeconds;
+        this.resetLoopState();
+        this.stateValue = "completed";
+        return;
+      }
+      try {
+        while (true) {
+          const loopNext = this.peekLoopEvent();
+          const continuationNext = this.peekContinuationEvent();
+          const next =
+            loopNext === null
+              ? continuationNext
+              : continuationNext === null || loopNext.start <= continuationNext.start
+                ? loopNext
+                : continuationNext;
+          if (!next || next.start > now + this.horizon) break;
+          if (next.start < now) {
+            this.abort("scheduler-starved");
+            return;
+          }
+          this.schedule(
+            next.event,
+            next.start,
+            next.end,
+            false,
+            next.source === "loop" ? next.boundaryPulse : null
+          );
+          if (token !== this.generation || this.stateValue !== "playing") return;
+          if (next.source === "loop") this.loopCursor += 1;
+          else this.continuationCursor += 1;
+        }
+      } catch {
+        if (token === this.generation) this.abort("scheduling-error");
+        return;
+      }
+      const callback = () => this.wake(token);
+      this.timer = this.options.timers
+        ? this.options.timers.set(callback, this.interval)
+        : globalThis.setTimeout(callback, this.interval);
+      return;
+    }
+
     if (now >= this.anchor + plan.durationSeconds) {
       this.cancelGeneration();
       this.position = plan.durationSeconds;
@@ -357,6 +576,69 @@ export class RhythmAudioTransport {
     this.timer = this.options.timers
       ? this.options.timers.set(callback, this.interval)
       : globalThis.setTimeout(callback, this.interval);
+  }
+
+  private peekLoopEvent(): Readonly<{
+    source: "loop";
+    event: RhythmAudioEvent;
+    start: number;
+    end: number;
+    boundaryPulse: boolean;
+  }> | null {
+    const plan = this.loopPlan;
+    if (!plan) return null;
+    while (this.loopCursor >= plan.events.length) {
+      this.loopCycle += 1;
+      this.loopCursor = 0;
+    }
+    const base = plan.events[this.loopCursor];
+    if (!base) return null;
+    const secondsShift = this.loopCycle * plan.durationSeconds;
+    const ticksShift = this.loopCycle * plan.totalTicks;
+    const measureShift = this.loopCycle * plan.pattern.measures.length;
+    const start = this.loopAnchor + secondsShift + base.offsetSeconds;
+    const epsilon = 1e-7;
+    if (this.loopStopAt !== null && start >= this.loopStopAt - epsilon)
+      return null;
+    const event = Object.freeze({
+      ...base,
+      id: `loop-${this.loopCycle}:${base.id}`,
+      tick: base.tick + ticksShift,
+      endTick: base.endTick + ticksShift,
+      offsetSeconds: base.offsetSeconds + secondsShift,
+      endOffsetSeconds: base.endOffsetSeconds + secondsShift,
+      measureIndex: base.measureIndex + measureShift,
+    });
+    return Object.freeze({
+      source: "loop" as const,
+      event,
+      start,
+      end: start + this.options.voices.metronome.durationSeconds,
+      boundaryPulse:
+        base.lane === "metronome" && Math.abs(base.offsetSeconds) <= epsilon,
+    });
+  }
+
+  private peekContinuationEvent(): Readonly<{
+    source: "continuation";
+    event: RhythmAudioEvent;
+    start: number;
+    end: number;
+  }> | null {
+    const plan = this.continuationPlan;
+    const anchor = this.continuationAnchor;
+    if (!plan || anchor === null) return null;
+    const event = this.continuationEvents[this.continuationCursor];
+    if (!event) return null;
+    const start = anchor + event.offsetSeconds;
+    const end =
+      event.lane === "pattern"
+        ? anchor + event.endOffsetSeconds
+        : Math.min(
+            start + this.options.voices.metronome.durationSeconds,
+            anchor + plan.durationSeconds
+          );
+    return Object.freeze({ source: "continuation" as const, event, start, end });
   }
 
   stop(): void {
@@ -400,18 +682,21 @@ export class RhythmAudioTransport {
 
   getReferenceTiming(): RhythmReferenceTiming | null {
     if (!this.plan || this.stateValue !== "playing") return null;
+    if (this.loopPlan && !this.continuationPlan) return null;
+    const plan = this.continuationPlan ?? this.plan;
+    const anchor = this.continuationAnchor ?? this.anchor;
     return Object.freeze({
       generation: this.generation,
       clock: "audio-context-seconds",
-      anchorTime: this.anchor,
+      anchorTime: anchor,
       expectedOnsets: Object.freeze(
-        this.plan.onsetReferences
+        plan.onsetReferences
           .filter(event => event.offsetSeconds >= this.position)
           .map(event =>
             Object.freeze({
               id: event.id,
               tick: event.tick,
-              audioTime: this.anchor + event.offsetSeconds,
+              audioTime: anchor + event.offsetSeconds,
             })
           )
       ),
@@ -430,6 +715,7 @@ export class RhythmAudioTransport {
     const context = this.context;
     this.context = null;
     this.plan = null;
+    this.resetLoopState();
     if (context && context.state !== "closed") await context.close();
   }
 }

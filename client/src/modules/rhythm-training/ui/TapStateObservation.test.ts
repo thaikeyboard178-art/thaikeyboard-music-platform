@@ -1,16 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TapTrainingController } from "./TapTrainingController";
 import { TapRhythmEngine } from "../audio/tapEngine";
-import { TapFakeClock } from "../audio/tapTestHelpers";
+import { dispatchFirstTapAtNextDownbeat, TapFakeClock } from "../audio/tapTestHelpers";
+import type { RhythmScheduledEvent } from "../audio/transport";
 import { createTapRhythmExercise } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 
 const configuration = { track: 3, section: "practice" } as const;
 function fixture() {
   const clock = new TapFakeClock();
+  const input = new EventTarget();
+  const scheduledEvents: RhythmScheduledEvent[] = [];
   let engine: TapRhythmEngine;
   const controller = new TapTrainingController({
-    getInputTarget: () => new EventTarget(),
+    getInputTarget: () => input,
     createExercise: (_config, seed) =>
       createTapRhythmExercise({
         track: 3,
@@ -21,6 +24,7 @@ function fixture() {
       contextFactory: () => clock.context as unknown as AudioContext,
       timers: clock.timers,
       visibilitySource: null,
+      onScheduled: event => scheduledEvents.push(event),
     },
     engineFactory: options => {
       engine = new TapRhythmEngine({
@@ -32,15 +36,24 @@ function fixture() {
       return engine;
     },
   });
-  return { clock, controller, getEngine: () => engine };
+  return { clock, input, scheduledEvents, controller, getEngine: () => engine };
 }
-function exactAndFinish(clock: TapFakeClock, engine: TapRhythmEngine) {
+function exactAndFinish(
+  clock: TapFakeClock,
+  input: EventTarget,
+  scheduledEvents: readonly RhythmScheduledEvent[],
+  exercise: NonNullable<ReturnType<TapTrainingController["getSnapshot"]>["exercise"]>,
+  engine: TapRhythmEngine
+) {
+  if (!engine.snapshot)
+    dispatchFirstTapAtNextDownbeat(clock, input, exercise, scheduledEvents);
   const snapshot = engine.snapshot!;
   for (const onset of snapshot.expectedOnsets) {
+    if (onset.roundNumber === 1 && onset.targetIndex === 0) continue;
     const round = snapshot.rounds[onset.roundNumber - 1];
     const time = round.anchorAudioTime + (onset.audioTime - round.anchorAudioTime);
     clock.at(time);
-    engine.handleEvent(clock.nativeTap(time));
+    input.dispatchEvent(clock.nativeTap(time));
   }
   clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.1);
   expect(engine.state, engine.result?.reason ?? "no result").toBe("completed");
@@ -50,7 +63,7 @@ afterEach(() => vi.useRealTimers());
 describe("Phase5 reused-engine UI observation regression", () => {
   it("observes collecting after Reference then Start, and again after a completed Retry", async () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
-    const { clock, controller, getEngine } = fixture();
+    const { clock, input, scheduledEvents, controller, getEngine } = fixture();
     await controller.prepare(configuration);
     const reference = controller.reference();
     await Promise.resolve();
@@ -61,11 +74,13 @@ describe("Phase5 reused-engine UI observation regression", () => {
     expect(controller.canStart).toBe(true);
     await controller.start();
     const engine = getEngine();
-    expect(controller.getSnapshot().phase).toBe("count-in");
+    expect(controller.getSnapshot().phase).toBe("listening");
+    dispatchFirstTapAtNextDownbeat(clock, input, controller.getSnapshot().exercise!, scheduledEvents);
+    controller.acknowledgeTap();
     clock.at(engine.snapshot!.collectionStartAudioTime + 0.04);
     vi.advanceTimersByTime(50);
     expect(controller.getSnapshot().phase).toBe("collecting");
-    exactAndFinish(clock, engine);
+    exactAndFinish(clock, input, scheduledEvents, controller.getSnapshot().exercise!, engine);
     expect(controller.getSnapshot().phase).toBe("completed");
     expect(controller.getSnapshot().originalPoints).toBe(10);
     await controller.retry();
@@ -75,11 +90,13 @@ describe("Phase5 reused-engine UI observation regression", () => {
     expect(controller.getSnapshot().phase).toBe("ready");
     expect(controller.getSnapshot().result).toBeNull();
     await controller.start();
-    expect(retryEngine.state).toMatch(/^(count-in|collecting)$/);
+    expect(retryEngine.state).toBe("listening");
+    dispatchFirstTapAtNextDownbeat(clock, input, controller.getSnapshot().exercise!, scheduledEvents);
+    controller.acknowledgeTap();
     clock.at(retryEngine.snapshot!.collectionStartAudioTime + 0.04);
     vi.advanceTimersByTime(50);
     expect(controller.getSnapshot().phase).toBe("collecting");
-    exactAndFinish(clock, retryEngine);
+    exactAndFinish(clock, input, scheduledEvents, controller.getSnapshot().exercise!, retryEngine);
     expect(controller.getSnapshot().result?.mode).toBe("practice");
     expect(controller.getSnapshot().originalPoints).toBe(10);
     expect(controller.getSnapshot().session?.questionsAnswered).toBe(1);

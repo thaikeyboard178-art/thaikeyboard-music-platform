@@ -102,7 +102,8 @@ export type TapTrainingControllerOptions = Readonly<{
 const ACTIVE_ENGINE_STATES: readonly TapEngineState[] = [
   "starting",
   "reference",
-  "count-in",
+  "listening",
+  "aligning",
   "collecting",
   "draining",
 ];
@@ -333,19 +334,19 @@ export class TapTrainingController {
       : !this.practiceAttemptStarted;
   }
 
-  /** Tempo edits are limited to an unplayed, idle, non-replay exercise. */
+  /** Tempo edits are allowed before Play, including an idle practice-only replay. */
   get canAdjustPracticeBpm(): boolean {
     const { exercise, session, phase } = this.snapshot;
+    const idleReplay = this.snapshot.replayOnly && !this.practiceAttemptStarted;
     return (
       !this.disposed &&
       !this.snapshot.busy &&
       !this.previewBusy &&
-      !this.hasStartedAttempt &&
-      !this.snapshot.replayOnly &&
+      (!this.hasStartedAttempt || idleReplay) &&
       (phase === "ready" || phase === "idle") &&
       exercise !== null &&
       session !== null &&
-      !session.hasAnsweredCurrent &&
+      (!session.hasAnsweredCurrent || idleReplay) &&
       session.currentExercise.id === exercise.id &&
       (this.engine === null || this.engine.state === "idle")
     );
@@ -356,8 +357,8 @@ export class TapTrainingController {
     const { exercise, session, phase } = this.snapshot;
     const activeAttemptState =
       this.engine !== null &&
-      ["count-in", "collecting", "draining"].includes(this.engine.state) &&
-      ["count-in", "collecting", "draining"].includes(phase);
+      ["listening", "aligning", "collecting", "draining"].includes(this.engine.state) &&
+      ["listening", "aligning", "collecting", "draining"].includes(phase);
     const stablePhase = ["ready", "idle", "aborted", "completed"].includes(
       phase
     );
@@ -757,6 +758,7 @@ export class TapTrainingController {
     const currentConfiguration = this.configuration;
     if (!exercise || !session || !currentConfiguration) return false;
     if (exercise.pattern.tempo.pulseBpm === pulseBpm) return true;
+    const idleReplay = this.snapshot.replayOnly && !this.practiceAttemptStarted;
     const referenceUsed = this.snapshot.referenceUsed;
 
     const sequence = ++this.retimeSequence;
@@ -769,7 +771,7 @@ export class TapTrainingController {
       nextExercise = createTapRhythmExercise({
         track: exercise.track,
         section: exercise.section,
-        id: `${exercise.id}-bpm-${pulseBpm}-${sequence}`,
+        id: idleReplay ? exercise.id : `${exercise.id}-bpm-${pulseBpm}-${sequence}`,
         pattern: retimedPattern(exercise, pulseBpm, sequence),
       });
     } catch {
@@ -792,9 +794,9 @@ export class TapTrainingController {
     }
     if (this.disposed || token !== this.operationToken) return false;
 
-    const nextSession = freezeSession(
-      advanceRhythmSession(session, nextExercise)
-    );
+    const nextSession = idleReplay
+      ? session
+      : freezeSession(advanceRhythmSession(session, nextExercise));
     this.configuration = configuration;
     // Retiming is not a fresh written exercise or a new reference allowance.
     this.publish({
@@ -1434,7 +1436,7 @@ export class TapTrainingController {
   acknowledgeTap(): void {
     if (
       this.disposed ||
-      !["count-in", "collecting", "draining"].includes(this.snapshot.phase)
+      !["listening", "aligning", "collecting", "draining"].includes(this.snapshot.phase)
     )
       return;
     this.publish({ tapVisualSequence: this.snapshot.tapVisualSequence + 1 });

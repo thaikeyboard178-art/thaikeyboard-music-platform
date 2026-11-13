@@ -1,4 +1,7 @@
 import type { RhythmVoiceSettings } from "./voices";
+import type { RhythmScheduledEvent } from "./transport";
+import { createTapMetronomeLoopPlan } from "./tapPlan";
+import type { TapRhythmExercise } from "../exercises/tapRhythm";
 
 /** Test-only support; no production entrypoint imports this file. */
 export const TEST_TAP_VOICES: RhythmVoiceSettings = {
@@ -130,4 +133,38 @@ export class TapFakeClock {
     });
     return event;
   }
+}
+
+/**
+ * Injects one native Tap exactly at the next barline derived from a real
+ * scheduled loop pulse, exercising the Owner-approved current-downbeat branch.
+ */
+export function dispatchFirstTapAtNextDownbeat(
+  clock: TapFakeClock,
+  input: EventTarget,
+  exercise: TapRhythmExercise,
+  scheduledEvents: readonly RhythmScheduledEvent[],
+  offsetMs = 0
+): number {
+  const generation = scheduledEvents.at(-1)?.generation;
+  const firstLoopPulse = scheduledEvents
+    .filter(
+      scheduled =>
+        scheduled.generation === generation &&
+        scheduled.event.lane === "metronome" &&
+        scheduled.event.tick === 0 &&
+        !scheduled.event.id.startsWith("count-in:") &&
+        !scheduled.event.id.startsWith("round-")
+    )
+    .sort((left, right) => left.startTime - right.startTime)
+    .at(-1);
+  if (!firstLoopPulse)
+    throw new Error("The free metronome loop has not scheduled its first pulse.");
+  const time =
+    firstLoopPulse.startTime +
+    createTapMetronomeLoopPlan(exercise).durationSeconds +
+    offsetMs / 1000;
+  clock.at(time);
+  input.dispatchEvent(clock.nativeTap(time));
+  return time;
 }

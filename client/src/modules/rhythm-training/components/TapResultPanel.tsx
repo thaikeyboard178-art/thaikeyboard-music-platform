@@ -19,7 +19,6 @@ type TapResultPanelProps = Readonly<{
 }>;
 
 export type TapResultSummary = Readonly<{
-  accuracyPercent: number | null;
   scoreOutOfTen: number | null;
   roundAccuracies: readonly [number | null, number | null];
   roundsPlayed: number;
@@ -35,7 +34,6 @@ export function summarizeTapResult(result: TapAttemptResult): TapResultSummary {
   const rounds = result.rounds;
   if (result.status !== "completed" || !rounds || rounds.length !== 2) {
     return Object.freeze({
-      accuracyPercent: null,
       scoreOutOfTen: null,
       roundAccuracies: Object.freeze([null, null]) as readonly [null, null],
       roundsPlayed: 0,
@@ -51,8 +49,6 @@ export function summarizeTapResult(result: TapAttemptResult): TapResultSummary {
     round => round.status === "skipped"
   ).length;
   return Object.freeze({
-    // Keep the scorer's recorded average; do not recompute it in the view.
-    accuracyPercent: result.accuracyPercent,
     scoreOutOfTen: result.scoreOutOfTen ?? null,
     roundAccuracies: Object.freeze([
       rounds[0].accuracyPercent,
@@ -168,7 +164,7 @@ export function TapResultPanel({
   const liveAnnouncement = isTechnical
     ? "Bài chưa được chấm do sự cố kỹ thuật."
     : hasCompletedTwoRounds
-      ? `Kết quả hai vòng: ${summary.roundsPlayed}/2 vòng đã chơi; trung bình ${formatAccuracy(summary.accuracyPercent)}; thiếu ${missingHeadsText} đầu nốt; chạm thừa ${extraTapsText}. ${currentScoreAnnouncement}`
+      ? `Kết quả hai vòng: ${summary.roundsPlayed}/2 vòng đã chơi; vòng 1 ${roundScoreText(rounds?.[0], summary.roundAccuracies[0])}; vòng 2 ${roundScoreText(rounds?.[1], summary.roundAccuracies[1])}; thiếu ${missingHeadsText} đầu nốt; chạm thừa ${extraTapsText}. ${currentScoreAnnouncement}`
       : "Lượt chưa có kết quả hai vòng hợp lệ.";
 
   return (
@@ -256,16 +252,10 @@ export function TapResultPanel({
                 {roundScoreText(rounds?.[1], summary.roundAccuracies[1])}
               </strong>
             </div>
-            <div className="rhythm-metric rhythm-metric-average">
-              <span>Trung bình các vòng đã chơi</span>
-              <strong data-testid="tap-accuracy">
-                {formatAccuracy(summary.accuracyPercent)}
-              </strong>
-            </div>
           </div>
         )}
 
-        {hasCompletedTwoRounds && summary.accuracyPercent === null && (
+        {hasCompletedTwoRounds && summary.scoreOutOfTen === null && (
           <div className="rhythm-ungraded" role="note">
             <strong>Không có điểm khả dụng.</strong>
             <p>
