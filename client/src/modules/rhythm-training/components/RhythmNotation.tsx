@@ -54,6 +54,7 @@ export function RhythmNotation({ pattern, onReady }: RhythmNotationProps) {
         const rendered = renderRhythmNotation(host, pattern, {
           width,
           measuresPerRow: width < 560 ? 1 : 0,
+          tapGroups: true,
         });
         if (!host.contains(rendered.svg)) host.appendChild(rendered.svg);
         rendered.svg.setAttribute("role", "img");

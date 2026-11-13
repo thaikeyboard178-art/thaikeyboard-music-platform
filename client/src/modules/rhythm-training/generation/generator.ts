@@ -7,8 +7,9 @@ import type {
   WrittenDuration,
 } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
-import { durationToTicks } from "../rhythm/durations";
+import { durationToTicks, segmentDurationToTicks } from "../rhythm/durations";
 import { compoundGroupAt } from "../rhythm/grouping";
+import { simpleNotationGroupStarts } from "../notation/simpleMeterEngraving";
 import {
   deriveMeter,
   getDefaultPulseBpm,
@@ -22,6 +23,8 @@ import { createSeededRandom, seededShuffle } from "./random";
 export type RhythmGenerationConfig = Readonly<{
   readonly seed: string;
   readonly level: RhythmTrack;
+  /** Opt into constraints owned by Tap Rhythm; omitted for Quiz/generic callers. */
+  readonly purpose?: "tap";
   readonly meter?: RhythmMeter;
   readonly bars?: 1 | 2 | 4;
   readonly pulseBpm?: number;
@@ -58,6 +61,7 @@ type RawSegment = {
 };
 type ResolvedConfig = Readonly<{
   policy: LevelPolicy;
+  purpose?: "tap";
   meter: RhythmMeter;
   bars: 1 | 2 | 4;
   pulseBpm: number;
@@ -143,6 +147,34 @@ function isSimpleMeterPolicy(policy: LevelPolicy): boolean {
   return policy.allowedMeters.every(meter => meter.denominator === 4);
 }
 
+function tapUsesExactRestQuota(
+  purpose: "tap" | undefined,
+  meter: RhythmMeter
+): boolean {
+  return (
+    purpose === "tap" &&
+    ((meter.denominator === 4 &&
+      (meter.numerator === 2 ||
+        meter.numerator === 3 ||
+        meter.numerator === 4)) ||
+      (meter.numerator === 2 && meter.denominator === 2))
+  );
+}
+
+function crossesTapGroupBoundary(
+  offset: number,
+  ticks: number,
+  meter: RhythmMeter
+): boolean {
+  const starts = simpleNotationGroupStarts(meter);
+  if (!starts) return false;
+  const info = deriveMeter(meter);
+  for (const boundary of [...starts.slice(1), info.measureTicks]) {
+    if (offset < boundary && offset + ticks > boundary) return true;
+  }
+  return false;
+}
+
 function isDotsAndTiesIntroduction(policy: LevelPolicy): boolean {
   return (
     isSimpleMeterPolicy(policy) &&
@@ -171,9 +203,7 @@ function isControlledComplexPolicy(policy: LevelPolicy): boolean {
 
 function combinedRequiresDotAndTie(policy: LevelPolicy): boolean {
   return (
-    policy.allowDots &&
-    policy.allowTies &&
-    !isControlledComplexPolicy(policy)
+    policy.allowDots && policy.allowTies && !isControlledComplexPolicy(policy)
   );
 }
 
@@ -194,6 +224,9 @@ function validateBasicConfig(input: RhythmGenerationConfig): void {
     input.seed.trim().length === 0
   ) {
     fail("Generation config requires a nonempty seed.");
+  }
+  if (input.purpose !== undefined && input.purpose !== "tap") {
+    fail("Generation config purpose is unsupported.");
   }
   if (
     input.level !== "bonus" &&
@@ -233,8 +266,114 @@ function featureSet(
   focus: RhythmFocus,
   meter: RhythmMeter,
   random: () => number,
-  bars: 1 | 2 | 4
+  bars: 1 | 2 | 4,
+  purpose?: "tap"
 ): Features {
+  if (purpose === "tap" && policy.level === 4) {
+    if (focus === "combined") {
+      fail(
+        "Tap Level 4 combined focus is infeasible: dot + tie + sixteenth would require 3 difficulty sources, exceeding the Level 4 maximum of 2. Choose dots, ties, sixteenths, snap, sandwich, or integrated."
+      );
+    }
+    if (focus === "dots")
+      return {
+        dots: true,
+        ties: false,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: null,
+      };
+    if (focus === "ties")
+      return {
+        dots: false,
+        ties: true,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: null,
+      };
+    if (focus === "integrated") {
+      const secondary = random();
+      return {
+        dots: secondary < 0.5,
+        ties: secondary >= 0.5,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: null,
+      };
+    }
+  }
+  if (purpose === "tap" && policy.level === 5) {
+    if (focus === "combined") {
+      fail(
+        "Tap Level 5 combined focus is infeasible: dot + tie + required tuplet would require 3 difficulty sources, exceeding the Level 5 maximum of 2. Choose a single inherited source with a triplet instead."
+      );
+    }
+    if (focus === "snap") {
+      fail(
+        "Tap Level 5 snap focus is infeasible: dot + sixteenth + required tuplet would require 3 difficulty sources, exceeding the Level 5 maximum of 2."
+      );
+    }
+    if (focus === "syncopation") {
+      fail(
+        "Tap Level 5 syncopation focus is infeasible: syncopation + required tuplet + inherited Level 3/4 vocabulary would require 3 difficulty sources, exceeding the Level 5 maximum of 2."
+      );
+    }
+    if (focus === "dots")
+      return {
+        dots: true,
+        ties: false,
+        sixteenths: false,
+        syncopation: false,
+        tuplets: "quarter",
+      };
+    if (focus === "ties")
+      return {
+        dots: false,
+        ties: true,
+        sixteenths: false,
+        syncopation: false,
+        tuplets: "eighth",
+      };
+    if (focus === "quarter-triplets")
+      return {
+        dots: false,
+        ties: false,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: "quarter",
+      };
+    if (focus === "eighth-triplets")
+      return {
+        dots: false,
+        ties: false,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: "eighth",
+      };
+    if (focus === "sixteenths" || focus === "sandwich")
+      return {
+        dots: false,
+        ties: false,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: "eighth",
+      };
+    if (focus === "integrated" || focus === "triplet-combined") {
+      const tupletKind: TupletKind =
+        meter.numerator === 2 && meter.denominator === 4
+          ? "eighth"
+          : random() < 0.5
+            ? "quarter"
+            : "eighth";
+      return {
+        dots: false,
+        ties: false,
+        sixteenths: true,
+        syncopation: false,
+        tuplets: tupletKind,
+      };
+    }
+  }
   if (focus === "dots")
     return {
       dots: policy.allowDots,
@@ -376,7 +515,9 @@ function featureSet(
 
   // Integrated tracks choose one or two genuine sources; Level-5 triplets
   // count as one source. Compound meter's pulse-defining dots are excluded.
-  const sources: Array<"dots" | "ties" | "sixteenths" | "syncopation" | "tuplets"> = [];
+  const sources: Array<
+    "dots" | "ties" | "sixteenths" | "syncopation" | "tuplets"
+  > = [];
   if (policy.allowDots && (meter.numerator !== 6 || random() > 0.35))
     sources.push("dots");
   if (policy.allowTies) sources.push("ties");
@@ -390,9 +531,9 @@ function featureSet(
       ? 0
       : 1 + Math.floor(random() * Math.min(2, shuffled.length));
   const selected = new Set(shuffled.slice(0, count));
-  const selectedOlderSource = (
-    ["dots", "ties", "sixteenths"] as const
-  ).some(source => selected.has(source));
+  const selectedOlderSource = (["dots", "ties", "sixteenths"] as const).some(
+    source => selected.has(source)
+  );
   if (
     policy.level === 5 &&
     selected.has("tuplets") &&
@@ -426,9 +567,9 @@ function featureSet(
           meter.numerator === 3 &&
           (selected.has("dots") || selected.has("ties"))
         ? "eighth"
-      : random() < 0.5
-        ? "quarter"
-        : "eighth"
+        : random() < 0.5
+          ? "quarter"
+          : "eighth"
     : null;
   return {
     dots: selected.has("dots"),
@@ -444,7 +585,8 @@ function chooseMeter(
   requested: RhythmMeter | undefined,
   focus: RhythmFocus,
   bars: 1 | 2 | 4,
-  random: () => number
+  random: () => number,
+  purpose?: "tap"
 ): RhythmMeter {
   if (requested !== undefined) {
     try {
@@ -457,14 +599,35 @@ function chooseMeter(
   }
 
   let choices = policy.allowedMeters;
-  if (
-    policy.level === 6 &&
-    (focus === "dots" || focus === "combined")
-  ) {
-    if (
-      requested?.numerator === 3 &&
-      requested.denominator === 8
-    ) {
+  if (purpose === "tap" && policy.level === 5) {
+    const meterRestriction =
+      focus === "dots"
+        ? (meter: RhythmMeter) =>
+            meter.numerator === 4 && meter.denominator === 4
+        : focus === "ties" ||
+            focus === "sandwich" ||
+            focus === "quarter-triplets"
+          ? (meter: RhythmMeter) => meter.numerator !== 2
+          : undefined;
+    if (meterRestriction !== undefined) {
+      if (requested !== undefined && !meterRestriction(requested)) {
+        const supported =
+          focus === "dots"
+            ? "4/4 is required to fit a dotted value, triplet, and one rest within the two-source budget"
+            : focus === "ties"
+              ? "2/4 has no room for a tie, required triplet, and one rest"
+              : focus === "sandwich"
+                ? "2/4 has no room for the sandwich, required triplet, and one rest"
+                : "2/4 quarter-note triplets fill the measure and leave no room for the required rest";
+        fail(
+          `Tap Level 5 ${focus} focus is infeasible in ${meterKey(requested)}: ${supported}.`
+        );
+      }
+      choices = choices.filter(meterRestriction);
+    }
+  }
+  if (policy.level === 6 && (focus === "dots" || focus === "combined")) {
+    if (requested?.numerator === 3 && requested.denominator === 8) {
       fail(
         focus === "dots"
           ? "Level 6 dots focus is infeasible in 3/8: the taught dotted-quarter value fills the measure, leaving no room for the required rest; choose basic or ties focus, or use 6/8 or 9/8."
@@ -527,18 +690,65 @@ function resolveConfig(
     config.meter?.numerator === 2 &&
     config.meter.denominator === 4;
   const focus = (
-    omittedFocusUsesDotsInTwoFour ? "dots" : (config.focus ?? policy.defaultFocus)
+    omittedFocusUsesDotsInTwoFour
+      ? "dots"
+      : (config.focus ?? policy.defaultFocus)
   ) as RhythmFocus;
   if (!policy.supportedFocus.includes(focus))
     fail("Focus is not configured for this level.");
+  if (config.purpose === "tap" && policy.level === 4 && focus === "combined") {
+    fail(
+      "Tap Level 4 combined focus is infeasible: dot + tie + sixteenth would require 3 difficulty sources, exceeding the Level 4 maximum of 2. Choose dots, ties, sixteenths, snap, sandwich, or integrated."
+    );
+  }
+  if (
+    config.purpose === "tap" &&
+    policy.level === 5 &&
+    (focus === "combined" || focus === "snap" || focus === "syncopation")
+  ) {
+    // featureSet supplies the focus-specific, source-count explanation.
+    if (focus === "combined")
+      fail(
+        "Tap Level 5 combined focus is infeasible: dot + tie + required tuplet would require 3 difficulty sources, exceeding the Level 5 maximum of 2. Choose a single inherited source with a triplet instead."
+      );
+    if (focus === "snap")
+      fail(
+        "Tap Level 5 snap focus is infeasible: dot + sixteenth + required tuplet would require 3 difficulty sources, exceeding the Level 5 maximum of 2."
+      );
+    fail(
+      "Tap Level 5 syncopation focus is infeasible: syncopation + required tuplet + inherited Level 3/4 vocabulary would require 3 difficulty sources, exceeding the Level 5 maximum of 2."
+    );
+  }
   const bars = config.bars ?? 1;
-  const meter = chooseMeter(policy, config.meter, focus, bars, random);
+  const meter = chooseMeter(
+    policy,
+    config.meter,
+    focus,
+    bars,
+    random,
+    config.purpose
+  );
   // Keep the former single tempo draw consumed so seeded note/rest choices
   // remain stable, while the BPM itself is now canonical and deterministic.
   if (config.pulseBpm === undefined) random();
   const pulseBpm = config.pulseBpm ?? getDefaultPulseBpm(meter);
-  const features = featureSet(policy, focus, meter, random, bars);
-  return Object.freeze({ policy, meter, bars, pulseBpm, focus, features });
+  const features = featureSet(
+    policy,
+    focus,
+    meter,
+    random,
+    bars,
+    config.purpose
+  );
+  return Object.freeze({
+    policy,
+    ...(config.purpose === undefined ? {} : { purpose: config.purpose }),
+    meter,
+    bars,
+    pulseBpm,
+    focus,
+    features,
+  });
 }
 
 function allowedDurations(
@@ -582,10 +792,16 @@ function buildBar(
   const pulseTicks = meter.pulseTicks;
   const fineFeature = resolved.features.sixteenths;
   const preservePulseBoundaries = !resolved.features.syncopation;
+  const exactTapRestQuota = tapUsesExactRestQuota(
+    resolved.purpose,
+    resolved.meter
+  );
   const permittedRestDurations = new Set(
     resolved.policy.restDurations.map(durationKey)
   );
-  const maxRestsPerBar = Math.min(resolved.policy.maxRestsPerBar, 2);
+  const maxRestsPerBar = exactTapRestQuota
+    ? 1
+    : Math.min(resolved.policy.maxRestsPerBar, 2);
   const preferFine =
     resolved.features.syncopation || resolved.features.sixteenths;
 
@@ -600,14 +816,41 @@ function buildBar(
     nodes += 1;
     if (nodes > MAX_COMPOSITION_NODES) return null;
     if (remaining === 0) {
+      const hasEighthNote = segments.some(
+        segment =>
+          segment.kind === "note" &&
+          segment.duration.denominator === 8 &&
+          segment.duration.dots === 0
+      );
+      const hasEighthRest = segments.some(
+        segment =>
+          segment.kind === "rest" &&
+          segment.duration.denominator === 8 &&
+          segment.duration.dots === 0
+      );
+      const hasSixteenthNote = segments.some(
+        segment =>
+          segment.kind === "note" && segment.duration.denominator === 16
+      );
       return segments.some(segment => segment.kind === "note") &&
-        restCount >= 1 &&
-        restCount <= 2
+        (exactTapRestQuota
+          ? restCount === 1
+          : restCount >= 1 && restCount <= 2) &&
+        (resolved.purpose !== "tap" ||
+          resolved.policy.level !== 2 ||
+          (hasEighthNote && hasEighthRest)) &&
+        (resolved.purpose !== "tap" ||
+          resolved.policy.level !== 4 ||
+          hasSixteenthNote)
         ? segments
         : null;
     }
     if (segments.length >= MAX_SEGMENTS_PER_BAR) return null;
-    const key = `${remaining}:${restCount}:${previousWasRest}:${finePulses.join(",")}:${segments.length}`;
+    const eighthState =
+      resolved.purpose === "tap" && resolved.policy.level === 2
+        ? `:${segments.some(segment => segment.kind === "note" && segment.duration.denominator === 8 && segment.duration.dots === 0)}:${segments.some(segment => segment.kind === "rest" && segment.duration.denominator === 8 && segment.duration.dots === 0)}`
+        : "";
+    const key = `${remaining}:${restCount}:${previousWasRest}:${finePulses.join(",")}:${segments.length}${eighthState}`;
     if (memo.has(key)) return null;
     const eligible = durationRows
       .filter(row => row.ticks <= remaining)
@@ -645,12 +888,24 @@ function buildBar(
       for (const kind of kinds) {
         if (kind === "rest" && previousWasRest) continue;
         if (
+          exactTapRestQuota &&
+          kind === "rest" &&
+          offset === 0 &&
+          segments.length === 0
+        )
+          continue;
+        if (
+          exactTapRestQuota &&
+          crossesTapGroupBoundary(offset, row.ticks, resolved.meter) &&
+          (kind === "rest" || (kind === "note" && !resolved.policy.allowTies))
+        )
+          continue;
+        if (
           kind === "rest" &&
           !permittedRestDurations.has(durationKey(row.duration))
         )
           continue;
-        if (kind === "rest" && restCount >= maxRestsPerBar)
-          continue;
+        if (kind === "rest" && restCount >= maxRestsPerBar) continue;
         const pulse = Math.floor(offset / pulseTicks);
         const nextFinePulses =
           isSixteenthFamily(row.duration) && !finePulses.includes(pulse)
@@ -935,6 +1190,9 @@ function requiredBarPrefix(
   resolved: ResolvedConfig,
   random: () => number
 ): readonly RawSegment[] {
+  if (resolved.purpose === "tap" && resolved.policy.level === 2) {
+    return [{ kind: "note", duration: { denominator: 8, dots: 0 } }];
+  }
   if (resolved.focus === "snap") {
     return [
       { kind: "note", duration: { denominator: 8, dots: 1 } },
@@ -953,19 +1211,33 @@ function requiredBarPrefix(
     resolved.focus === "integrated" &&
     resolved.features.sixteenths
   ) {
-    const motifCount =
-      resolved.meter.numerator >= 3 && random() < 0.4 ? 2 : 1;
+    const motifCount = resolved.meter.numerator >= 3 && random() < 0.4 ? 2 : 1;
     return Array.from({ length: motifCount }, () => {
       const useSnap = !resolved.features.ties && random() < 0.5;
       return useSnap
         ? [
-            { kind: "note" as const, duration: { denominator: 8 as const, dots: 1 as const } },
-            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
+            {
+              kind: "note" as const,
+              duration: { denominator: 8 as const, dots: 1 as const },
+            },
+            {
+              kind: "note" as const,
+              duration: { denominator: 16 as const, dots: 0 as const },
+            },
           ]
         : [
-            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
-            { kind: "note" as const, duration: { denominator: 8 as const, dots: 0 as const } },
-            { kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } },
+            {
+              kind: "note" as const,
+              duration: { denominator: 16 as const, dots: 0 as const },
+            },
+            {
+              kind: "note" as const,
+              duration: { denominator: 8 as const, dots: 0 as const },
+            },
+            {
+              kind: "note" as const,
+              duration: { denominator: 16 as const, dots: 0 as const },
+            },
           ];
     }).flat();
   }
@@ -973,7 +1245,12 @@ function requiredBarPrefix(
     return [
       { kind: "note", duration: { denominator: 2, dots: 0 } },
       ...(resolved.policy.level === 5 && resolved.features.sixteenths
-        ? [{ kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } }]
+        ? [
+            {
+              kind: "note" as const,
+              duration: { denominator: 16 as const, dots: 0 as const },
+            },
+          ]
         : []),
     ];
   }
@@ -981,7 +1258,12 @@ function requiredBarPrefix(
     return [
       { kind: "note", duration: { denominator: 4, dots: 0 } },
       ...(resolved.policy.level === 5 && resolved.features.sixteenths
-        ? [{ kind: "note" as const, duration: { denominator: 16 as const, dots: 0 as const } }]
+        ? [
+            {
+              kind: "note" as const,
+              duration: { denominator: 16 as const, dots: 0 as const },
+            },
+          ]
         : []),
     ];
   }
@@ -1196,12 +1478,21 @@ function assertFeatures(
     fail("Pattern contains syncopation outside the selected difficulty focus.");
   }
 
-  if (focus === "dots" && (!flags.hasDot || flags.hasTie || flags.hasFine)) {
+  const tapLevelFourFineCompanion =
+    resolved.purpose === "tap" && policy.level === 4;
+  if (
+    focus === "dots" &&
+    (!flags.hasDot ||
+      flags.hasTie ||
+      (flags.hasFine && !tapLevelFourFineCompanion))
+  ) {
     fail("Dots focus requires dots only.");
   }
   if (
     focus === "ties" &&
-    (!flags.hasTie || flags.hasDotConcept || flags.hasFine)
+    (!flags.hasTie ||
+      flags.hasDotConcept ||
+      (flags.hasFine && !tapLevelFourFineCompanion))
   ) {
     fail("Ties focus requires ties only.");
   }
@@ -1331,6 +1622,95 @@ function auditVocabulary(
   }
 }
 
+function assertTapSpecificConstraints(
+  pattern: RhythmPattern,
+  flags: ReturnType<typeof patternFlags>,
+  resolved: ResolvedConfig
+): void {
+  if (resolved.purpose !== "tap") return;
+  if (
+    tapUsesExactRestQuota(resolved.purpose, pattern.meter) &&
+    flags.restsPerBar.some(count => count !== 1)
+  ) {
+    fail(
+      "Tap patterns in 2/4, 3/4, 4/4, and Bonus 2/2 require exactly one rest in every measure."
+    );
+  }
+  if (
+    tapUsesExactRestQuota(resolved.purpose, pattern.meter) &&
+    pattern.measures[0]?.segments[0]?.kind !== "note"
+  ) {
+    fail(
+      "The first Tap Rhythm measure must start with a sounding note on beat 1."
+    );
+  }
+  const segments = pattern.measures.flatMap(measure => measure.segments);
+  if (
+    resolved.policy.level === 2 &&
+    (!segments.some(
+      segment =>
+        segment.kind === "note" &&
+        segment.duration.denominator === 8 &&
+        segment.duration.dots === 0
+    ) ||
+      !segments.some(
+        segment =>
+          segment.kind === "rest" &&
+          segment.duration.denominator === 8 &&
+          segment.duration.dots === 0
+      ))
+  ) {
+    fail("Tap Level 2 requires an actual eighth note and an eighth rest.");
+  }
+  if (resolved.policy.level === 3 && !flags.hasDotConcept && !flags.hasTie) {
+    fail("Tap Level 3 requires an actual dotted value or a tie.");
+  }
+  if (
+    resolved.policy.level === 4 &&
+    !segments.some(
+      segment => segment.kind === "note" && segment.duration.denominator === 16
+    )
+  ) {
+    fail(
+      "Tap Level 4 requires an actual sixteenth-note note (including snap or sandwich vocabulary)."
+    );
+  }
+  if (
+    resolved.policy.level === 5 &&
+    (!flags.hasTuplets ||
+      (!flags.hasDotConcept && !flags.hasTie && !flags.hasFine))
+  ) {
+    fail(
+      "Tap Level 5 requires a complete 3:2 quarter/eighth tuplet and actual inherited Level 3/4 vocabulary."
+    );
+  }
+  if (flags.sourceCount > resolved.policy.maxDifficultySources) {
+    fail(
+      `Tap Level ${String(resolved.policy.level)} pattern uses ${flags.sourceCount} actual difficulty sources; the maximum is ${resolved.policy.maxDifficultySources}.`
+    );
+  }
+  const starts = simpleNotationGroupStarts(pattern.meter);
+  if (starts !== undefined) {
+    pattern.measures.forEach(measure => {
+      let offset = 0;
+      for (const segment of measure.segments) {
+        const ticks = segmentDurationToTicks(segment);
+        if (
+          crossesTapGroupBoundary(offset, ticks, pattern.meter) &&
+          (segment.kind === "rest" || !resolved.policy.allowTies)
+        ) {
+          fail(
+            segment.kind === "rest"
+              ? "A Tap rest must fit within its simple-meter notation group."
+              : "A Tap note crosses a simple grouping boundary where ties are not taught."
+          );
+        }
+        offset += ticks;
+      }
+    });
+  }
+}
+
 /** Public evidence helper for parent-owned choices and tests. */
 export function patternMetrics(pattern: RhythmPattern) {
   const flags = patternFlags(requireValidRhythmPattern(pattern));
@@ -1398,6 +1778,7 @@ export function assertLevelConstraints(
   if (flags.restsPerBar.some(count => count > 2)) {
     fail("Pattern exceeds the level rest budget.");
   }
+  assertTapSpecificConstraints(canonical, flags, resolved);
   if (flags.hasTuplets && !resolved.policy.allowTuplets) {
     fail("Tuplets are only available in Level 5.");
   }
@@ -1492,7 +1873,8 @@ export function generateRhythmPattern(
   if (durations.length === 0)
     fail("No durations are available for this level and focus.");
 
-  let lastRejection = "a measure could not be filled with the required rest budget";
+  let lastRejection =
+    "a measure could not be filled with the required rest budget";
   for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
     const bars: RawSegment[][] = [];
     let complete = true;
@@ -1511,7 +1893,8 @@ export function generateRhythmPattern(
       bars.push(result);
     }
     if (!complete) {
-      lastRejection = "a measure could not be filled with the required rest budget";
+      lastRejection =
+        "a measure could not be filled with the required rest budget";
       continue;
     }
 
@@ -1528,10 +1911,22 @@ export function generateRhythmPattern(
       resolved.features.ties &&
       (resolved.focus !== "syncopation" || random() < 0.5)
     ) {
+      // Tap Level 4 now always includes fine vocabulary. Retain cross-bar ties
+      // only when its attack preserves pulse alignment: otherwise the tie
+      // adds syncopation as a third source. Never turn its sole rest into a note.
+      const left = bars[0]?.at(-1);
+      const right = bars[1]?.[0];
+      const pulseTicks = deriveMeter(resolved.meter).pulseTicks;
+      const tapFineCrossBarEligible =
+        resolved.purpose === "tap" &&
+        resolved.policy.level === 4 &&
+        left?.kind === "note" &&
+        right?.kind === "note" &&
+        durationToTicks(left.duration) % pulseTicks === 0;
       const tied =
         (resolved.bars === 2 || resolved.bars === 4) &&
         resolved.policy.allowCrossBarTies &&
-        !resolved.features.sixteenths
+        (!resolved.features.sixteenths || tapFineCrossBarEligible)
           ? applyCrossBarTie(bars)
           : applyIntraBarTie(bars, resolved, random, durations);
       if (!tied) continue;
@@ -1558,7 +1953,9 @@ export function generateRhythmPattern(
     } catch (error) {
       // A bounded retry is preferable to trimming or coercing an exact bar.
       lastRejection =
-        error instanceof Error ? error.message : "curriculum constraints rejected the candidate";
+        error instanceof Error
+          ? error.message
+          : "curriculum constraints rejected the candidate";
     }
   }
   fail(

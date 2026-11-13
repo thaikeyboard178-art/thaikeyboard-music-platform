@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  createTapRhythmExercise,
   createTapTargets,
   type TapRhythmExercise,
 } from "../exercises/tapRhythm";
+import { createCanonicalTapStressExercise } from "./tapTestHelpers";
 import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import { createRhythmAudioPlan } from "./plan";
@@ -38,7 +38,10 @@ function pianoResponse() {
 function exerciseFor(index: number, bars: 1 | 2 | 4): TapRhythmExercise {
   const fixture = SEVEN_METER_RUNTIME_FIXTURES[index];
   const track = index < 3 ? 3 : index === 6 ? "bonus" : 6;
-  const initial = createTapRhythmExercise({ track, pattern: fixture.pattern });
+  const initial = createCanonicalTapStressExercise({
+    track,
+    pattern: fixture.pattern,
+  });
   const pattern = {
     ...initial.pattern,
     id: `${initial.pattern.id}-${bars}bars`,

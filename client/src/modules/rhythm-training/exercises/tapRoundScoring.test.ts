@@ -76,7 +76,7 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
     }
   );
 
-  it("grades the identified first Tap normally inside Wassoc and forces Extra + Missing outside it", () => {
+  it("keeps the identified early first Tap paired to beat one even outside Wassoc", () => {
     const targets: readonly TapTarget[] = [
       { id: "beat-one", tick: 0, offsetMs: 0, passMs: 50, associationMs: 80 },
       { id: "beat-two", tick: 240, offsetMs: 500, passMs: 50, associationMs: 80 },
@@ -108,20 +108,21 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
     const firstRound = score.rounds[0];
     expect(firstRound.firstTapSequence).toBe(0);
     expect(firstRound.evaluation?.targetResults.map(result => result.status)).toEqual([
-      "missing",
+      "early",
       "matched",
     ]);
     expect(firstRound.evaluation?.tapResults[0]).toMatchObject({
       sequence: 0,
-      status: "extra",
-      targetIndex: null,
+      status: "early",
+      targetIndex: 0,
+      errorMs: -100,
     });
     expect(firstRound.evaluation).toMatchObject({
       tp: 1,
       n: 2,
       k: 2,
-      missing: 1,
-      extra: 1,
+      missing: 0,
+      extra: 0,
       accuracyPercent: 50,
     });
     expect(score.rounds[1].accuracyPercent).toBe(100);

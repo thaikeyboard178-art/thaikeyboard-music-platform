@@ -145,48 +145,20 @@ function auditPatternForTrack(
     fail("Tap Rhythm exercises must contain one, two, or four bars.");
   }
   if (pattern.measures[0]?.segments[0]?.kind !== "note") {
-    fail("The first Tap Rhythm measure must start with a sounding note on beat 1.");
+    fail(
+      "The first Tap Rhythm measure must start with a sounding note on beat 1."
+    );
   }
   const config = {
     seed: "tap-level-audit",
     level: track,
+    purpose: "tap",
     meter: pattern.meter,
     bars: pattern.measures.length as 1 | 2 | 4,
     pulseBpm: pattern.tempo.pulseBpm,
     focus,
   } as const;
-  try {
-    assertLevelConstraints(pattern, config);
-  } catch (error) {
-    const features = patternFeatures(pattern);
-    if (
-      track === 3 &&
-      !features.hasDotConcept &&
-      !features.hasTie &&
-      !features.hasFine &&
-      error instanceof RangeError &&
-      error.message === "Dots focus requires dots only."
-    ) {
-      // Neutral imported Level 3 patterns use inherited durations. This exact
-      // terminal feature error is the only skipped check; canonical, meter,
-      // vocabulary, rest, tie, and difficulty-budget audits already passed.
-      return;
-    }
-    if (
-      track === 4 &&
-      !features.hasDotConcept &&
-      !features.hasTie &&
-      error instanceof RangeError &&
-      error.message === "Dots focus requires dots only."
-    ) {
-      // A plain Level 4 pattern is inside its allowed duration/meter policy,
-      // but the generation audit has no neutral focus. The exact error above
-      // occurs only after its canonical, vocabulary, tempo, rest, tie, and
-      // difficulty-budget checks have succeeded.
-      return;
-    }
-    throw error;
-  }
+  assertLevelConstraints(pattern, config);
 }
 
 function gridForTrack(track: RhythmTrack): 120 | 240 {
@@ -311,6 +283,7 @@ export function generateTapRhythmExercise(
   const baseConfig = {
     level: input.track,
     seed,
+    purpose: "tap",
     ...(input.meter === undefined ? {} : { meter: input.meter }),
     ...(input.bars === undefined ? {} : { bars: input.bars }),
     ...(input.pulseBpm === undefined ? {} : { pulseBpm: input.pulseBpm }),
@@ -418,7 +391,8 @@ export function evaluateTapRhythmAnswer(
         roundNumber: round.roundNumber,
         skipped: round.status === "skipped",
         taps: round.taps,
-        ...(round.firstTapSequence === undefined || round.firstTapSequence === null
+        ...(round.firstTapSequence === undefined ||
+        round.firstTapSequence === null
           ? {}
           : { firstTapSequence: round.firstTapSequence }),
       })),

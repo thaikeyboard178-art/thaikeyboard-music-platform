@@ -1,24 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TapTrainingController } from "./TapTrainingController";
 import { TapRhythmEngine } from "../audio/tapEngine";
-import { dispatchFirstTapAtNextDownbeat, TapFakeClock } from "../audio/tapTestHelpers";
+import {
+  createCanonicalTapStressExercise,
+  dispatchFirstTapAtNextDownbeat,
+  TapFakeClock,
+} from "../audio/tapTestHelpers";
 import type { RhythmScheduledEvent } from "../audio/transport";
-import { createTapRhythmExercise } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 
 const configuration = { track: 3, section: "practice" } as const;
 function fixture() {
   const clock = new TapFakeClock();
   const input = new EventTarget();
-  const scheduledEvents: RhythmScheduledEvent[] = [];
-  let engine: TapRhythmEngine;
-  const controller = new TapTrainingController({
-    getInputTarget: () => input,
-    createExercise: (_config, seed) =>
-      createTapRhythmExercise({
-        track: 3,
-        pattern: { ...SEVEN_METER_RUNTIME_FIXTURES[0].pattern, id: seed },
-        id: `exercise-${seed}`,
+    const scheduledEvents: RhythmScheduledEvent[] = [];
+    let engine: TapRhythmEngine;
+    const controller = new TapTrainingController({
+      getInputTarget: () => input,
+      createExercise: (_config, seed) =>
+        createCanonicalTapStressExercise({
+          track: 3,
+          pattern: { ...SEVEN_METER_RUNTIME_FIXTURES[0].pattern, id: seed },
+          id: `exercise-${seed}`,
       }),
     transport: {
       contextFactory: () => clock.context as unknown as AudioContext,

@@ -31,13 +31,21 @@ function durationKey(duration: { denominator: number; dots: number }): string {
 }
 
 function expectGeneratedRestRules(exercise: Exercise): void {
+  const { numerator, denominator } = exercise.pattern.meter;
+  const exactTapRestQuota =
+    (denominator === 4 && [2, 3, 4].includes(numerator)) ||
+    (numerator === 2 && denominator === 2);
   for (const measure of exercise.pattern.measures) {
     const segments = measure.segments;
     const restCount = segments.filter(
       segment => segment.kind === "rest"
     ).length;
-    expect(restCount).toBeGreaterThanOrEqual(1);
-    expect(restCount).toBeLessThanOrEqual(2);
+    if (exactTapRestQuota) {
+      expect(restCount).toBe(1);
+    } else {
+      expect(restCount).toBeGreaterThanOrEqual(1);
+      expect(restCount).toBeLessThanOrEqual(2);
+    }
     for (let index = 1; index < segments.length; index += 1) {
       expect(
         segments[index - 1].kind === "rest" && segments[index].kind === "rest"
@@ -143,7 +151,7 @@ describe("Tap Rhythm curriculum production integration", () => {
     }
   });
 
-  it("keeps Level 2 on 4/4 binary quarter/eighth material and quarter/eighth rests", () => {
+  it("keeps Level 2 on 4/4 binary quarter/eighth material and the required eighth rest", () => {
     const exercises = generateSeries(2, 64, fourFour);
     const observedNotes = new Set<number>();
     const observedRests = new Set<string>();
@@ -173,7 +181,7 @@ describe("Tap Rhythm curriculum production integration", () => {
     }
 
     expect([...observedNotes]).toEqual(expect.arrayContaining([4, 8]));
-    expect([...observedRests]).toEqual(expect.arrayContaining(["4/0", "8/0"]));
+    expect([...observedRests]).toEqual(["8/0"]);
   });
 
   it("rejects impossible Level 3 combined focus in 2/4 and keeps dots/ties combinations in feasible simple meters", () => {
@@ -251,12 +259,12 @@ describe("Tap Rhythm curriculum production integration", () => {
     ).toBe(false);
   });
 
-  it("generates Level 5 approved sixteenth combinations within the one-pulse budget", () => {
-    const combined = generateTapRhythmExercise({
+  it("generates Level 5 triplet-plus-inherited sixteenth combinations within the one-pulse budget", () => {
+    const tripletCombined = generateTapRhythmExercise({
       track: 5,
-      seed: "tap-curriculum-level-5-combined",
+      seed: "tap-curriculum-level-5-triplet-combined",
       meter: fourFour,
-      focus: "combined",
+      focus: "triplet-combined",
     });
     const sixteenths = generateTapRhythmExercise({
       track: 5,
@@ -264,16 +272,28 @@ describe("Tap Rhythm curriculum production integration", () => {
       meter: fourFour,
       focus: "sixteenths",
     });
-    const metrics = patternMetrics(combined.pattern);
+    const metrics = patternMetrics(tripletCombined.pattern);
 
     expect(metrics.hasFine).toBe(true);
-    expect(metrics.hasTie).toBe(true);
+    expect(metrics.hasTuplets).toBe(true);
+    expect(metrics.hasTie).toBe(false);
     expect(metrics.hasDot).toBe(false);
     expect(metrics.sourceCount).toBeLessThanOrEqual(2);
     expect(metrics.finePulsesPerBar.every(count => count <= 1)).toBe(true);
     expect(
-      segments(combined).some(segment => segment.duration.denominator === 16)
+      segments(tripletCombined).some(
+        segment => segment.duration.denominator === 16
+      )
     ).toBe(true);
+    expect(
+      segments(tripletCombined).some(
+        segment => segment.tupletGroup !== undefined
+      )
+    ).toBe(true);
+    const sixteenthMetrics = patternMetrics(sixteenths.pattern);
+    expect(sixteenthMetrics.hasFine).toBe(true);
+    expect(sixteenthMetrics.hasTuplets).toBe(true);
+    expect(sixteenthMetrics.sourceCount).toBeLessThanOrEqual(2);
     expect(
       segments(sixteenths).some(segment => segment.duration.denominator === 16)
     ).toBe(true);

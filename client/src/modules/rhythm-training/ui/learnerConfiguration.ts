@@ -90,16 +90,22 @@ export function getTapFocuses(
   meter: RhythmMeter
 ): readonly RhythmFocus[] {
   const focuses = policyForLevel(track).supportedFocus;
-  if (
-    (track === 3 || track === 4) &&
-    meter.numerator === 2 &&
-    meter.denominator === 4
-  )
+  if (track === 4) return focuses.filter(focus => focus !== "combined");
+  if (track === 5)
+    return focuses.filter(focus => {
+      if (focus === "combined" || focus === "snap" || focus === "syncopation")
+        return false;
+      if (focus === "dots") return meter.numerator === 4;
+      if (
+        focus === "ties" ||
+        focus === "sandwich" ||
+        focus === "quarter-triplets"
+      )
+        return meter.numerator !== 2;
+      return true;
+    });
+  if (track === 3 && meter.numerator === 2 && meter.denominator === 4)
     return focuses.filter(focus => focus !== "combined");
-  // A quarter-triplet group occupies both beats of 2/4, leaving no space for
-  // the mandated rest. Offer the feasible eighth-triplet vocabulary instead.
-  if (track === 5 && meter.numerator === 2 && meter.denominator === 4)
-    return focuses.filter(focus => focus !== "quarter-triplets");
   // These configurations already fail the generator's existing 3/8 gate:
   // Compound focus is not simple triple. A dotted quarter fills 3/8, so
   // dots cannot leave the mandatory rest; dot+tie cannot fit either.
@@ -129,7 +135,13 @@ export function groupingDescription(meter: RhythmMeter): string {
   if (meterKey(meter) === "3/8")
     return "Ba phách móc đơn độc lập · không gộp thành một phách phức";
   if (meterKey(meter) === "2/2")
-    return "Hai phách nốt trắng · khác cách đếm 4/4";
+    return "Nhóm 1 + 1: 1 | 2 · mỗi phách là nốt trắng, khác cách đếm 4/4";
+  if (meterKey(meter) === "2/4")
+    return "Nhóm 1 + 1: 1 | 2 · mỗi phách là nốt đen";
+  if (meterKey(meter) === "3/4")
+    return "Nhóm 1 + 1 + 1: 1 | 2 | 3 · mỗi phách là nốt đen";
+  if (meterKey(meter) === "4/4")
+    return "Nhóm 2 + 2: 1 – 2 | 3 – 4 · mỗi phách là nốt đen";
   return "Chia đôi phách chính · dấu lặng vẫn chiếm thời gian";
 }
 

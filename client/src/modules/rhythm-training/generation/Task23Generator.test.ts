@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createRhythmAudioPlan } from "../audio/plan";
-import { generateTapRhythmExercise } from "../exercises/tapRhythm";
+import {
+  createTapTargets,
+  generateTapRhythmExercise,
+} from "../exercises/tapRhythm";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
@@ -19,6 +22,20 @@ const simpleMeters: readonly RhythmMeter[] = [
 const barCounts = [1, 2, 4] as const;
 
 function expectPerMeasureRestRules(
+  pattern: ReturnType<typeof generateRhythmPattern>
+): void {
+  for (const measure of pattern.measures) {
+    const rests = measure.segments
+      .map((segment, index) => ({ segment, index }))
+      .filter(item => item.segment.kind === "rest");
+    expect(rests).toHaveLength(1);
+    expect(
+      rests.every(({ index }) => measure.segments[index - 1]?.kind !== "rest")
+    ).toBe(true);
+  }
+}
+
+function expectGenericPerMeasureRestRules(
   pattern: ReturnType<typeof generateRhythmPattern>
 ): void {
   for (const measure of pattern.measures) {
@@ -44,10 +61,17 @@ function exerciseConfig(
 }
 
 function expectCanonicalAudioAndTapPath(
-  config: RhythmGenerationConfig,
-  includeTapFactory = true
+  config: RhythmGenerationConfig
 ): ReturnType<typeof generateRhythmPattern> {
-  const pattern = generateRhythmPattern(config);
+  const exercise = generateTapRhythmExercise({
+    track: config.level,
+    seed: config.seed,
+    meter: config.meter,
+    bars: config.bars,
+    focus: config.focus,
+    pulseBpm: config.pulseBpm,
+  });
+  const pattern = exercise.pattern;
   const canonical = requireValidRhythmPattern(pattern);
   const timeline = deriveRhythmTimeline(canonical);
   const audio = createRhythmAudioPlan(canonical, "both");
@@ -60,17 +84,8 @@ function expectCanonicalAudioAndTapPath(
   expect(audio.toneEvents.map(event => event.tick)).toEqual(timeline.onsets);
   expect(audio.durationSeconds).toBeGreaterThan(0);
 
-  if (includeTapFactory) {
-    const exercise = generateTapRhythmExercise({
-      track: config.level,
-      seed: config.seed,
-      meter: config.meter,
-      bars: config.bars,
-      focus: config.focus,
-    });
-    expect(exercise.pattern).toEqual(canonical);
-    expect(exercise.targets.map(target => target.tick)).toEqual(timeline.onsets);
-  }
+  expect(exercise.pattern).toEqual(canonical);
+  expect(exercise.targets.map(target => target.tick)).toEqual(timeline.onsets);
   return canonical;
 }
 
@@ -95,11 +110,7 @@ describe("Task 23 production rhythm generation", () => {
           meter,
           bars,
           `task23-level4-${focus}-${meter.numerator}-${bars}`
-        ),
-        // The external Tap factory currently classifies every dotted-eighth
-        // snap as the sixteenths-only focus; keep the generator/audio proof
-        // active while reporting that out-of-scope factory audit separately.
-        focus !== "snap"
+        )
       );
       const metrics = patternMetrics(pattern);
       expect(metrics.hasTuplets).toBe(false);
@@ -131,12 +142,12 @@ describe("Task 23 production rhythm generation", () => {
       expect(members.map(segment => segment.durationTicks)).toEqual([
         320, 320, 320,
       ]);
-      expect(members[1].absoluteStartTicks - members[0].absoluteStartTicks).toBe(
-        320
-      );
-      expect(members[2].absoluteStartTicks - members[1].absoluteStartTicks).toBe(
-        320
-      );
+      expect(
+        members[1].absoluteStartTicks - members[0].absoluteStartTicks
+      ).toBe(320);
+      expect(
+        members[2].absoluteStartTicks - members[1].absoluteStartTicks
+      ).toBe(320);
     }
   );
 
@@ -156,9 +167,7 @@ describe("Task 23 production rhythm generation", () => {
   );
 
   it.each(
-    simpleMeters.flatMap(meter =>
-      barCounts.map(bars => ({ meter, bars }))
-    )
+    simpleMeters.flatMap(meter => barCounts.map(bars => ({ meter, bars })))
   )(
     "generates actual 160-tick Level 5 eighth-triplet members in $meter.numerator/4 with $bars bars",
     ({ meter, bars }) => {
@@ -177,19 +186,17 @@ describe("Task 23 production rhythm generation", () => {
       expect(members.map(segment => segment.durationTicks)).toEqual([
         160, 160, 160,
       ]);
-      expect(members[1].absoluteStartTicks - members[0].absoluteStartTicks).toBe(
-        160
-      );
-      expect(members[2].absoluteStartTicks - members[1].absoluteStartTicks).toBe(
-        160
-      );
+      expect(
+        members[1].absoluteStartTicks - members[0].absoluteStartTicks
+      ).toBe(160);
+      expect(
+        members[2].absoluteStartTicks - members[1].absoluteStartTicks
+      ).toBe(160);
     }
   );
 
   it.each(
-    simpleMeters.flatMap(meter =>
-      barCounts.map(bars => ({ meter, bars }))
-    )
+    simpleMeters.flatMap(meter => barCounts.map(bars => ({ meter, bars })))
   )(
     "combines a Level 5 triplet with learned vocabulary in $meter.numerator/4 with $bars bars without exceeding two sources",
     ({ meter, bars }) => {
@@ -217,7 +224,7 @@ describe("Task 23 production rhythm generation", () => {
         focus: "integrated",
         meter: { numerator: 4, denominator: 4 },
         seed: `task23-level4-integrated-${index}`,
-      }, false);
+      });
       const metrics = patternMetrics(pattern);
       expect(metrics.hasTuplets).toBe(false);
       expect(metrics.sourceCount).toBeLessThanOrEqual(2);
@@ -229,12 +236,16 @@ describe("Task 23 production rhythm generation", () => {
     expect([...observations]).toEqual(
       expect.arrayContaining(["dot", "tie", "sixteenth"])
     );
-    expectCanonicalAudioAndTapPath({
+    const tiesWithSixteenths = expectCanonicalAudioAndTapPath({
       level: 4,
-      focus: "combined",
+      focus: "ties",
       meter: { numerator: 4, denominator: 4 },
       seed: "task23-level4-retained-dot-tie-tap-roundtrip",
     });
+    const tieMetrics = patternMetrics(tiesWithSixteenths);
+    expect(tieMetrics.hasTie).toBe(true);
+    expect(tieMetrics.hasFine).toBe(true);
+    expect(tieMetrics.sourceCount).toBeLessThanOrEqual(2);
   });
 
   it("never emits a basic-only Level 5 exercise across supported focus and meter combinations", () => {
@@ -281,7 +292,11 @@ describe("Task 23 production rhythm generation", () => {
               metrics.hasSyncopation
           ).toBe(true);
           expect(metrics.sourceCount).toBeLessThanOrEqual(2);
-          expectPerMeasureRestRules(pattern);
+          expectGenericPerMeasureRestRules(pattern);
+          const timeline = deriveRhythmTimeline(pattern);
+          expect(
+            createTapTargets(pattern, 120).map(target => target.tick)
+          ).toEqual(timeline.onsets);
           if (focus.includes("triplet")) expect(metrics.hasTuplets).toBe(true);
           requireValidRhythmPattern(pattern);
         }
@@ -334,7 +349,6 @@ describe("Task 23 production rhythm generation", () => {
   });
 });
 
-
 describe("Level 4 graduated motif density", () => {
   it("generates real snap/sandwich cells and denser same-bar combinations within the L4 source budget", () => {
     const observedMotifs = new Set<string>();
@@ -342,16 +356,13 @@ describe("Level 4 graduated motif density", () => {
     let integratedSixteenthExamples = 0;
 
     for (let seed = 0; seed < 64; seed += 1) {
-      const pattern = expectCanonicalAudioAndTapPath(
-        {
-          level: 4,
-          focus: "integrated",
-          meter: { numerator: 4, denominator: 4 },
-          bars: 1,
-          seed: `task24-level4-density-${seed}`,
-        },
-        false
-      );
+      const pattern = expectCanonicalAudioAndTapPath({
+        level: 4,
+        focus: "integrated",
+        meter: { numerator: 4, denominator: 4 },
+        bars: 1,
+        seed: `task24-level4-density-${seed}`,
+      });
       const metrics = patternMetrics(pattern);
       if (!metrics.hasFine) continue;
       integratedSixteenthExamples += 1;

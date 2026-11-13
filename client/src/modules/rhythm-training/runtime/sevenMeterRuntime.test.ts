@@ -2,7 +2,10 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createRhythmAudioPlan } from "../audio/plan";
 import { createTapAttemptPlan, createTapReferencePlan } from "../audio/tapPlan";
-import { createTapRhythmExercise } from "../exercises/tapRhythm";
+import {
+  createTapTargets,
+  type TapRhythmExercise,
+} from "../exercises/tapRhythm";
 import { rhythmPatternInputSchema } from "../rhythm/model";
 import { durationToTicks } from "../rhythm/durations";
 import {
@@ -624,10 +627,15 @@ describe("Seven-meter runtime completion gate", () => {
             )
           );
 
-          const exercise = createTapRhythmExercise({
+          const exercise: TapRhythmExercise = {
+            id: `runtime-stress-${f.name}-${pulseBpm}-${bars}`,
+            kind: "tap-rhythm",
             track,
+            section: "practice",
             pattern: canonical,
-          });
+            gridTicks: 240,
+            targets: createTapTargets(canonical, 240),
+          };
           const targetTicks = Array.from({ length: bars }, (_, barIndex) =>
             f.eighthStarts.map(tick => barIndex * measureTicks + tick)
           ).flat();
@@ -658,9 +666,9 @@ describe("Seven-meter runtime completion gate", () => {
               roundIndex * bars * countInTicks.length,
               (roundIndex + 1) * bars * countInTicks.length
             );
-            expect(roundEvents.map(event => event.tick - round.tickShift)).toEqual(
-              exercisePulseTicks
-            );
+            expect(
+              roundEvents.map(event => event.tick - round.tickShift)
+            ).toEqual(exercisePulseTicks);
             roundEvents.forEach((event, index) =>
               expect(event.offsetSeconds - round.secondsShift).toBeCloseTo(
                 ticksToSeconds(

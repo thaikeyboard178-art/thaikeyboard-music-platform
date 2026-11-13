@@ -1203,7 +1203,7 @@ export default function RhythmTrainingPage() {
                   )}
                 </section>
                 <p className="tap-first-tap-guidance" data-testid="tap-first-tap-guidance">
-                  Metronome chạy tự do đến Tap đầu tiên. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp; nếu sớm ngoài Wassoc, hệ thống ghi Chạm thừa + phách 1 bị thiếu. Hãy Tap gần downbeat muốn bắt đầu.
+                  Metronome chạy tự do đến Tap đầu tiên. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp; nếu sớm ngoài Wassoc, kết quả vẫn là Sớm, không phải Chạm thừa hoặc Thiếu phách 1. Không cần chạm lại phách 1.
                 </p>
                 <VisualMetronome
                   meter={view.exercise.pattern.meter}

@@ -29,6 +29,8 @@ export type RhythmNotationRenderOptions = Readonly<{
   measuresPerRow?: number;
   displayTimeSignature?: boolean;
   exposeCanonicalMetadata?: boolean;
+  /** Opt-in: simple-meter grouping/engraving for Tap; Quiz stays unchanged. */
+  tapGroups?: boolean;
 }>;
 
 export type RhythmVoiceParityReport = Readonly<{
@@ -133,6 +135,7 @@ function validateOptions(
     measuresPerRow,
     displayTimeSignature: options?.displayTimeSignature ?? true,
     exposeCanonicalMetadata: options?.exposeCanonicalMetadata ?? true,
+    tapGroups: options?.tapGroups ?? false,
   };
 }
 
@@ -527,8 +530,10 @@ export function renderRhythmNotation(
       "A writable HTMLElement container is required"
     );
   }
-  const projection = projectRhythmNotation(input);
   const renderOptions = validateOptions(options);
+  const projection = projectRhythmNotation(input, {
+    tapGroups: renderOptions.tapGroups,
+  });
   const rows = buildRows(
     projection,
     renderOptions.measuresPerRow,

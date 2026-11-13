@@ -5,9 +5,12 @@ import {
   createTapMetronomeLoopPlan,
 } from "./tapPlan";
 import { deriveMeter, getDefaultPulseBpm } from "../rhythm/meters";
-import { TapFakeClock, TEST_TAP_VOICES } from "./tapTestHelpers";
 import {
-  createTapRhythmExercise,
+  createCanonicalTapStressExercise,
+  TapFakeClock,
+  TEST_TAP_VOICES,
+} from "./tapTestHelpers";
+import {
   createTapTargets,
   evaluateTapRhythmAnswer,
 } from "../exercises/tapRhythm";
@@ -87,7 +90,7 @@ function setup(
 ) {
   const fixture = SEVEN_METER_RUNTIME_FIXTURES[index];
   const track: RhythmTrack = index < 3 ? 3 : index === 6 ? "bonus" : 6;
-  const baseExercise = createTapRhythmExercise({
+  const baseExercise = createCanonicalTapStressExercise({
     track,
     pattern: fixture.pattern,
   });
@@ -518,7 +521,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.clock.tasks.size).toBe(0);
   });
 
-  it("keeps the free loop unbounded and grades a first Tap outside Wassoc as Extra + Missing", async () => {
+  it.each([0.12, 0.5, 1.5])("keeps the free loop unbounded and grades a first Tap %s seconds before downbeat as Early", async (leadSeconds) => {
     const h = setup();
     await h.engine.start();
     const loop = createTapMetronomeLoopPlan(h.exercise);
@@ -534,7 +537,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     ).toBeGreaterThan(loop.pulseEvents.length * 2);
 
     const nextBarline = firstLoopPulse.startTime + 4 * loop.durationSeconds;
-    const firstTap = nextBarline - 0.12;
+    const firstTap = nextBarline - leadSeconds;
     h.clock.at(firstTap);
     h.input.dispatchEvent(h.clock.nativeTap(firstTap));
     expect(h.engine.snapshot!.rounds[0].anchorAudioTime).toBeCloseTo(nextBarline, 9);
@@ -545,13 +548,15 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
 
     const firstRound = h.engine.result!.rounds![0];
     expect(firstRound.firstTapSequence).toBe(0);
-    expect(firstRound.evaluation?.targetResults[0]?.status).toBe("missing");
+    expect(firstRound.evaluation?.targetResults[0]?.status).toBe("early");
+    expect(firstRound.noteResults[0].actualOffsetMs).toBeCloseTo(-leadSeconds * 1000, 8);
+    expect(firstRound.noteResults[0].errorMs).toBeCloseTo(-leadSeconds * 1000, 8);
     expect(firstRound.evaluation?.tapResults[0]).toMatchObject({
       sequence: 0,
-      status: "extra",
-      targetIndex: null,
+      status: "early",
+      targetIndex: 0,
     });
-    expect(firstRound.evaluation).toMatchObject({ missing: 1, extra: 1 });
+    expect(firstRound.evaluation).toMatchObject({ missing: 0, extra: 0 });
     expect(h.engine.result!.rounds![1].evaluation?.correct).toBe(true);
     expect(evaluateTapRhythmAnswer(h.exercise, h.engine.result)).toMatchObject({
       correct: false,
@@ -560,6 +565,32 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     });
     await h.engine.dispose();
     expect(h.clock.tasks.size).toBe(0);
+  });
+
+  it("pairs the first Tap on beat four of the previous 4/4 bar to the next independent downbeat", async () => {
+    const h = setup(2);
+    await h.engine.start();
+    const loop = createTapMetronomeLoopPlan(h.exercise);
+    const firstPulse = h.scheduledEvents.find(event => event.event.lane === "metronome")!;
+    const pulseSeconds = 60 / h.exercise.pattern.tempo.pulseBpm;
+    const nextDownbeat = firstPulse.startTime + 4 * loop.durationSeconds;
+    const beatFour = nextDownbeat - pulseSeconds;
+    h.clock.at(beatFour);
+    h.input.dispatchEvent(h.clock.nativeTap(beatFour));
+    expect(h.engine.snapshot!.rounds[0].anchorAudioTime).toBeCloseTo(nextDownbeat, 9);
+    tapAll(h);
+    finish(h);
+    const result = h.engine.result!;
+    expect(result.rounds![0].firstTapSequence).toBe(0);
+    expect(result.rounds![0].noteResults[0]).toMatchObject({
+      matchStatus: "early", tapSequence: 0,
+    });
+    expect(result.rounds![0].noteResults[0].errorMs).toBeCloseTo(-pulseSeconds * 1000, 8);
+    expect(result.rounds![0].evaluation).toMatchObject({ missing: 0, extra: 0 });
+    expect(evaluateTapRhythmAnswer(h.exercise, result)).toMatchObject({
+      accuracyPercent: result.accuracyPercent, scoreOutOfTen: result.scoreOutOfTen,
+    });
+    await h.engine.dispose();
   });
 
   it("accepts early/late within pass and diagnoses near-miss without changing timing policy", async () => {
@@ -754,7 +785,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
   });
   it("keeps the snapshot at bounded drain while the finite transport finishes the complete bar", async () => {
     const clock = new TapFakeClock();
-    const base = createTapRhythmExercise({
+    const base = createCanonicalTapStressExercise({
       track: 3,
       pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     });

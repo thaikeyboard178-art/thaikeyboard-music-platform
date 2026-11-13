@@ -564,6 +564,12 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(
       within(workspace).queryByText(/Tín hiệu chạm chỉ xác nhận thao tác/)
     ).toBeNull();
+    expect(screen.getByTestId("tap-first-tap-guidance").textContent).toContain(
+      "kết quả vẫn là Sớm, không phải Chạm thừa hoặc Thiếu phách 1"
+    );
+    expect(screen.getByTestId("tap-first-tap-guidance").textContent).toContain(
+      "Không cần chạm lại phách 1"
+    );
     expect(
       (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).value
     ).toBe("0.8");

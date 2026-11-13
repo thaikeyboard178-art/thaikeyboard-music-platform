@@ -11,6 +11,10 @@ import {
 } from "../rhythm/deriveTimeline";
 import type { StructuralAccent } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
+import {
+  engraveSimpleTapPattern,
+  simpleNotationGroupStarts,
+} from "./simpleMeterEngraving";
 
 export type ProjectedNotationDuration = `${number}` | `${number}r`;
 
@@ -132,27 +136,27 @@ function freezeProjectionSegment(
 
 function deriveBeamGroups(
   timeline: RhythmTimeline,
-  segments: readonly NotationSegmentProjection[]
+  segments: readonly NotationSegmentProjection[],
+  notationGroupStarts: readonly number[] = timeline.meter.groupStarts
 ): readonly NotationBeamGroup[] {
   const groups: NotationBeamGroup[] = [];
   let pending: NotationSegmentProjection[] = [];
 
   const groupBounds = (measureIndex: number, measureOffset: number) => {
-    const groupIndex = timeline.meter.groupStarts.findIndex(
+    const groupIndex = notationGroupStarts.findIndex(
       (start, index) =>
         start <= measureOffset &&
-        (timeline.meter.groupStarts[index + 1] ?? timeline.meter.measureTicks) >
+        (notationGroupStarts[index + 1] ?? timeline.meter.measureTicks) >
           measureOffset
     );
     if (groupIndex < 0) throw new RangeError("Missing canonical meter group.");
     const measureStart = measureIndex * timeline.meter.measureTicks;
     return {
       groupIndex,
-      start: measureStart + timeline.meter.groupStarts[groupIndex],
+      start: measureStart + notationGroupStarts[groupIndex],
       end:
         measureStart +
-        (timeline.meter.groupStarts[groupIndex + 1] ??
-          timeline.meter.measureTicks),
+        (notationGroupStarts[groupIndex + 1] ?? timeline.meter.measureTicks),
     };
   };
 
@@ -276,9 +280,13 @@ function deriveTupletGroups(
 }
 
 export function projectRhythmNotation(
-  input: unknown
+  input: unknown,
+  options: Readonly<{ tapGroups?: boolean }> = {}
 ): ImmutableRhythmNotationProjection {
-  const pattern = requireValidRhythmPattern(input);
+  const canonicalPattern = requireValidRhythmPattern(input);
+  const pattern = options.tapGroups
+    ? engraveSimpleTapPattern(canonicalPattern)
+    : canonicalPattern;
   const timeline = deriveRhythmTimeline(pattern, 120);
   const structuralAccents = new Map(
     timeline.structure.accentPositions.map(point => [point.tick, point.level])
@@ -300,11 +308,15 @@ export function projectRhythmNotation(
     })
   );
   const projection: ImmutableRhythmNotationProjection = {
-    canonicalPattern: pattern,
+    canonicalPattern,
     pattern,
     timeline,
     segments,
-    beamGroups: deriveBeamGroups(timeline, segments),
+    beamGroups: deriveBeamGroups(
+      timeline,
+      segments,
+      options.tapGroups ? simpleNotationGroupStarts(pattern.meter) : undefined
+    ),
     tieEdges: deriveTieEdges(timeline, segments),
     tupletGroups: deriveTupletGroups(segments),
   };

@@ -13,7 +13,7 @@ import { policyForLevel } from "./levels";
 import { projectRhythmNotation } from "../notation/projection";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
 import {
-  createTapRhythmExercise,
+  createTapTargets,
   generateTapRhythmExercise,
 } from "../exercises/tapRhythm";
 import { matchTapRhythm } from "../exercises/tapMatcher";
@@ -147,6 +147,7 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         const config: RhythmGenerationConfig = {
           seed,
           level: entry.track,
+          purpose: "tap",
           meter: entry.meter,
           bars,
           focus: entry.focus,
@@ -154,7 +155,7 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         };
         assertLevelConstraints(pattern, config);
 
-        const timeline = deriveRhythmTimeline(pattern, exercise.gridTicks);
+        const timeline = deriveRhythmTimeline(pattern);
         const audio = createRhythmAudioPlan(pattern, "both");
         const notation = projectRhythmNotation(pattern);
         const metrics = patternMetrics(pattern);
@@ -178,11 +179,22 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         );
         expect(notation.segments).toHaveLength(timeline.segments.length);
         expect(metrics.restsPerBar).toHaveLength(bars);
-        expect(
-          metrics.restsPerBar.every(
-            count => count <= policyForLevel(entry.track).maxRestsPerBar
-          )
-        ).toBe(true);
+        const exactRestQuota =
+          entry.name === "2/4" ||
+          entry.name === "3/4" ||
+          entry.name === "4/4" ||
+          entry.name === "2/2";
+        if (exactRestQuota) {
+          expect(metrics.restsPerBar.every(count => count === 1)).toBe(true);
+        } else {
+          expect(
+            metrics.restsPerBar.every(
+              count =>
+                count >= 1 &&
+                count <= policyForLevel(entry.track).maxRestsPerBar
+            )
+          ).toBe(true);
+        }
         expect(timeline.onsets.length).toBeGreaterThan(0);
         expect(exercise.targets.map(({ id, tick }) => ({ id, tick }))).toEqual(
           expectedTargetProjection
@@ -221,31 +233,33 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
     }
   });
 
-  it("generates eligible four-bar Level 4 and Level 6 cross-bar ties without moving the rest of the exercise", () => {
-    const cases = [
-      {
-        track: 4,
-        seed: "mb-4-0",
-        meter: { numerator: 4, denominator: 4 },
-        focus: "ties",
-        pulseBpm: 72,
-      },
-      {
-        track: 6,
-        seed: "mb-6-0",
-        meter: { numerator: 6, denominator: 8 },
-        focus: "ties",
-        pulseBpm: 60,
-      },
-    ] as const;
-
-    for (const entry of cases) {
+  it.each([
+    {
+      track: 4,
+      seed: "mb-4-0",
+      meter: { numerator: 4, denominator: 4 },
+      focus: "ties",
+      pulseBpm: 72,
+    },
+    {
+      track: 6,
+      seed: "mb-6-0",
+      meter: { numerator: 6, denominator: 8 },
+      focus: "ties",
+      pulseBpm: 60,
+    },
+  ] as const)(
+    "generates eligible four-bar Level $track cross-bar ties without moving the rest of the exercise",
+    entry => {
       const exercise = generateTapRhythmExercise({
         ...entry,
         bars: 4,
       });
       const pairs = crossBarTiePairs(exercise.pattern);
+      const metrics = patternMetrics(exercise.pattern);
       expect(exercise.pattern.measures).toHaveLength(4);
+      expect(metrics.hasTie).toBe(true);
+      if (entry.track === 4) expect(metrics.hasFine).toBe(true);
       expect(pairs).toHaveLength(1);
       expect(pairs[0]).toMatchObject({ fromMeasure: 0, toMeasure: 1 });
       expect(exercise.pattern.measures[0].segments.at(-1)?.id).toBe(
@@ -256,6 +270,7 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         assertLevelConstraints(exercise.pattern, {
           seed: entry.seed,
           level: entry.track,
+          purpose: "tap",
           meter: entry.meter,
           bars: 4,
           focus: entry.focus,
@@ -263,16 +278,16 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         })
       ).not.toThrow();
     }
-  });
+  );
 
   it("omits generated rests and the four-bar tie continuation from targets and caps targets at the selected exercise length", () => {
     const exercise = generateTapRhythmExercise({
-      track: 4,
-      seed: "mb-4-0",
-      meter: { numerator: 4, denominator: 4 },
+      track: 6,
+      seed: "mb-6-0",
+      meter: { numerator: 6, denominator: 8 },
       bars: 4,
       focus: "ties",
-      pulseBpm: 72,
+      pulseBpm: 60,
     });
     const timeline = deriveRhythmTimeline(exercise.pattern);
     const continuation = timeline.segments.find(
@@ -369,18 +384,18 @@ describe("independent multibar Tap Rhythm production pipeline", () => {
         })),
       ],
     };
-    const exercise = createTapRhythmExercise({ track: 3, pattern });
-    const omittedTick = exercise.targets[1].tick;
-    const taps = exercise.targets
+    const targets = createTapTargets(pattern, 240);
+    const omittedTick = targets[1].tick;
+    const taps = targets
       .filter(target => target.tick !== omittedTick)
       .map((target, sequence) => ({ sequence, offsetMs: target.offsetMs }));
     taps.push({
       sequence: taps.length,
-      offsetMs: exercise.targets.at(-1)!.offsetMs + 500,
+      offsetMs: targets.at(-1)!.offsetMs + 500,
     });
-    const evaluation = matchTapRhythm(exercise.targets, taps);
+    const evaluation = matchTapRhythm(targets, taps);
 
-    expect(exercise.pattern.measures).toHaveLength(4);
+    expect(pattern.measures).toHaveLength(4);
     expect(evaluation).toMatchObject({
       correct: false,
       tp: 6,

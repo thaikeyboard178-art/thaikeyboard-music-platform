@@ -84,6 +84,7 @@ describe("RhythmNotation", () => {
     expect(renderMock.mock.calls[0][2]).toEqual({
       width: 390,
       measuresPerRow: 1,
+      tapGroups: true,
     });
     const svg = screen.getByRole("img", {
       name: "Ký âm tiết tấu nhịp 4/4, 2 ô nhịp",

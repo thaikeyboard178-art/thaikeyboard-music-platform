@@ -292,6 +292,7 @@ export function TapResultNotation({
         const rendered = renderRhythmNotation(host, exercise.pattern, {
           width,
           measuresPerRow: width < 560 ? 1 : 2,
+          tapGroups: true,
         });
         const viewBox = rendered.svg.getAttribute("viewBox");
         const viewBoxParts = viewBox?.trim().split(/[ ,]+/);

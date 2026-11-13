@@ -61,6 +61,10 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
       expect(pulseDescription({ numerator, denominator: 4 })).toContain(
         `${numerator} phách mỗi ô`
       );
+    expect(groupingDescription({ numerator: 2, denominator: 4 })).toContain("1 | 2");
+    expect(groupingDescription({ numerator: 3, denominator: 4 })).toContain("1 | 2 | 3");
+    expect(groupingDescription({ numerator: 4, denominator: 4 })).toContain("2 + 2: 1 – 2 | 3 – 4");
+    expect(groupingDescription({ numerator: 2, denominator: 2 })).toContain("mỗi phách là nốt trắng");
   });
   it("offers only existing tempo-band endpoints and excludes already invalid3/8 compound/combined focus", () => {
     expect(meterKey(defaultTapMeter("bonus"))).toBe("2/2");
@@ -100,7 +104,6 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
     expect(getTapFocuses(4, { numerator: 4, denominator: 4 })).toEqual([
       "dots",
       "ties",
-      "combined",
       "sixteenths",
       "snap",
       "sandwich",
@@ -120,6 +123,11 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
     expect(getTapFocuses(5, { numerator: 4, denominator: 4 })).toContain(
       "eighth-triplets"
     );
+    for (const focus of ["combined", "snap", "syncopation"] as const)
+      expect(getTapFocuses(5, { numerator: 4, denominator: 4 })).not.toContain(focus);
+    expect(getTapFocuses(5, { numerator: 3, denominator: 4 })).not.toContain("dots");
+    for (const focus of ["ties", "sandwich"] as const)
+      expect(getTapFocuses(5, { numerator: 2, denominator: 4 })).not.toContain(focus);
     expect(getTapFocuses(5, { numerator: 2, denominator: 4 })).not.toContain(
       "quarter-triplets"
     );

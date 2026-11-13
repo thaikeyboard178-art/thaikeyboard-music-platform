@@ -2,6 +2,8 @@ import type { RhythmVoiceSettings } from "./voices";
 import type { RhythmScheduledEvent } from "./transport";
 import { createTapMetronomeLoopPlan } from "./tapPlan";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
+import { createTapTargets } from "../exercises/tapRhythm";
+import { requireValidRhythmPattern } from "../rhythm/validate";
 
 /** Test-only support; no production entrypoint imports this file. */
 export const TEST_TAP_VOICES: RhythmVoiceSettings = {
@@ -159,7 +161,9 @@ export function dispatchFirstTapAtNextDownbeat(
     .sort((left, right) => left.startTime - right.startTime)
     .at(-1);
   if (!firstLoopPulse)
-    throw new Error("The free metronome loop has not scheduled its first pulse.");
+    throw new Error(
+      "The free metronome loop has not scheduled its first pulse."
+    );
   const time =
     firstLoopPulse.startTime +
     createTapMetronomeLoopPlan(exercise).durationSeconds +
@@ -167,4 +171,27 @@ export function dispatchFirstTapAtNextDownbeat(
   clock.at(time);
   input.dispatchEvent(clock.nativeTap(time));
   return time;
+}
+
+/**
+ * Canonical engine stress data is not a generated curriculum exercise (it may
+ * deliberately have no rests or exceed density). Keep its independent engine,
+ * scheduler, matching and re-grade tests while the production learning import
+ * factory rejects that content under the Owner's new curriculum gates.
+ * All target arithmetic still comes from the real production helper.
+ */
+export function createCanonicalTapStressExercise(
+  input: import("../exercises/tapRhythm").CreateTapRhythmExerciseInput
+): TapRhythmExercise {
+  const pattern = requireValidRhythmPattern(input.pattern);
+  const gridTicks = input.track === 5 ? 120 : 240;
+  return Object.freeze({
+    id: input.id ?? `tap-${String(input.track)}-${pattern.id}`,
+    kind: "tap-rhythm",
+    track: input.track,
+    section: input.section ?? "practice",
+    pattern,
+    gridTicks,
+    targets: createTapTargets(pattern, gridTicks),
+  });
 }

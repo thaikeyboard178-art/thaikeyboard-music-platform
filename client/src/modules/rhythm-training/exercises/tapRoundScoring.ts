@@ -1,4 +1,8 @@
-import { matchTapRhythm, type TapEvaluation, type TapMatchInput } from "./tapMatcher";
+import {
+  matchTapRhythm,
+  type TapEvaluation,
+  type TapMatchInput,
+} from "./tapMatcher";
 import type { TapTarget } from "./tapRhythm";
 
 export type TapRoundNumber = 1 | 2;
@@ -66,7 +70,11 @@ export function calculateTapRelativeDeviation(
   canonicalPulseMs: number | null
 ): TapRelativeDeviation {
   const target = targets[targetIndex];
-  if (!target || !Number.isFinite(target.offsetMs) || !Number.isFinite(errorMs)) {
+  if (
+    !target ||
+    !Number.isFinite(target.offsetMs) ||
+    !Number.isFinite(errorMs)
+  ) {
     return Object.freeze({
       referenceIntervalMs: null,
       deviationPercent: null,
@@ -85,7 +93,9 @@ export function calculateTapRelativeDeviation(
     : previous
       ? target.offsetMs - previous.offsetMs
       : canonicalPulseMs;
-  const isPositiveFinite = (value: number | null | undefined): value is number =>
+  const isPositiveFinite = (
+    value: number | null | undefined
+  ): value is number =>
     typeof value === "number" && Number.isFinite(value) && value > 0;
   const chosen =
     errorMs < 0
@@ -102,8 +112,7 @@ export function calculateTapRelativeDeviation(
       direction: null,
     });
   }
-  const deviationPercent =
-    errorMs === 0 ? 0 : (100 * errorMs) / (chosen / 2);
+  const deviationPercent = errorMs === 0 ? 0 : (100 * errorMs) / (chosen / 2);
   if (!Number.isFinite(deviationPercent)) {
     return Object.freeze({
       referenceIntervalMs: null,
@@ -115,11 +124,7 @@ export function calculateTapRelativeDeviation(
     referenceIntervalMs: chosen,
     deviationPercent: deviationPercent === 0 ? 0 : deviationPercent,
     direction:
-      deviationPercent < 0
-        ? "early"
-        : deviationPercent > 0
-          ? "late"
-          : "exact",
+      deviationPercent < 0 ? "early" : deviationPercent > 0 ? "late" : "exact",
   });
 }
 
@@ -217,10 +222,10 @@ function mean(values: readonly number[]): number | null {
 }
 
 /**
- * Rhythm integration-only override for the identified first Tap. If it lies
- * outside target one's inclusive association window, it is removed from both
- * matcher passes and represented as Extra + Missing. The core matcher, all
- * later taps, and Formula B are unchanged.
+ * The first free-loop event is the response to beat one, even when very early.
+ * Pin only that early/on-time pair using its original timestamp. Evaluate all
+ * remaining events with the unchanged production matcher; late first events
+ * also retain the existing full matcher behavior. No window is enlarged.
  */
 function matchRound(
   targets: readonly TapTarget[],
@@ -232,36 +237,34 @@ function matchRound(
   const firstTap = taps.find(tap => tap.sequence === firstTapSequence);
   if (!firstTarget || !firstTap)
     fail("The first Tap metadata does not identify a round-one capture.");
-  if (matchTapRhythm([firstTarget], [firstTap]).farAssociation === 0)
-    return matchTapRhythm(targets, taps);
+  // Validate the complete input before partitioning it (including duplicate
+  // sequences and chronological ordering). Later first events have no override.
+  const ordinary = matchTapRhythm(targets, taps);
+  if (firstTap.offsetMs > firstTarget.offsetMs) return ordinary;
+  const first = matchTapRhythm([firstTarget], [firstTap]);
 
   const remainingTargets = targets.slice(1);
   const remainingTaps = taps.filter(tap => tap.sequence !== firstTapSequence);
   const remainder = matchTapRhythm(remainingTargets, remainingTaps);
   const targetResults = Object.freeze([
-    Object.freeze({
-      targetIndex: 0,
-      targetId: firstTarget.id,
-      status: "missing" as const,
-      tapSequence: null,
-      errorMs: null,
-    }),
+    first.targetResults[0],
     ...remainder.targetResults.map(result =>
       Object.freeze({ ...result, targetIndex: result.targetIndex + 1 })
     ),
   ]);
   const remainderBySequence = new Map(
-    remainder.tapResults.map(result => [result.sequence, result])
+    remainder.tapResults.map(result => [
+      result.sequence,
+      Object.freeze({
+        ...result,
+        targetIndex:
+          result.targetIndex === null ? null : result.targetIndex + 1,
+      }),
+    ])
   );
   const tapResults = Object.freeze(
     taps.map(tap => {
-      if (tap.sequence === firstTapSequence)
-        return Object.freeze({
-          sequence: tap.sequence,
-          status: "extra" as const,
-          targetIndex: null,
-          errorMs: null,
-        });
+      if (tap.sequence === firstTapSequence) return first.tapResults[0];
       return (
         remainderBySequence.get(tap.sequence) ??
         Object.freeze({
@@ -275,9 +278,9 @@ function matchRound(
   );
   const n = targets.length;
   const k = taps.length;
-  const tp = remainder.tp;
-  const missing = remainder.missing + 1;
-  const extra = remainder.extra + 1;
+  const tp = remainder.tp + first.tp;
+  const missing = remainder.missing;
+  const extra = remainder.extra;
   return Object.freeze({
     correct: n > 0 && tp === n && extra === 0,
     accuracyPercent: n === 0 ? null : (100 * 2 * tp) / (n + k),
@@ -286,8 +289,8 @@ function matchRound(
     k,
     missing,
     extra,
-    nearMiss: remainder.nearMiss,
-    farAssociation: remainder.farAssociation,
+    nearMiss: remainder.nearMiss + first.nearMiss,
+    farAssociation: remainder.farAssociation + first.farAssociation,
     targetResults,
     tapResults,
   });
@@ -308,20 +311,16 @@ export function calculateTapRoundResult(
     taps: Object.freeze([]),
   });
   const inputs: readonly [TapRoundInput, TapRoundInput] =
-    round.roundNumber === 1
-      ? [round, otherRound]
-      : [otherRound, round];
-  return calculateTapTwoRoundScore(
-    targets,
-    inputs,
-    canonicalPulseMs
-  ).rounds[round.roundNumber - 1];
+    round.roundNumber === 1 ? [round, otherRound] : [otherRound, round];
+  return calculateTapTwoRoundScore(targets, inputs, canonicalPulseMs).rounds[
+    round.roundNumber - 1
+  ];
 }
 
 /**
  * Uses the production ordered matcher independently for each real round. It
- * never assigns, moves, or reclassifies taps; note scores consume its sealed
- * target-to-sequence pairing and signed timing error only.
+ * applies only the approved first-Tap pairing exception; note scores consume
+ * the sealed target-to-sequence pairing and original signed timing error.
  */
 export function calculateTapTwoRoundScore(
   targets: readonly TapTarget[],
@@ -355,7 +354,9 @@ export function calculateTapTwoRoundScore(
         extraTapCount: 0,
       });
     }
-    const taps = Object.freeze(input.taps.map(tap => Object.freeze({ ...tap })));
+    const taps = Object.freeze(
+      input.taps.map(tap => Object.freeze({ ...tap }))
+    );
     if (input.roundNumber === 2 && input.firstTapSequence !== undefined)
       fail("The first Tap metadata can only belong to round one.");
     const firstTapSequence = input.firstTapSequence;
@@ -368,7 +369,8 @@ export function calculateTapTwoRoundScore(
     );
     const noteAccuracies = noteResults.map(row => row.noteAccuracyPercent);
     const accuracyPercent =
-      noteAccuracies.length === 0 || noteAccuracies.some(value => value === null)
+      noteAccuracies.length === 0 ||
+      noteAccuracies.some(value => value === null)
         ? null
         : mean(noteAccuracies as number[]);
     return Object.freeze({
@@ -384,7 +386,10 @@ export function calculateTapTwoRoundScore(
     });
   });
 
-  const tuple = scoredRounds as unknown as readonly [TapRoundResult, TapRoundResult];
+  const tuple = scoredRounds as unknown as readonly [
+    TapRoundResult,
+    TapRoundResult,
+  ];
   const played = tuple.filter(round => round.status === "played");
   const allNoteAccuracies = played.flatMap(round =>
     round.noteResults.map(row => row.noteAccuracyPercent)

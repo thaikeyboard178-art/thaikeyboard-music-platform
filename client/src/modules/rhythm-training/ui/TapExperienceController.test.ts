@@ -1,10 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TapRhythmEngine, type TapEngineOptions } from "../audio/tapEngine";
-import { dispatchFirstTapAtNextDownbeat, TapFakeClock, TEST_TAP_VOICES } from "../audio/tapTestHelpers";
+import {
+  createCanonicalTapStressExercise,
+  dispatchFirstTapAtNextDownbeat,
+  TapFakeClock,
+  TEST_TAP_VOICES,
+} from "../audio/tapTestHelpers";
 import type { RhythmScheduledEvent } from "../audio/transport";
 import { createTapReferencePlan } from "../audio/tapPlan";
 import {
-  createTapRhythmExercise,
   type TapRhythmExercise,
 } from "../exercises/tapRhythm";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
@@ -21,7 +25,7 @@ const CONFIG: TapUiConfiguration = {
   pulseBpm: 100,
 };
 const controllers = new Set<TapTrainingController>();
-const exercise = createTapRhythmExercise({
+const exercise = createCanonicalTapStressExercise({
   track: 3,
   pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
 });

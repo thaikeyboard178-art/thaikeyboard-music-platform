@@ -5,7 +5,7 @@ import {
   createTapMetronomeLoopPlan,
 } from "./tapPlan";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
-import { createTapRhythmExercise } from "../exercises/tapRhythm";
+import { createCanonicalTapStressExercise } from "./tapTestHelpers";
 import type { RhythmTrack } from "../types";
 
 describe("Tap plan composition", () => {
@@ -13,7 +13,10 @@ describe("Tap plan composition", () => {
     "uses a complete technical-pulse loop and two seamless rounds for $fixture.name",
     ({ fixture, index }) => {
       const track: RhythmTrack = index < 3 ? 3 : index === 6 ? "bonus" : 6;
-      const exercise = createTapRhythmExercise({ track, pattern: fixture.pattern });
+      const exercise = createCanonicalTapStressExercise({
+        track,
+        pattern: fixture.pattern,
+      });
       const firstMeasure = Object.freeze({
         ...exercise.pattern,
         measures: Object.freeze([exercise.pattern.measures[0]]),

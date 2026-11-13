@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "../audio/tapEngine";
 import {
+  createCanonicalTapStressExercise,
   dispatchFirstTapAtNextDownbeat,
   TapFakeClock,
   TEST_TAP_VOICES,
 } from "../audio/tapTestHelpers";
 import type { RhythmScheduledEvent } from "../audio/transport";
 import { sealTapAttempt } from "./tapCompletion";
-import { createTapRhythmExercise } from "./tapRhythm";
 import {
   calculateTapTwoRoundScore,
   type TapRoundInput,
@@ -30,7 +30,7 @@ async function setup(name: string) {
   const clock = new TapFakeClock();
   const input = new EventTarget();
   const scheduledEvents: RhythmScheduledEvent[] = [];
-  const exercise = createTapRhythmExercise({
+  const exercise = createCanonicalTapStressExercise({
     track: 3,
     pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     id: name,
@@ -395,7 +395,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
   it("never awards a stale completed attempt after its question was explicitly skipped", async () => {
     const h = await setup("tap-skip-before-answer");
     const attempt = complete(h);
-    const next = createTapRhythmExercise({
+    const next = createCanonicalTapStressExercise({
       track: 3,
       pattern: h.exercise.pattern,
       id: "tap-skip-before-answer-next",
@@ -423,7 +423,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
       responseTimeMs: 2000,
     });
     expect(answered.scoreDelta).toBe(10);
-    const next = createTapRhythmExercise({
+    const next = createCanonicalTapStressExercise({
       track: 3,
       pattern: h.exercise.pattern,
       id: "tap-answer-before-skip-next",

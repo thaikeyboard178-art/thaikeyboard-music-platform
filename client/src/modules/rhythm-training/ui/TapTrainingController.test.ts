@@ -2,12 +2,15 @@ import { afterEach, describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "../audio/tapEngine";
 import { createTapAttemptPlan } from "../audio/tapPlan";
 import {
+  createCanonicalTapStressExercise,
   dispatchFirstTapAtNextDownbeat,
   TapFakeClock,
   TEST_TAP_VOICES,
 } from "../audio/tapTestHelpers";
-import { createTapRhythmExercise } from "../exercises/tapRhythm";
-import type { TapRhythmExercise } from "../exercises/tapRhythm";
+import {
+  generateTapRhythmExercise,
+  type TapRhythmExercise,
+} from "../exercises/tapRhythm";
 import type { TapEngineOptions } from "../audio/tapEngine";
 import type { RhythmScheduledEvent } from "../audio/transport";
 import type { RhythmTrack } from "../types";
@@ -200,7 +203,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
   it("forwards optional focus and creates the engine synchronously on Start's user gesture", async () => {
     const capturedConfigurations: TapUiConfiguration[] = [];
     const capturedSeeds: string[] = [];
-    const generated = createTapRhythmExercise({
+    const generated = createCanonicalTapStressExercise({
       track: 3,
       pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     });
@@ -370,7 +373,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const h = harness({
       createExercise: (configuration, seed) => {
         count++;
-        const base = createTapRhythmExercise({
+        const base = createCanonicalTapStressExercise({
           track: configuration.track as RhythmTrack,
           section: configuration.section,
           pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
@@ -409,7 +412,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
   it("rejects a defensive empty result without constructing audio or submitting an answer", async () => {
     const h = harness({
       createExercise: configuration => {
-        const canonical = createTapRhythmExercise({
+        const canonical = createCanonicalTapStressExercise({
           track: configuration.track,
           section: configuration.section,
           pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
@@ -431,7 +434,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
 
   it("Continue from a defensive empty result creates a playable exercise in the same session", async () => {
     let count = 0;
-    const canonical = createTapRhythmExercise({
+    const canonical = createCanonicalTapStressExercise({
       track: 3,
       pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     });
@@ -505,7 +508,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
   });
 
   it("ignores duplicate and premature actions while preparing or an attempt is active", async () => {
-    const generated = createTapRhythmExercise({
+    const generated = createCanonicalTapStressExercise({
       track: 3,
       pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
     });
@@ -541,7 +544,7 @@ describe("approved Tap controller session lifecycle", () => {
     let generated = 0;
     const h = harness({
       createExercise: (configuration, seed) =>
-        createTapRhythmExercise({
+        createCanonicalTapStressExercise({
           track: configuration.track as RhythmTrack,
           section: configuration.section,
           pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
@@ -599,11 +602,22 @@ describe("approved Tap controller session lifecycle", () => {
     const h = harness({
       createExercise: (configuration, seed) => {
         captured.push(configuration);
-        return createTapRhythmExercise({
-          track: configuration.track as RhythmTrack,
+        return generateTapRhythmExercise({
+          track: configuration.track,
           section: configuration.section,
-          pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
-          id: seed,
+          seed,
+          ...(configuration.meter === undefined
+            ? {}
+            : { meter: configuration.meter }),
+          ...(configuration.bars === undefined
+            ? {}
+            : { bars: configuration.bars }),
+          ...(configuration.pulseBpm === undefined
+            ? {}
+            : { pulseBpm: configuration.pulseBpm }),
+          ...(configuration.focus === undefined
+            ? {}
+            : { focus: configuration.focus }),
         });
       },
     });
@@ -853,7 +867,7 @@ describe("approved Tap controller session lifecycle", () => {
         generated++;
         if (generated === 3)
           disposedBeforeSkipGeneration = h.engines.at(-1)?.state === "disposed";
-        return createTapRhythmExercise({
+        return createCanonicalTapStressExercise({
           track: configuration.track as RhythmTrack,
           section: configuration.section,
           pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
@@ -906,7 +920,7 @@ describe("approved Tap controller session lifecycle", () => {
     let generated = 0;
     const h = harness({
       createExercise: (configuration, seed) =>
-        createTapRhythmExercise({
+        createCanonicalTapStressExercise({
           track: configuration.track as RhythmTrack,
           section: configuration.section,
           pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,

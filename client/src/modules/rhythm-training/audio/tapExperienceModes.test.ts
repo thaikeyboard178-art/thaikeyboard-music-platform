@@ -8,14 +8,14 @@ import {
 } from "./tapTestHelpers";
 import type { RhythmScheduledEvent } from "./transport";
 import {
-  createTapRhythmExercise,
   type TapRhythmExercise,
 } from "../exercises/tapRhythm";
+import { createCanonicalTapStressExercise } from "./tapTestHelpers";
 import { isRuntimeTapAttempt } from "../exercises/tapCompletion";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 
 function setup() {
-  const exercise = createTapRhythmExercise({
+  const exercise = createCanonicalTapStressExercise({
     track: 3,
     pattern: SEVEN_METER_RUNTIME_FIXTURES[0].pattern,
   });
