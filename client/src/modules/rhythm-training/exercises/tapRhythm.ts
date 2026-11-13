@@ -6,17 +6,13 @@ import {
   assertLevelConstraints,
   generateRhythmPattern,
 } from "../generation/generator";
-import { policyForLevel, type RhythmFocus } from "../generation/levels";
+import type { RhythmFocus } from "../generation/levels";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
-import { ticksToSeconds } from "../rhythm/meters";
+import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
 import { isRuntimeTapAttempt } from "./tapCompletion";
-import {
-  matchTapRhythm,
-  type TapEvaluation,
-  type TapMatchInput,
-} from "./tapMatcher";
+import { calculateTapTwoRoundScore } from "./tapRoundScoring";
 
 export type TapTarget = Readonly<{
   id: string;
@@ -109,7 +105,10 @@ function focusForPattern(
     return "dots";
   }
   if (track === 4) {
-    if (features.hasFine) return "sixteenths";
+    // Fine L4 notation now includes snap dots and controlled syncopation as
+    // well as plain sixteenths. Audit the actual allowed source budget, not
+    // the old sixteenths-only generation focus which forbids these additions.
+    if (features.hasFine) return "integrated";
     if (features.hasDotConcept && features.hasTie) return "combined";
     if (features.hasDotConcept) return "dots";
     if (features.hasTie) return "ties";
@@ -306,14 +305,15 @@ export function generateTapRhythmExercise(
   const section = input.section ?? "practice";
   requireExerciseKindAllowed(input.track, section, "tap-rhythm");
   const seed = normalizedSeed(input.seed);
-  const focus = input.focus ?? policyForLevel(input.track).defaultFocus;
   const config = {
     level: input.track,
     seed,
     ...(input.meter === undefined ? {} : { meter: input.meter }),
     ...(input.bars === undefined ? {} : { bars: input.bars }),
     ...(input.pulseBpm === undefined ? {} : { pulseBpm: input.pulseBpm }),
-    focus,
+    // Preserve omission so the generator can choose a feasible default while
+    // preserving the requested meter. Explicit focuses are never substituted.
+    ...(input.focus === undefined ? {} : { focus: input.focus }),
   } as const;
   const pattern = generateRhythmPattern(config);
   // The generator applies this audit internally as well; repeat it at this
@@ -354,10 +354,16 @@ function matchesExerciseTargets(
 }
 
 /** Re-grade only a sealed, completed graded attempt bound to this exercise. */
+export type TapRhythmAnswerEvaluation = Readonly<{
+  correct: boolean;
+  accuracyPercent: number;
+  scoreOutOfTen: number;
+}>;
+
 export function evaluateTapRhythmAnswer(
   exercise: TapRhythmExercise,
   answer: unknown
-): TapEvaluation | null {
+): TapRhythmAnswerEvaluation | null {
   if (!isRuntimeTapAttempt(answer)) return null;
   if (
     answer.mode !== "graded" ||
@@ -375,14 +381,41 @@ export function evaluateTapRhythmAnswer(
     if (
       !matchesExerciseTargets(exercise, canonicalTargets) ||
       !Array.isArray(answer.targetTicks) ||
-      !sameTicks(answer.targetTicks, expectedTicks)
+      !sameTicks(answer.targetTicks, expectedTicks) ||
+      !Array.isArray(answer.rounds) ||
+      answer.rounds.length !== 2
     ) {
       return null;
     }
-    return matchTapRhythm(
+    const meter = deriveMeter(exercise.pattern.meter);
+    const canonicalPulseMs =
+      ticksToSeconds(
+        meter.pulseTicks,
+        exercise.pattern.meter,
+        exercise.pattern.tempo.pulseBpm
+      ) * 1000;
+    const score = calculateTapTwoRoundScore(
       canonicalTargets,
-      answer.taps as readonly TapMatchInput[]
+      answer.rounds.map(round => ({
+        roundNumber: round.roundNumber,
+        skipped: round.status === "skipped",
+        taps: round.taps,
+      })),
+      canonicalPulseMs
     );
+    if (
+      score.overallAccuracyPercent === null ||
+      score.scoreOutOfTen === null ||
+      answer.accuracyPercent !== score.overallAccuracyPercent ||
+      answer.scoreOutOfTen !== score.scoreOutOfTen
+    ) {
+      return null;
+    }
+    return Object.freeze({
+      correct: score.overallAccuracyPercent === 100,
+      accuracyPercent: score.overallAccuracyPercent,
+      scoreOutOfTen: score.scoreOutOfTen,
+    });
   } catch {
     return null;
   }

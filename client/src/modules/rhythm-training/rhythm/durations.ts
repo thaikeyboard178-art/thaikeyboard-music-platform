@@ -1,4 +1,4 @@
-import type { WrittenDuration } from "../types";
+import type { RhythmSegment, WrittenDuration } from "../types";
 
 export const PPQ = 480;
 
@@ -54,5 +54,30 @@ export function durationToTicks(duration: WrittenDuration): number {
     );
   }
 
+  return ticks;
+}
+
+/** Resolve the sounding/written occupancy of one canonical segment. */
+export function segmentDurationToTicks(
+  segment: Pick<RhythmSegment, "duration" | "tupletGroup">
+): number {
+  const writtenTicks = durationToTicks(segment.duration);
+  const group = segment.tupletGroup;
+  if (group === undefined) return writtenTicks;
+  if (group.actualNotes !== 3 || group.normalNotes !== 2) {
+    throw new RangeError("Only canonical 3:2 tuplets are supported.");
+  }
+  if (
+    segment.duration.dots !== 0 ||
+    (segment.duration.denominator !== 4 && segment.duration.denominator !== 8)
+  ) {
+    throw new RangeError(
+      "A 3:2 tuplet member must be an undotted quarter or eighth note."
+    );
+  }
+  const ticks = (writtenTicks * group.normalNotes) / group.actualNotes;
+  if (!Number.isSafeInteger(ticks) || ticks <= 0) {
+    throw new RangeError("Tuplet duration must resolve to safe integer ticks.");
+  }
   return ticks;
 }

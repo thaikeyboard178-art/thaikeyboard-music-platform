@@ -1215,6 +1215,22 @@ export default function RhythmTrainingPage() {
                   {PHASE_COPY[view.phase] ?? "Đang chuẩn bị bài luyện…"}
                   {view.practice && <span> · Lượt này không ghi thêm điểm</span>}
                 </div>
+                {active && (
+                  <p
+                    className="rhythm-current-round-status"
+                    role="status"
+                    aria-live="polite"
+                    data-testid="rhythm-current-round-status"
+                  >
+                    {view.currentRound !== null
+                      ? `Đang ở vòng ${view.currentRound}/2.`
+                      : view.phase === "count-in" || view.phase === "starting"
+                        ? "Đang đếm vào trước 2 vòng liên tiếp."
+                        : "Đang hoàn tất đối chiếu sau vòng 2."}
+                    {view.skippedRounds.length > 0 &&
+                      ` Đã bỏ qua vòng ${view.skippedRounds.join(", ")} theo lựa chọn; không trừ điểm.`}
+                  </p>
+                )}
                 <label className="rhythm-volume-control">
                   <Volume2 size={16} />
                   <span>Âm lượng metronome</span>
@@ -1242,10 +1258,20 @@ export default function RhythmTrainingPage() {
                 <h3 id="rhythm-staff-tap-zone-title" className="rhythm-zone-title">
                   3 · STAFF AND TAP
                 </h3>
-                <RhythmNotation
-                  pattern={view.exercise.pattern}
-                  onReady={setNotationReady}
-                />
+                {active ? (
+                  <TapResultNotation
+                    exercise={view.exercise}
+                    result={null}
+                    liveRounds={view.roundResults}
+                    currentRound={view.currentRound}
+                    isLive
+                  />
+                ) : (
+                  <RhythmNotation
+                    pattern={view.exercise.pattern}
+                    onReady={setNotationReady}
+                  />
+                )}
                 <div
                   ref={tapRef}
                   role="button"
@@ -1331,6 +1357,23 @@ export default function RhythmTrainingPage() {
                   >
                     {skipInFlight ? "Đang bỏ qua…" : "Bỏ qua bài"}
                   </button>
+                  {active && view.currentRound !== null && (
+                    <button
+                      type="button"
+                      className="rhythm-tertiary rhythm-round-skip"
+                      data-testid="rhythm-skip-current-round"
+                      aria-label={`Bỏ qua vòng ${view.currentRound}; không trừ điểm`}
+                      onClick={() => controller.skipCurrentRound()}
+                      disabled={
+                        !controller.canSkipCurrentRound ||
+                        view.skippedRounds.includes(view.currentRound)
+                      }
+                    >
+                      {view.skippedRounds.includes(view.currentRound)
+                        ? `Đã bỏ qua vòng ${view.currentRound}`
+                        : `Bỏ qua vòng ${view.currentRound} — không trừ điểm`}
+                    </button>
+                  )}
                   {active && (
                     <button
                       type="button"
@@ -1465,10 +1508,6 @@ export default function RhythmTrainingPage() {
                       ? "Lượt chưa được chấm"
                       : "Kết quả lượt gõ nhịp"}
                   </h2>
-                  <p>
-                    Phản hồi của lượt đã hoàn tất; nội dung bài gốc không bị
-                    thay đổi.
-                  </p>
                   <span className="rhythm-mode-badge" aria-disabled="true">
                     Chế độ:{" "}
                     {view.selectedMode === "practice"
@@ -1486,6 +1525,7 @@ export default function RhythmTrainingPage() {
               />
               <TapResultPanel
                 result={selectedReceipt}
+                exercise={view.exercise}
                 points={
                   selectedReceipt.mode === "graded"
                     ? (view.originalPoints ?? view.points)
@@ -1499,8 +1539,8 @@ export default function RhythmTrainingPage() {
                 continueLabel="Bài tiếp theo"
                 practiceLabel={
                   view.replayOnly && view.selectedMode === "graded"
-                    ? "Chơi lại giữ lựa chọn Chấm điểm trên giao diện, nhưng lượt gõ này chỉ là luyện tập tham khảo; không tạo câu trả lời chung hoặc ghi thêm điểm."
-                    : "Chơi thử — Timing Accuracy tham khảo, không ghi điểm"
+                    ? "Chơi lại — kết quả và điểm /10 chỉ để tham khảo; không tạo câu trả lời chung hoặc cộng điểm tổng."
+                    : "Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
                 }
               />
               {view.gradedResult && selectedReceipt !== view.gradedResult && (

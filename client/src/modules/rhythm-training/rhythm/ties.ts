@@ -3,6 +3,7 @@ import type { RhythmSegment, TieRole } from "../types";
 export type TieIssue = Readonly<{
   code:
     | "REST_TIE"
+    | "TUPLET_TIE"
     | "TIE_TOO_SHORT"
     | "TIE_NONCONTIGUOUS"
     | "TIE_CONTINUATION_ACCENT";
@@ -20,6 +21,14 @@ export function inspectTies(segments: readonly RhythmSegment[]) {
         code: "REST_TIE",
         index,
         message: "A rest cannot belong to a tie group",
+      });
+      return;
+    }
+    if (segment.tupletGroup !== undefined) {
+      issues.push({
+        code: "TUPLET_TIE",
+        index,
+        message: "A tuplet member cannot also belong to a tie group",
       });
       return;
     }

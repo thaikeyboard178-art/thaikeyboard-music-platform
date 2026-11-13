@@ -6,6 +6,7 @@ import type {
   RhythmTrack,
   WrittenDuration,
 } from "../types";
+import type { RhythmFocus } from "../generation/levels";
 
 export type CurriculumSection = "lessons" | "practice" | "assessment";
 export type MultipleChoiceFocus =
@@ -43,6 +44,7 @@ export type RhythmCurriculumUnit = Readonly<{
   allowedMeters: readonly RhythmMeter[];
   allowedDurations: readonly WrittenDuration[];
   allowedRestDurations: readonly WrittenDuration[];
+  generationFocuses: readonly RhythmFocus[];
   lessons: readonly CurriculumLesson[];
   exerciseKinds: Readonly<
     Record<CurriculumSection, readonly RhythmExerciseKind[]>
@@ -122,6 +124,7 @@ function unit(
     | "allowedMeters"
     | "allowedDurations"
     | "allowedRestDurations"
+    | "generationFocuses"
     | "requiredAssessmentMeters"
   >
 ): RhythmCurriculumUnit {
@@ -133,6 +136,7 @@ function unit(
     allowedMeters: generationPolicy.allowedMeters,
     allowedDurations: generationPolicy.durations,
     allowedRestDurations: generationPolicy.restDurations,
+    generationFocuses: generationPolicy.supportedFocus,
     lessons: Object.freeze([...input.lessons]),
     exerciseKinds: Object.freeze({
       lessons: Object.freeze([...input.exerciseKinds.lessons]),
@@ -301,13 +305,14 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
     }),
     unit({
       track: 4,
-      title: "Móc kép và chia nhỏ phách",
+      title: "Móc kép, móc giật và đòn gánh",
       optional: false,
       overview:
-        "Giới thiệu lưới sixteenth và các cách chia nhỏ phách, đồng thời vận dụng trường độ đã học ở Level 3.",
+        "Kế thừa dot và tie ở Level 3; tiến từ lưới sixteenth sang snap, sandwich, rồi tổ hợp có kiểm soát với dots/ties.",
       objectives: [
         "Đọc bốn vị trí sixteenth trong một quarter pulse và nhận diện dấu lặng tương ứng.",
-        "Ghép sixteenth với nốt, dấu lặng, dotted values và ties đã học.",
+        "Nhận diện dotted-eighth–sixteenth snap và sixteenth–eighth–sixteenth sandwich.",
+        "Tổ hợp dots/ties đã học ở Level 3 với subdivisions mới theo độ khó tăng dần, vẫn exact-fill.",
         "Phân biệt onset mới với tie continuation khi đọc các subdivisions.",
       ],
       knowledge: [
@@ -317,8 +322,12 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
         "subdivision-grid",
         "dotted-quarter",
         "dotted-half",
+        "dotted-eighth",
         "tie",
         "tie-continuation",
+        "dotted-eighth-sixteenth-snap",
+        "sixteenth-eighth-sixteenth-sandwich",
+        "progressive-density",
       ],
       lessons: [
         makeLesson(
@@ -331,23 +340,23 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
         makeLesson(
           4,
           2,
-          "One-beat subdivisions",
-          "Ghép eighth và sixteenth events trong một pulse.",
-          ["eighth", "sixteenth", "subdivision"]
+          "Snap: dotted eighth plus sixteenth",
+          "Đọc móc giật dotted eighth–sixteenth đúng tổng một quarter pulse.",
+          ["dotted-eighth", "sixteenth", "snap"]
         ),
         makeLesson(
           4,
           3,
-          "Sixteenth rests and duration",
-          "Giữ đúng subdivisions và bar fill qua các dấu lặng.",
-          ["sixteenth-rest", "rest", "duration"]
+          "Sandwich: sixteenth–eighth–sixteenth",
+          "Đọc đòn gánh 16th–8th–16th trên đúng một quarter pulse.",
+          ["sixteenth", "eighth", "sandwich"]
         ),
         makeLesson(
           4,
           4,
-          "Mixed subdivisions",
-          "Đọc subdivisions cùng dotted values và tie continuations.",
-          ["subdivision", "dot", "tie"]
+          "Inherited concepts and mixed density",
+          "Bắt đầu bằng dot hoặc tie đã học, rồi ghép với móc kép, snap hoặc sandwich; giữ tối đa hai nguồn khó tương tác.",
+          ["subdivision", "dot", "tie", "progressive-density"]
         ),
       ],
       exerciseKinds: {
@@ -363,17 +372,22 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
     }),
     unit({
       track: 5,
-      title: "Tổ hợp tiết tấu phức tạp",
+      title: "Liên ba và tổ hợp tiết tấu phức tạp",
       optional: false,
       overview:
-        "Luyện các tổ hợp nhiều trường độ có kiểm soát, kết hợp nội dung Level 3–4 và đảo phách phù hợp.",
+        "Giới thiệu riêng liên 3 đen và liên 3 đơn bằng timing 3:2 thực, sau đó phối hợp có kiểm soát với vocabulary Level 1–4.",
       objectives: [
-        "Kết hợp nốt và dấu lặng thuộc nhiều trường độ, gồm dots, ties và sixteenths.",
-        "Đọc tổ hợp phức tạp có kiểm soát và nhận diện các onset đảo phách.",
+        "Đọc ba nốt quarter-triplet trong 960 ticks và ba nốt eighth-triplet trong 480 ticks.",
+        "Kết hợp liên ba với dots, ties, sixteenths, snap, sandwich và các trường độ đã học, tối đa hai nguồn khó.",
+        "Đọc tổ hợp phức tạp có kiểm soát mà không làm sai bar fill, tỷ lệ 3:2 hoặc quy tắc dấu lặng.",
       ],
       knowledge: [
         "sixteenth",
         "sixteenth-rest",
+        "quarter-note-triplet-3-to-2",
+        "eighth-note-triplet-3-to-2",
+        "actual-duration-320-ticks",
+        "actual-duration-160-ticks",
         "dotted-eighth",
         "dotted-quarter",
         "dotted-half",
@@ -385,30 +399,30 @@ export const RHYTHM_CURRICULUM: readonly RhythmCurriculumUnit[] = Object.freeze(
         makeLesson(
           5,
           1,
-          "Review duration families",
-          "Nhận diện và phân biệt các trường độ đã học.",
-          ["duration", "dot", "tie", "sixteenth"]
+          "Quarter-note triplets",
+          "Chia hai quarter pulses thành ba quarter-triplet onsets cách nhau 320 ticks.",
+          ["quarter-triplet", "3:2", "320-ticks"]
         ),
         makeLesson(
           5,
           2,
-          "Multi-duration cells",
-          "Ghép nhiều note và rest values trong một cell.",
-          ["multi-duration-combination", "rest"]
+          "Eighth-note triplets",
+          "Chia một quarter pulse thành ba eighth-triplet onsets cách nhau 160 ticks.",
+          ["eighth-triplet", "3:2", "160-ticks"]
         ),
         makeLesson(
           5,
           3,
-          "Ties and dotted subdivisions",
-          "Kết hợp ties và dotted subdivisions mà không đổi bar length.",
-          ["tie", "dot", "subdivision"]
+          "Triplets with learned vocabulary",
+        "Kết hợp một nhóm liên ba với một nguồn đã học (dot, tie hoặc móc kép); giữ ngân sách tối đa hai nguồn khó.",
+          ["triplet-combined", "dot", "tie", "sixteenth"]
         ),
         makeLesson(
           5,
           4,
-          "Controlled complex rhythms",
-          "Kết hợp trường độ đa dạng và đảo phách có kiểm soát.",
-          ["complex-combination", "syncopation"]
+          "Progressive complex rhythms",
+          "Tăng dần mật độ và kết hợp nhiều trường độ nhưng giữ đúng tỷ lệ 3:2.",
+          ["complex-combination", "progressive-density", "3:2"]
         ),
       ],
       exerciseKinds: {

@@ -172,7 +172,7 @@ function validateSubdivisionGrid(
   subdivisionTicks: number
 ): void {
   if (
-    ![120, 240, 480].includes(subdivisionTicks) ||
+    ![40, 120, 240, 480].includes(subdivisionTicks) ||
     meter.pulseTicks % subdivisionTicks !== 0
   ) {
     throw new RangeError(

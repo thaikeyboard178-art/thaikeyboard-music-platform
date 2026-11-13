@@ -1,5 +1,5 @@
 import type { RhythmPattern, RhythmSegment } from "../types";
-import { durationToTicks } from "./durations";
+import { durationToTicks, segmentDurationToTicks } from "./durations";
 import { compoundGroupAt } from "./grouping";
 import { deriveMeter, ticksToSeconds } from "./meters";
 import { rhythmPatternInputSchema } from "./model";
@@ -47,6 +47,7 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
   const issues: RhythmIssue[] = [];
   const measureIds = new Set<string>();
   const segmentIds = new Set<string>();
+  const tupletGroupMeasures = new Map<string, number>();
   const flattened: { segment: RhythmSegment; path: string; onset?: boolean }[] =
     [];
 
@@ -61,8 +62,14 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
     measureIds.add(measure.id);
     let sum = 0;
     let validDurations = true;
+    const segmentStarts: number[] = [];
+    const tupletMembers = new Map<
+      string,
+      Array<{ segment: RhythmSegment; index: number; startTicks: number; path: string }>
+    >();
     measure.segments.forEach((segment, segmentIndex) => {
       const path = `${measurePath}.segments.${segmentIndex}`;
+      segmentStarts.push(sum);
       flattened.push({ segment, path, onset: segment.onset });
       if (segmentIds.has(segment.id))
         issues.push({
@@ -71,6 +78,11 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
           message: "Segment IDs must be unique throughout the pattern",
         });
       segmentIds.add(segment.id);
+      if (segment.tupletGroup !== undefined) {
+        const members = tupletMembers.get(segment.tupletGroup.groupId) ?? [];
+        members.push({ segment, index: segmentIndex, startTicks: sum, path });
+        tupletMembers.set(segment.tupletGroup.groupId, members);
+      }
       if (
         segment.articulation !== undefined &&
         segment.articulation !== "ordinary"
@@ -87,7 +99,7 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
           message: "A silent rest cannot request an accented attack",
         });
       try {
-        const ticks = durationToTicks(segment.duration);
+        const ticks = segmentDurationToTicks(segment);
         const group = compoundGroupAt(pattern.meter, sum);
         if (group && sum + ticks > group.endTicks)
           issues.push({
@@ -116,6 +128,115 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
         });
       }
     });
+    for (const [groupId, members] of tupletMembers) {
+      const first = members[0];
+      const priorMeasure = tupletGroupMeasures.get(groupId);
+      if (priorMeasure !== undefined && priorMeasure !== measureIndex) {
+        issues.push({
+          code: "TUPLET_GROUP_CROSSES_BARLINE",
+          path: `${first.path}.tupletGroup.groupId`,
+          message: "A tuplet group must be complete within one measure",
+        });
+      }
+      tupletGroupMeasures.set(groupId, measureIndex);
+      if (members.length !== 3) {
+        issues.push({
+          code: "TUPLET_GROUP_SIZE",
+          path: `${first.path}.tupletGroup`,
+          message: "A canonical 3:2 tuplet group requires exactly three notes",
+          expectedTicks: 3,
+          actualTicks: members.length,
+        });
+      }
+      if (
+        members.some(
+          (member, index) =>
+            index > 0 && member.index !== members[index - 1].index + 1
+        )
+      ) {
+        issues.push({
+          code: "TUPLET_GROUP_NONCONTIGUOUS",
+          path: `${first.path}.tupletGroup`,
+          message: "Tuplet members must be adjacent with no intervening segment",
+        });
+      }
+      const firstDuration = first.segment.duration;
+      const supportedValue =
+        firstDuration.dots === 0 &&
+        (firstDuration.denominator === 4 || firstDuration.denominator === 8);
+      if (
+        !supportedValue ||
+        members.some(
+          member =>
+            member.segment.kind !== "note" ||
+            member.segment.tieGroupId !== undefined ||
+            member.segment.duration.denominator !== firstDuration.denominator ||
+            member.segment.duration.dots !== firstDuration.dots
+        )
+      ) {
+        issues.push({
+          code: "TUPLET_MEMBER_INVALID",
+          path: `${first.path}.tupletGroup`,
+          message:
+            "A 3:2 tuplet contains three adjacent, untied quarter or eighth notes only",
+        });
+      }
+      if (pattern.meter.denominator !== 4) {
+        issues.push({
+          code: "TUPLET_METER_UNSUPPORTED",
+          path: `${first.path}.tupletGroup`,
+          message:
+            "Quarter- and eighth-note triplets are supported only in simple quarter-denominator meters",
+        });
+      }
+      if (supportedValue) {
+        const memberTicks = durationToTicks(firstDuration) * (2 / 3);
+        const expectedGroupTicks = durationToTicks(firstDuration) * 2;
+        const actualGroupTicks = members.reduce((total, member) => {
+          try {
+            return total + segmentDurationToTicks(member.segment);
+          } catch {
+            return total;
+          }
+        }, 0);
+        if (
+          members.length === 3 &&
+          (members.some(member => {
+            try {
+              return segmentDurationToTicks(member.segment) !== memberTicks;
+            } catch {
+              return true;
+            }
+          }) || actualGroupTicks !== expectedGroupTicks)
+        ) {
+          issues.push({
+            code: "TUPLET_TICKS_INVALID",
+            path: `${first.path}.tupletGroup`,
+            message: "A 3:2 tuplet must occupy exactly two normal note values",
+            expectedTicks: expectedGroupTicks,
+            actualTicks: actualGroupTicks,
+          });
+        }
+        const alignmentTicks =
+          firstDuration.denominator === 4
+            ? meter.pulseTicks * 2
+            : meter.pulseTicks;
+        const groupEnd = first.startTicks + expectedGroupTicks;
+        if (
+          first.startTicks % alignmentTicks !== 0 ||
+          groupEnd > meter.measureTicks
+        ) {
+          issues.push({
+            code: "TUPLET_CROSSES_PULSE_RULE",
+            path: `${first.path}.tupletGroup`,
+            message:
+              "A quarter-note triplet must start on a two-pulse boundary and an eighth-note triplet on a pulse boundary; neither may cross a barline",
+            expectedTicks: alignmentTicks,
+            actualTicks: first.startTicks,
+          });
+        }
+      }
+    }
     if (validDurations && sum !== meter.measureTicks)
       issues.push({
         code:
@@ -182,6 +303,11 @@ export function validateRhythmPattern(input: unknown): RhythmValidationResult {
                 duration: Object.freeze({ ...segment.duration }),
                 ...(segment.tieGroupId !== undefined
                   ? { tieGroupId: segment.tieGroupId }
+                  : {}),
+                ...(segment.tupletGroup !== undefined
+                  ? {
+                      tupletGroup: Object.freeze({ ...segment.tupletGroup }),
+                    }
                   : {}),
                 ...(segment.accent !== undefined
                   ? { accent: segment.accent }

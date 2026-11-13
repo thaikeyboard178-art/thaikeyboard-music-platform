@@ -1,5 +1,5 @@
 import type { RhythmPattern, SegmentPosition, SoundingSpan } from "../types";
-import { durationToTicks } from "./durations";
+import { segmentDurationToTicks } from "./durations";
 import {
   deriveMeter,
   deriveMeterStructure,
@@ -24,7 +24,17 @@ export function deriveRhythmTimeline(
   subdivisionTicks = 120
 ): RhythmTimeline {
   const pattern = requireValidRhythmPattern(input);
-  const structure = deriveMeterStructure(pattern.meter, subdivisionTicks);
+  // Triplet members occupy 320/160 canonical ticks. Preserve the requested
+  // normal grid for all older patterns, but resolve tuplets on their exact
+  // common 40-tick grid rather than rounding their boundaries.
+  const requestedStructure = deriveMeterStructure(pattern.meter, subdivisionTicks);
+  const hasTuplets = pattern.measures.some(measure =>
+    measure.segments.some(segment => segment.tupletGroup !== undefined)
+  );
+  const structure = hasTuplets
+    ? deriveMeterStructure(pattern.meter, 40)
+    : requestedStructure;
+  const effectiveSubdivisionTicks = structure.subdivisionTicks;
   const meter = deriveMeter(pattern.meter);
   const flatSegments = pattern.measures.flatMap(measure => measure.segments);
   const roles = deriveTieRoles(flatSegments);
@@ -32,10 +42,10 @@ export function deriveRhythmTimeline(
   pattern.measures.forEach((measure, measureIndex) => {
     let offset = 0;
     measure.segments.forEach((segment, segmentIndex) => {
-      const durationTicks = durationToTicks(segment.duration);
+      const durationTicks = segmentDurationToTicks(segment);
       if (
-        offset % subdivisionTicks !== 0 ||
-        durationTicks % subdivisionTicks !== 0
+        offset % effectiveSubdivisionTicks !== 0 ||
+        durationTicks % effectiveSubdivisionTicks !== 0
       ) {
         throw new RangeError(
           "Selected teaching grid cannot represent this pattern's boundaries exactly"
@@ -57,13 +67,16 @@ export function deriveRhythmTimeline(
           measureOffsetTicks: offset,
           pulseIndex: Math.floor(offset / meter.pulseTicks),
           pulseOffsetTicks,
-          subdivisionIndex: pulseOffsetTicks / subdivisionTicks,
-          subdivisionTicks,
+          subdivisionIndex: pulseOffsetTicks / effectiveSubdivisionTicks,
+          subdivisionTicks: effectiveSubdivisionTicks,
           isOnset:
             segment.kind === "note" && (role === "none" || role === "start"),
           tieRole: role,
           ...(segment.tieGroupId !== undefined
             ? { tieGroupId: segment.tieGroupId }
+            : {}),
+          ...(segment.tupletGroup !== undefined
+            ? { tupletGroup: segment.tupletGroup }
             : {}),
           accent: segment.accent ?? "normal",
         })

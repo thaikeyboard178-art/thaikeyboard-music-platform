@@ -94,10 +94,12 @@ async function finishAttempt(h: Harness) {
   const engine = h.engines.at(-1)!;
   const snapshot = engine.snapshot!;
   for (const target of snapshot.expectedOnsets) {
-    h.clock.at(target.audioTime);
-    h.input.dispatchEvent(h.clock.nativeTap(target.audioTime));
+    const round = snapshot.rounds[target.roundNumber - 1];
+    const time = round.anchorAudioTime + (target.audioTime - round.anchorAudioTime);
+    h.clock.at(time);
+    h.input.dispatchEvent(h.clock.nativeTap(time));
   }
-  h.clock.at(snapshot.drainEndAudioTime + 0.03);
+  h.clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.1);
   await flushMicrotasks();
 }
 

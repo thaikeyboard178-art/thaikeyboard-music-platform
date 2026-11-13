@@ -9,6 +9,7 @@ import {
   generateRhythmChoices,
   InsufficientDistinctChoicesError,
 } from "./choices";
+import { answerSignatures } from "./answerSignatures";
 
 const paired: RhythmPattern = {
   id: "paired-eighths",
@@ -214,7 +215,92 @@ describe("Phase2 generator integration regressions", () => {
     expect(result.target.meter).toEqual({ numerator: 4, denominator: 4 });
     expect(result.choices).toHaveLength(4);
   });
-  it("fails closed for four choices in an explicitly fixed2/4 dot vocabulary, but can supply three", () => {
+  it("accepts a valid imported two-bar combined 2/4 pattern while rejecting the infeasible single bar", () => {
+    const pattern: RhythmPattern = {
+      id: "combined-2-4-two-bars",
+      meter: { numerator: 2, denominator: 4 },
+      tempo: { pulseBpm: 60 },
+      measures: [
+        {
+          id: "m1",
+          segments: [
+            {
+              id: "m1-dot",
+              kind: "note",
+              duration: { denominator: 4, dots: 1 },
+            },
+            {
+              id: "m1-rest",
+              kind: "rest",
+              duration: { denominator: 8, dots: 0 },
+            },
+          ],
+        },
+        {
+          id: "m2",
+          segments: [
+            {
+              id: "m2-tie-a",
+              kind: "note",
+              duration: { denominator: 8, dots: 0 },
+              tieGroupId: "m2-tie",
+            },
+            {
+              id: "m2-tie-b",
+              kind: "note",
+              duration: { denominator: 8, dots: 0 },
+              tieGroupId: "m2-tie",
+            },
+            {
+              id: "m2-rest",
+              kind: "rest",
+              duration: { denominator: 4, dots: 0 },
+            },
+          ],
+        },
+      ],
+    };
+    expect(() =>
+      assertLevelConstraints(pattern, {
+        seed: "combined-2-4-two-bars",
+        level: 3,
+        meter: pattern.meter,
+        bars: 2,
+        focus: "combined",
+        pulseBpm: 60,
+      })
+    ).not.toThrow();
+    expect(patternMetrics(pattern)).toMatchObject({
+      hasDot: true,
+      hasTie: true,
+      hasFine: false,
+      restsPerBar: [1, 1],
+    });
+    expect(() =>
+      generateRhythmPattern({
+        seed: "combined-2-4-single-bar",
+        level: 3,
+        meter: { numerator: 2, denominator: 4 },
+        bars: 1,
+        focus: "combined",
+      })
+    ).toThrow(/single 2\/4 measure.*required rest/i);
+    const generated = generateRhythmPattern({
+      seed: "combined-2-4-generated-two-bars",
+      level: 3,
+      meter: { numerator: 2, denominator: 4 },
+      bars: 2,
+      focus: "combined",
+    });
+    expect(generated.measures).toHaveLength(2);
+    expect(patternMetrics(generated)).toMatchObject({
+      hasDot: true,
+      hasTie: true,
+      hasFine: false,
+    });
+  });
+
+  it("fails closed beyond the exactly two real fixed-2/4 dot answers", () => {
     const config = {
       seed: "finite-dot-vocabulary",
       level: 4 as const,
@@ -223,11 +309,32 @@ describe("Phase2 generator integration regressions", () => {
       bars: 1 as const,
       pulseBpm: 60,
     };
-    expect(() => generateRhythmChoices({ ...config, count: 4 })).toThrow(
-      InsufficientDistinctChoicesError
+    const productionSignatures = new Set<string>();
+    for (let seed = 0; seed < 80; seed += 1) {
+      const pattern = generateRhythmPattern({
+        ...config,
+        seed: `finite-dot-vocabulary/${seed}`,
+      });
+      productionSignatures.add(answerSignatures(pattern).discriminationSounding);
+    }
+    expect(productionSignatures).toEqual(
+      new Set(["[[0,720]]", "[[720,960]]"])
     );
-    const result = generateRhythmChoices({ ...config, count: 3 });
-    expect(result.choices).toHaveLength(3);
+
+    const result = generateRhythmChoices({ ...config, count: 2 });
+    expect(result.choices).toHaveLength(2);
     expect(result.target.meter).toEqual(config.meter);
+    expect(
+      new Set(
+        result.choices.map(
+          choice => answerSignatures(choice.pattern).discriminationSounding
+        )
+      )
+    ).toEqual(productionSignatures);
+    for (const count of [3, 4] as const) {
+      expect(() => generateRhythmChoices({ ...config, count })).toThrow(
+        InsufficientDistinctChoicesError
+      );
+    }
   });
 });

@@ -22,6 +22,14 @@ export const writtenDurationSchema = z
   })
   .strict();
 
+export const tupletGroupSchema = z
+  .object({
+    groupId: identifier,
+    actualNotes: z.literal(3),
+    normalNotes: z.literal(2),
+  })
+  .strict();
+
 export const rhythmMeterSchema = z.union([
   z.object({ numerator: z.literal(2), denominator: z.literal(4) }).strict(),
   z.object({ numerator: z.literal(3), denominator: z.literal(4) }).strict(),
@@ -56,6 +64,7 @@ export const rhythmPatternInputSchema = z
                     kind: z.enum(["note", "rest"]),
                     duration: writtenDurationSchema,
                     tieGroupId: identifier.optional(),
+                    tupletGroup: tupletGroupSchema.optional(),
                     accent: z.enum(["normal", "strong"]).optional(),
                     articulation: z
                       .enum(["ordinary", "staccato", "tenuto"])

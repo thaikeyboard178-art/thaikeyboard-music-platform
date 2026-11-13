@@ -7,6 +7,8 @@ import {
 import { PPQ } from "../rhythm/durations";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
+import { notationSignature } from "../rhythm/signatures";
+import { policyForLevel } from "../generation/levels";
 
 export type QuizTrack = RhythmTrack | "mixed";
 export type QuizOption = Readonly<{ id: string; label: string }>;
@@ -199,7 +201,8 @@ function meterIdentityQuestions(
     {
       kind: "canonical",
       pattern: meterPattern(meter, `${label}-canonical-staff`),
-      caption: "Ô nhịp hoàn chỉnh — hãy suy ra số chỉ nhịp từ trường độ và nhóm phách.",
+      caption:
+        "Ô nhịp hoàn chỉnh — hãy suy ra số chỉ nhịp từ trường độ và nhóm phách.",
       showTimeSignature: false,
     }
   );
@@ -210,7 +213,9 @@ function assertMeterIdentificationIsUnique(question: QuizQuestion): void {
   if (question.notation?.kind !== "canonical")
     throw new Error(`Meter question ${question.id} needs a canonical bar.`);
   if (question.notation.showTimeSignature !== false)
-    throw new Error(`Meter question ${question.id} must hide its time signature.`);
+    throw new Error(
+      `Meter question ${question.id} must hide its time signature.`
+    );
   const matches = question.options.map(candidate => {
     const match = /^(\d+)\/(\d+)$/.exec(candidate.label.trim());
     if (!match) throw new Error(`Invalid meter option in ${question.id}.`);
@@ -223,7 +228,9 @@ function assertMeterIdentificationIsUnique(question: QuizQuestion): void {
   });
   const pattern = question.notation.pattern;
   if (pattern.measures.length !== 1)
-    throw new Error(`Meter question ${question.id} must show one complete bar.`);
+    throw new Error(
+      `Meter question ${question.id} must show one complete bar.`
+    );
   const measureTicks = deriveRhythmTimeline(pattern, 120).meter.measureTicks;
   const correct = matches.filter(
     candidate => candidate.option.id === question.correctOptionId
@@ -234,7 +241,9 @@ function assertMeterIdentificationIsUnique(question: QuizQuestion): void {
     matches.filter(candidate => candidate.durationTicks === measureTicks)
       .length !== 1
   )
-    throw new Error(`Meter question ${question.id} is not uniquely identifiable.`);
+    throw new Error(
+      `Meter question ${question.id} is not uniquely identifiable.`
+    );
 }
 
 function assertReadableQuizGrouping(question: QuizQuestion): void {
@@ -1031,7 +1040,8 @@ const l5: QuizQuestion[] = [
     {
       kind: "canonical",
       pattern: l5ComboPatterns.sixteenthsDottedEighthQuarter,
-      caption: "Bốn móc kép; nốt đen nối qua ranh giới phách; móc đơn và nốt đen.",
+      caption:
+        "Bốn móc kép; nốt đen nối qua ranh giới phách; móc đơn và nốt đen.",
     }
   ),
   makeQuestion(
@@ -1502,10 +1512,22 @@ export const QUIZ_TRACKS: readonly Readonly<{
   },
 ]);
 
-export const RHYTHM_QUIZ_QUESTION_COUNTS = Object.freeze([5, 10, 20, 30] as const);
-export type RhythmQuizQuestionCount = (typeof RHYTHM_QUIZ_QUESTION_COUNTS)[number];
+export const RHYTHM_QUIZ_QUESTION_COUNTS = Object.freeze([
+  5, 10, 20, 30, 50,
+] as const);
+export type RhythmQuizQuestionCount =
+  (typeof RHYTHM_QUIZ_QUESTION_COUNTS)[number];
 export const DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT: RhythmQuizQuestionCount = 10;
-const SOURCE_TRACKS: readonly RhythmTrack[] = [1, 2, 3, 4, 5, 6, "bonus"];
+export const SOURCE_TRACKS: readonly RhythmTrack[] = Object.freeze([
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  "bonus",
+]);
+export type QuizBank = Readonly<Record<string, readonly QuizQuestion[]>>;
 
 function hashSeed(seed: string): number {
   let hash = 2166136261;
@@ -1540,31 +1562,40 @@ function freshCryptographicSeed(): string {
   return `fresh-${Array.from(words, word => word.toString(16).padStart(8, "0")).join("")}`;
 }
 
-export function getAvailableQuizQuestionCount(track: QuizTrack): number {
+export function getAvailableQuizQuestionCount(
+  track: QuizTrack,
+  banks: QuizBank = QUIZ_QUESTION_BANK
+): number {
   if (track === "mixed")
     return SOURCE_TRACKS.reduce(
-      (total, sourceTrack) =>
-        total + (QUIZ_QUESTION_BANK[String(sourceTrack)]?.length ?? 0),
+      (total, sourceTrack) => total + (banks[String(sourceTrack)]?.length ?? 0),
       0
     );
-  return QUIZ_QUESTION_BANK[String(track)]?.length ?? 0;
+  return banks[String(track)]?.length ?? 0;
 }
 
-function questionPool(track: QuizTrack): readonly QuizQuestion[] {
+function questionPool(
+  track: QuizTrack,
+  banks: QuizBank
+): readonly QuizQuestion[] {
   if (track !== "mixed") {
-    const bank = QUIZ_QUESTION_BANK[String(track)];
+    const bank = banks[String(track)];
     if (!bank) throw new RangeError("Unknown Rhythm Quiz track.");
     return bank;
   }
   return Object.freeze(
-    SOURCE_TRACKS.flatMap(sourceTrack => QUIZ_QUESTION_BANK[String(sourceTrack)])
+    SOURCE_TRACKS.flatMap(sourceTrack => banks[String(sourceTrack)] ?? [])
   );
 }
 
-function selectMixedQuestions(seed: string, questionCount: number): QuizQuestion[] {
+function selectMixedQuestions(
+  seed: string,
+  questionCount: number,
+  banks: QuizBank
+): QuizQuestion[] {
   const decks = new Map<RhythmTrack, QuizQuestion[]>();
   for (const sourceTrack of SOURCE_TRACKS) {
-    const bank = QUIZ_QUESTION_BANK[String(sourceTrack)];
+    const bank = banks[String(sourceTrack)] ?? [];
     decks.set(
       sourceTrack,
       shuffle(bank, seededRandom(`${seed}:mixed-level:${String(sourceTrack)}`))
@@ -1587,7 +1618,9 @@ function selectMixedQuestions(seed: string, questionCount: number): QuizQuestion
       }
     }
     if (!addedThisRound)
-      throw new RangeError("The eligible Rhythm Quiz question bank is too small.");
+      throw new RangeError(
+        "The eligible Rhythm Quiz question bank is too small."
+      );
     round += 1;
   }
   return selected;
@@ -1597,13 +1630,14 @@ function selectMixedQuestions(seed: string, questionCount: number): QuizQuestion
 export function createQuizRun(
   track: QuizTrack,
   seed?: string,
-  questionCount: number = DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT
+  questionCount: number = DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT,
+  banks: QuizBank = QUIZ_QUESTION_BANK
 ): readonly QuizQuestion[] {
   if (seed !== undefined && !seed.trim())
     throw new RangeError("An explicit quiz seed must not be empty.");
   if (!Number.isSafeInteger(questionCount) || questionCount < 1)
     throw new RangeError("Quiz question count must be a positive integer.");
-  const bank = questionPool(track);
+  const bank = questionPool(track, banks);
   if (questionCount > bank.length)
     throw new RangeError(
       `Only ${bank.length} unique questions are available for ${String(track)}.`
@@ -1621,7 +1655,7 @@ export function createQuizRun(
     seed ?? `rhythm-quiz-${String(track)}:${freshCryptographicSeed()}`;
   const selected =
     track === "mixed"
-      ? selectMixedQuestions(runSeed, questionCount)
+      ? selectMixedQuestions(runSeed, questionCount, banks)
       : shuffle(bank, seededRandom(`${runSeed}:deck`)).slice(0, questionCount);
   if (new Set(selected.map(question => question.id)).size !== selected.length)
     throw new Error("A Rhythm Quiz run cannot contain duplicate question IDs.");
@@ -1638,4 +1672,155 @@ export function createQuizRun(
       })
     )
   );
+}
+
+/** Import boundary for Owner-authored source banks. Does not author or pad questions. */
+export function validateQuizBank(input: unknown): QuizBank {
+  const record = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
+  const text = (value: unknown): value is string =>
+    typeof value === "string" && value.trim().length > 0;
+  if (
+    !record(input) ||
+    Object.keys(input).some(
+      key => !SOURCE_TRACKS.some(track => String(track) === key)
+    )
+  )
+    throw new TypeError(
+      "Quiz bank must contain only Level 1–6 and Bonus source keys; Mixed is derived."
+    );
+  const ids = new Set<string>();
+  const fingerprints = new Set<string>();
+  const output: Record<string, readonly QuizQuestion[]> = {};
+  for (const track of SOURCE_TRACKS) {
+    const source = input[String(track)];
+    if (!Array.isArray(source))
+      throw new TypeError(`Quiz source ${String(track)} must be an array.`);
+    output[String(track)] = Object.freeze(
+      source.map((raw: unknown) => {
+        if (
+          !record(raw) ||
+          raw.track !== track ||
+          !text(raw.id) ||
+          !text(raw.concept) ||
+          !text(raw.prompt) ||
+          !text(raw.explanation) ||
+          !text(raw.correctOptionId) ||
+          !Array.isArray(raw.options) ||
+          raw.options.length !== 4
+        )
+          throw new TypeError(
+            `Invalid Quiz record in source ${String(track)}.`
+          );
+        const options = raw.options.map((candidate: unknown) => {
+          if (
+            !record(candidate) ||
+            !text(candidate.id) ||
+            !text(candidate.label)
+          )
+            throw new TypeError(`Invalid option in ${raw.id}.`);
+          return Object.freeze({ id: candidate.id, label: candidate.label });
+        });
+        if (
+          new Set(options.map(option => option.id)).size !== 4 ||
+          new Set(
+            options.map(option => option.label.trim().toLocaleLowerCase())
+          ).size !== 4 ||
+          options.filter(option => option.id === raw.correctOptionId).length !==
+            1
+        )
+          throw new TypeError(
+            `Duplicate options or unknown correct identity in ${raw.id}.`
+          );
+        if (ids.has(raw.id))
+          throw new TypeError(`Duplicate Quiz question ID: ${raw.id}`);
+        ids.add(raw.id);
+        let notation: QuizNotation | undefined;
+        if (raw.notation !== undefined) {
+          const value = raw.notation;
+          if (!record(value) || !text(value.caption))
+            throw new TypeError(`Invalid notation in ${raw.id}.`);
+          if (value.kind === "canonical") {
+            if (
+              value.showTimeSignature !== undefined &&
+              typeof value.showTimeSignature !== "boolean"
+            )
+              throw new TypeError(`Invalid signature policy in ${raw.id}.`);
+            const pattern = requireValidRhythmPattern(value.pattern);
+            const vocabulary = policyForLevel(track);
+            if (
+              !vocabulary.allowedMeters.some(
+                meter =>
+                  meter.numerator === pattern.meter.numerator &&
+                  meter.denominator === pattern.meter.denominator
+              ) ||
+              pattern.measures.some(measure =>
+                measure.segments.some(
+                  segment =>
+                    (segment.tupletGroup !== undefined &&
+                      !vocabulary.allowTuplets) ||
+                    !(
+                      segment.kind === "rest"
+                        ? vocabulary.restDurations
+                        : vocabulary.durations
+                    ).some(
+                      duration =>
+                        duration.denominator === segment.duration.denominator &&
+                        duration.dots === segment.duration.dots
+                    )
+                )
+              )
+            )
+              throw new TypeError(
+                `Canonical notation exceeds Level ${String(track)} vocabulary in ${raw.id}.`
+              );
+            notation = Object.freeze({
+              kind: "canonical",
+              pattern,
+              caption: value.caption,
+              ...(value.showTimeSignature === undefined
+                ? {}
+                : { showTimeSignature: value.showTimeSignature }),
+            });
+          } else if (value.kind === "illustrative-3-8-partial" && track === 6)
+            notation = Object.freeze({
+              kind: "illustrative-3-8-partial",
+              caption: value.caption,
+            });
+          else throw new TypeError(`Unsupported notation in ${raw.id}.`);
+        }
+        const question: QuizQuestion = Object.freeze({
+          id: raw.id,
+          track,
+          concept: raw.concept,
+          prompt: raw.prompt,
+          options: Object.freeze(options),
+          correctOptionId: raw.correctOptionId,
+          explanation: raw.explanation,
+          ...(notation ? { notation } : {}),
+        });
+        assertMeterIdentificationIsUnique(question);
+        assertReadableQuizGrouping(question);
+        // IDs are not content: reject exact duplicate prompts/options/stimuli even under new IDs.
+        const stimulus =
+          notation?.kind === "canonical"
+            ? notationSignature(notation.pattern)
+            : (notation?.kind ?? "");
+        const fingerprint = JSON.stringify([
+          question.prompt.trim().toLocaleLowerCase(),
+          options.map(option => option.label.trim().toLocaleLowerCase()).sort(),
+          options
+            .find(option => option.id === question.correctOptionId)
+            ?.label.trim()
+            .toLocaleLowerCase(),
+          stimulus,
+        ]);
+        if (fingerprints.has(fingerprint))
+          throw new TypeError(`Duplicate Quiz content: ${question.id}`);
+        fingerprints.add(fingerprint);
+        return question;
+      })
+    );
+  }
+  return Object.freeze(output);
 }

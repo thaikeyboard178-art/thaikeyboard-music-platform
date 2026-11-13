@@ -102,9 +102,50 @@ describe("Phase5 learner configuration reads approved runtime gates", () => {
       "ties",
       "combined",
       "sixteenths",
+      "snap",
+      "sandwich",
+      "integrated",
     ]);
     expect(getTapFocuses(4, { numerator: 4, denominator: 4 })).not.toContain(
       "syncopation"
+    );
+  });
+  it("offers real triplets only in Level 5 and excludes the impossible quarter-triplet plus rest in 2/4", () => {
+    expect(getTapFocuses(4, { numerator: 4, denominator: 4 })).not.toContain(
+      "quarter-triplets"
+    );
+    expect(getTapFocuses(5, { numerator: 4, denominator: 4 })).toContain(
+      "quarter-triplets"
+    );
+    expect(getTapFocuses(5, { numerator: 4, denominator: 4 })).toContain(
+      "eighth-triplets"
+    );
+    expect(getTapFocuses(5, { numerator: 2, denominator: 4 })).not.toContain(
+      "quarter-triplets"
+    );
+    expect(getTapFocuses(5, { numerator: 2, denominator: 4 })).toContain(
+      "eighth-triplets"
+    );
+    expect(LEARNER_TRACK_NOTES[5]).toContain("2/4");
+    expect(getTapFocuses(3, { numerator: 2, denominator: 4 })).not.toContain(
+      "combined"
+    );
+    expect(getTapFocuses(3, { numerator: 3, denominator: 4 })).toContain(
+      "combined"
+    );
+    expect(getTapFocuses(4, { numerator: 2, denominator: 4 })).not.toContain(
+      "combined"
+    );
+    expect(LEARNER_TRACK_NOTES[3]).toContain("dấu lặng");
+    expect(getTapFocuses(6, { numerator: 3, denominator: 8 })).toEqual([
+      "basic",
+      "ties",
+    ]);
+    expect(getTapFocuses(6, { numerator: 6, denominator: 8 })).toContain(
+      "dots"
+    );
+    expect(getTapFocuses(6, { numerator: 9, denominator: 8 })).toContain(
+      "combined"
     );
   });
   it("executes the real generator for every exposed track/meter/focus/bar endpoint combination", () => {

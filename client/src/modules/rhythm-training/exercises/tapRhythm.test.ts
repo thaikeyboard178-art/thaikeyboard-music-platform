@@ -16,6 +16,12 @@ import {
 } from "./tapRhythm";
 import { sealTapAttempt } from "./tapCompletion";
 import { matchTapRhythm } from "./tapMatcher";
+import {
+  calculateTapTwoRoundScore,
+  type TapRoundInput,
+  type TapRoundResult,
+} from "./tapRoundScoring";
+import { deriveMeter } from "../rhythm/meters";
 
 const meterCases = [
   {
@@ -68,12 +74,39 @@ function quarter(denominator: 1 | 2 | 4 | 8 | 16 = 4, dots: 0 | 1 = 0) {
 
 function attemptFor(
   exercise: ReturnType<typeof generateTapRhythmExercise>,
-  overrides: Partial<Parameters<typeof sealTapAttempt>[0]> = {}
+  overrides: Partial<Parameters<typeof sealTapAttempt>[0]> = {},
+  roundInputs: readonly TapRoundInput[] = [
+    {
+      roundNumber: 1,
+      skipped: false,
+      taps: exercise.targets.map((target, sequence) => ({
+        sequence,
+        offsetMs: target.offsetMs,
+      })),
+    },
+    {
+      roundNumber: 2,
+      skipped: false,
+      taps: exercise.targets.map((target, sequence) => ({
+        sequence: exercise.targets.length + sequence,
+        offsetMs: target.offsetMs,
+      })),
+    },
+  ]
 ) {
-  const exactTaps = exercise.targets.map((target, sequence) => ({
-    sequence,
-    offsetMs: target.offsetMs,
-  }));
+  const meter = deriveMeter(exercise.pattern.meter);
+  const canonicalPulseMs =
+    ticksToSeconds(
+      meter.pulseTicks,
+      exercise.pattern.meter,
+      exercise.pattern.tempo.pulseBpm
+    ) * 1000;
+  const score = calculateTapTwoRoundScore(
+    exercise.targets,
+    roundInputs,
+    canonicalPulseMs
+  );
+  const firstPlayed = score.rounds.find(round => round.status === "played");
   return sealTapAttempt({
     exerciseId: exercise.id,
     generation: 1,
@@ -81,9 +114,11 @@ function attemptFor(
     status: "completed",
     reason: null,
     targetTicks: exercise.targets.map(target => target.tick),
-    taps: exactTaps,
-    evaluation: null,
-    accuracyPercent: null,
+    taps: firstPlayed?.taps ?? [],
+    evaluation: firstPlayed?.evaluation ?? null,
+    accuracyPercent: score.overallAccuracyPercent,
+    scoreOutOfTen: score.scoreOutOfTen,
+    rounds: score.rounds,
     rawCaptures: [],
     ...overrides,
   });
@@ -617,11 +652,13 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     const untrustedSummary = matchTapRhythm(exercise.targets, []);
     const exactAttempt = attemptFor(exercise, {
       evaluation: untrustedSummary,
-      accuracyPercent: 0,
+      accuracyPercent: 100,
+      scoreOutOfTen: 10,
     });
     const evaluated = evaluateTapRhythmAnswer(exercise, exactAttempt);
     expect(evaluated?.correct).toBe(true);
     expect(evaluated?.accuracyPercent).toBe(100);
+    expect(evaluated?.scoreOutOfTen).toBe(10);
 
     const malformedPublicShape = {
       exerciseId: exercise.id,
@@ -659,5 +696,33 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
         attemptFor(exercise, { exerciseId: "different-exercise" })
       )
     ).toBeNull();
+    expect(
+      evaluateTapRhythmAnswer(
+        exercise,
+        attemptFor(exercise, { accuracyPercent: 99 })
+      )
+    ).toBeNull();
+    expect(
+      evaluateTapRhythmAnswer(
+        exercise,
+        attemptFor(exercise, { scoreOutOfTen: 9 })
+      )
+    ).toBeNull();
+
+    const malformedRounds = attemptFor(exercise, {
+      rounds: [exactAttempt.rounds![0]] as unknown as readonly [
+        TapRoundResult,
+        TapRoundResult,
+      ],
+    });
+    expect(evaluateTapRhythmAnswer(exercise, malformedRounds)).toBeNull();
+
+    const bothSkipped = attemptFor(exercise, {}, [
+      { roundNumber: 1, skipped: true, taps: [] },
+      { roundNumber: 2, skipped: true, taps: [] },
+    ]);
+    expect(bothSkipped.accuracyPercent).toBeNull();
+    expect(bothSkipped.scoreOutOfTen).toBeNull();
+    expect(evaluateTapRhythmAnswer(exercise, bothSkipped)).toBeNull();
   });
 });

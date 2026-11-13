@@ -4,6 +4,11 @@ import { TapFakeClock, TEST_TAP_VOICES } from "../audio/tapTestHelpers";
 import { sealTapAttempt } from "./tapCompletion";
 import { createTapRhythmExercise } from "./tapRhythm";
 import {
+  calculateTapTwoRoundScore,
+  type TapRoundInput,
+} from "./tapRoundScoring";
+import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
+import {
   advanceRhythmSession,
   createRhythmTrainingSession,
   skipRhythmExercise,
@@ -45,14 +50,72 @@ async function setup(name: string) {
   return { clock, input, exercise, engine, session };
 }
 function complete(h: Awaited<ReturnType<typeof setup>>, shifts: number[] = []) {
-  for (let i = 0; i < h.engine.snapshot!.expectedOnsets.length; i++) {
-    const at =
-      h.engine.snapshot!.expectedOnsets[i].audioTime + (shifts[i] ?? 0) / 1000;
+  const snapshot = h.engine.snapshot!;
+  for (let i = 0; i < snapshot.expectedOnsets.length; i++) {
+    const at = snapshot.expectedOnsets[i].audioTime + (shifts[i] ?? 0) / 1000;
     h.clock.at(at);
     h.input.dispatchEvent(h.clock.nativeTap(at));
   }
-  h.clock.at(h.engine.snapshot!.drainEndAudioTime + 0.03);
+  h.clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.03);
   return h.engine.result!;
+}
+
+function receiptFromRounds(
+  exercise: Awaited<ReturnType<typeof setup>>["exercise"],
+  rounds: readonly TapRoundInput[]
+) {
+  const meter = deriveMeter(exercise.pattern.meter);
+  const canonicalPulseMs =
+    ticksToSeconds(
+      meter.pulseTicks,
+      exercise.pattern.meter,
+      exercise.pattern.tempo.pulseBpm
+    ) * 1000;
+  const score = calculateTapTwoRoundScore(
+    exercise.targets,
+    rounds,
+    canonicalPulseMs
+  );
+  const firstPlayed = score.rounds.find(round => round.status === "played");
+  return sealTapAttempt({
+    exerciseId: exercise.id,
+    generation: 1,
+    mode: "graded",
+    status: "completed",
+    reason: null,
+    targetTicks: exercise.targets.map(target => target.tick),
+    taps: firstPlayed?.taps ?? [],
+    evaluation: firstPlayed?.evaluation ?? null,
+    accuracyPercent: score.overallAccuracyPercent,
+    scoreOutOfTen: score.scoreOutOfTen,
+    rounds: score.rounds,
+    rawCaptures: [],
+  });
+}
+
+function receiptAtAccuracy(
+  exercise: Awaited<ReturnType<typeof setup>>["exercise"],
+  accuracyPercent: number
+) {
+  const tapsForRound = (roundNumber: 1 | 2) =>
+    exercise.targets.map((target, index) => {
+      const previous = exercise.targets[index - 1];
+      const next = exercise.targets[index + 1];
+      const interval = next
+        ? next.offsetMs - target.offsetMs
+        : previous
+          ? target.offsetMs - previous.offsetMs
+          : 1000;
+      return {
+        sequence: roundNumber * 100 + index,
+        offsetMs:
+          target.offsetMs + ((100 - accuracyPercent) / 100) * (interval / 2),
+      };
+    });
+  return receiptFromRounds(exercise, [
+    { roundNumber: 1, skipped: false, taps: tapsForRound(1) },
+    { roundNumber: 2, skipped: false, taps: tapsForRound(2) },
+  ]);
 }
 
 describe("Tap runtime to existing shared scoring integration", () => {
@@ -119,10 +182,12 @@ describe("Tap runtime to existing shared scoring integration", () => {
       answer: attempt,
       responseTimeMs: 2200,
     });
-    expect(attempt.accuracyPercent).toBe(75);
+    expect(attempt.accuracyPercent).toBeGreaterThan(94);
+    expect(attempt.accuracyPercent).toBeLessThan(100);
     expect(result.status).toBe("graded");
     expect(result.correct).toBe(false);
-    expect(result.scoreDelta).toBe(8);
+    expect(result.scoreDelta).toBe(10);
+    expect(result.session.totalScore).toBe(10);
     expect(result.session.incorrectAnswers).toBe(1);
     expect(toTrainingResult(result.session)!.accuracy).toBe(0);
     expect(toTrainingResult(result.session)!.averageResponseTimeMs).toBe(2200);
@@ -130,7 +195,6 @@ describe("Tap runtime to existing shared scoring integration", () => {
   });
   it("rounds Timing Accuracy half-up into shared Tap awards independently of strict correctness", async () => {
     const h = await setup("tap-score-accuracy-awards");
-    const completed = complete(h, [65]);
     const cases = [
       [100, 10],
       [99, 10],
@@ -143,7 +207,7 @@ describe("Tap runtime to existing shared scoring integration", () => {
     ] as const;
 
     for (const [accuracyPercent, expectedAward] of cases) {
-      const attempt = sealTapAttempt({ ...completed, accuracyPercent });
+      const attempt = receiptAtAccuracy(h.exercise, accuracyPercent);
       const session = createRhythmTrainingSession(
         {
           mode: "challenge",
@@ -159,17 +223,19 @@ describe("Tap runtime to existing shared scoring integration", () => {
       });
 
       expect(result.status).toBe("graded");
-      expect(result.correct).toBe(false);
+      expect(attempt.accuracyPercent).toBeCloseTo(accuracyPercent, 8);
+      expect(attempt.scoreOutOfTen).toBe(expectedAward);
+      expect(result.correct).toBe(accuracyPercent === 100);
       expect(result.scoreDelta).toBe(expectedAward);
       expect(result.session.totalScore).toBe(expectedAward);
       expect(result.session.questionsAnswered).toBe(1);
-      expect(result.session.correctAnswers).toBe(0);
-      expect(result.session.incorrectAnswers).toBe(1);
-      expect(result.session.accuracy).toBe(0);
+      expect(result.session.correctAnswers).toBe(accuracyPercent === 100 ? 1 : 0);
+      expect(result.session.incorrectAnswers).toBe(accuracyPercent === 100 ? 0 : 1);
+      expect(result.session.accuracy).toBe(accuracyPercent === 100 ? 100 : 0);
     }
     await h.engine.dispose();
   });
-  it("physical extra tap defeats strict gate despite passing all expected onsets", async () => {
+  it("physical extra taps are excluded from accuracy while all target notes still earn the full award", async () => {
     const h = await setup("tap-score-extra");
     const first = h.engine.snapshot!.expectedOnsets[0].audioTime;
     h.clock.at(first);
@@ -180,11 +246,75 @@ describe("Tap runtime to existing shared scoring integration", () => {
       answer: attempt,
       responseTimeMs: 2000,
     });
-    expect(attempt.evaluation!.tp).toBe(4);
-    expect(attempt.evaluation!.k).toBe(5);
-    expect(attempt.accuracyPercent).toBeCloseTo(800 / 9);
-    expect(result.scoreDelta).toBe(9);
+    expect(attempt.evaluation!.tp).toBe(h.exercise.targets.length);
+    expect(attempt.evaluation!.k).toBe(h.exercise.targets.length + 1);
+    expect(attempt.evaluation!.extra).toBe(1);
+    expect(attempt.accuracyPercent).toBe(100);
+    expect(attempt.scoreOutOfTen).toBe(10);
+    expect(result.scoreDelta).toBe(10);
+    expect(result.correct).toBe(true);
+    await h.engine.dispose();
+  });
+  it("scores a missing target as zero across both rounds", async () => {
+    const h = await setup("tap-score-missing-zero");
+    const targetCount = h.exercise.targets.length;
+    const firstRound = h.exercise.targets.slice(1).map((target, index) => ({
+      sequence: index + 1,
+      offsetMs: target.offsetMs,
+    }));
+    const secondRound = h.exercise.targets.map((target, index) => ({
+      sequence: targetCount + index,
+      offsetMs: target.offsetMs,
+    }));
+    const attempt = receiptFromRounds(h.exercise, [
+      { roundNumber: 1, skipped: false, taps: firstRound },
+      { roundNumber: 2, skipped: false, taps: secondRound },
+    ]);
+    const result = submitRhythmExerciseAnswer(h.session, h.exercise, {
+      type: "answer",
+      answer: attempt,
+      responseTimeMs: 2000,
+    });
+
+    expect(attempt.rounds?.[0].noteResults[0]).toMatchObject({
+      matchStatus: "missing",
+      noteAccuracyPercent: 0,
+    });
+    expect(attempt.rounds?.[0].missedTargetCount).toBe(1);
+    expect(attempt.accuracyPercent).toBeCloseTo(
+      ((targetCount * 2 - 1) / (targetCount * 2)) * 100
+    );
+    expect(result.status).toBe("graded");
     expect(result.correct).toBe(false);
+    expect(result.scoreDelta).toBe(attempt.scoreOutOfTen);
+    expect(result.session.questionsAnswered).toBe(1);
+    await h.engine.dispose();
+  });
+  it("does not award or record an answer when both sealed rounds were skipped", async () => {
+    const h = await setup("tap-score-both-rounds-skipped");
+    const attempt = receiptFromRounds(h.exercise, [
+      { roundNumber: 1, skipped: true, taps: [] },
+      { roundNumber: 2, skipped: true, taps: [] },
+    ]);
+    expect(attempt.accuracyPercent).toBeNull();
+    expect(attempt.scoreOutOfTen).toBeNull();
+    expect(attempt.rounds?.map(round => round.status)).toEqual([
+      "skipped",
+      "skipped",
+    ]);
+    const result = submitRhythmExerciseAnswer(h.session, h.exercise, {
+      type: "answer",
+      answer: attempt,
+      responseTimeMs: 2000,
+    });
+
+    expect(result.status).toBe("technical-abort");
+    expect(result.scoreDelta).toBe(0);
+    expect(result.session).toBe(h.session);
+    expect(result.session.questionsAnswered).toBe(0);
+    expect(result.session.correctAnswers).toBe(0);
+    expect(result.session.incorrectAnswers).toBe(0);
+    expect(result.session.totalScore).toBe(0);
     await h.engine.dispose();
   });
   it("technical abort never increments answered/incorrect counts and cannot be forged into an answer", async () => {

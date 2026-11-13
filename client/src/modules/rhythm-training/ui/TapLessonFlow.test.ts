@@ -43,11 +43,11 @@ describe("Phase5 approved Lessons are ungraded worked examples", () => {
         clock.at(onset.audioTime);
         engine!.handleEvent(clock.nativeTap(onset.audioTime));
       }
-      clock.at(snapshot.drainEndAudioTime + 0.05);
+      clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.1);
       const state = controller.getSnapshot();
       expect(state.result?.status).toBe("completed");
       expect(state.result?.mode).toBe("practice");
-      expect(state.result?.accuracyPercent).toBe(100);
+      expect(state.result?.accuracyPercent).toBeCloseTo(100, 10);
       expect(state.session?.questionsAnswered).toBe(0);
       expect(state.session?.correctAnswers).toBe(0);
       expect(state.session?.incorrectAnswers).toBe(0);

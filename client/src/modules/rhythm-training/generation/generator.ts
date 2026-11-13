@@ -3,6 +3,7 @@ import type {
   RhythmPattern,
   RhythmSegment,
   RhythmTrack,
+  RhythmTupletGroup,
   WrittenDuration,
 } from "../types";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
@@ -32,20 +33,28 @@ export type RhythmGenerationConfig = Readonly<{
     | "sixteenths"
     | "compound"
     | "syncopation"
-    | "integrated";
+    | "integrated"
+    | "snap"
+    | "sandwich"
+    | "quarter-triplets"
+    | "eighth-triplets"
+    | "triplet-combined";
 }>;
 
 type ConfigFocus = NonNullable<RhythmGenerationConfig["focus"]>;
+type TupletKind = "quarter" | "eighth";
 type Features = Readonly<{
   dots: boolean;
   ties: boolean;
   sixteenths: boolean;
   syncopation: boolean;
+  tuplets: TupletKind | null;
 }>;
 type RawSegment = {
   kind: "note" | "rest";
   duration: WrittenDuration;
   tieGroupId?: string;
+  tupletGroup?: RhythmTupletGroup;
 };
 type ResolvedConfig = Readonly<{
   policy: LevelPolicy;
@@ -65,6 +74,11 @@ const CONFIG_FOCI: readonly ConfigFocus[] = Object.freeze([
   "compound",
   "syncopation",
   "integrated",
+  "snap",
+  "sandwich",
+  "quarter-triplets",
+  "eighth-triplets",
+  "triplet-combined",
 ]);
 const MAX_GENERATION_ATTEMPTS = 256;
 const MAX_COMPOSITION_NODES = 24_000;
@@ -148,7 +162,19 @@ function isSixteenthIntroduction(policy: LevelPolicy): boolean {
 }
 
 function isControlledComplexPolicy(policy: LevelPolicy): boolean {
-  return policy.allowSixteenths && policy.allowSyncopation;
+  return (
+    policy.allowSixteenths &&
+    policy.allowSyncopation &&
+    policy.maxFinePulsesPerBar === 1
+  );
+}
+
+function combinedRequiresDotAndTie(policy: LevelPolicy): boolean {
+  return (
+    policy.allowDots &&
+    policy.allowTies &&
+    !isControlledComplexPolicy(policy)
+  );
 }
 
 function enforcesPreIntroductionPulseSustain(policy: LevelPolicy): boolean {
@@ -206,7 +232,8 @@ function featureSet(
   policy: LevelPolicy,
   focus: RhythmFocus,
   meter: RhythmMeter,
-  random: () => number
+  random: () => number,
+  bars: 1 | 2 | 4
 ): Features {
   if (focus === "dots")
     return {
@@ -214,6 +241,7 @@ function featureSet(
       ties: false,
       sixteenths: false,
       syncopation: false,
+      tuplets: null,
     };
   if (focus === "ties")
     return {
@@ -221,7 +249,71 @@ function featureSet(
       ties: policy.allowTies,
       sixteenths: false,
       syncopation: false,
+      tuplets: null,
     };
+  if (focus === "snap")
+    return {
+      dots: true,
+      ties: false,
+      sixteenths: true,
+      syncopation: false,
+      tuplets: null,
+    };
+  if (focus === "sandwich")
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: true,
+      syncopation: false,
+      tuplets: null,
+    };
+  if (focus === "quarter-triplets")
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: false,
+      syncopation: false,
+      tuplets: "quarter",
+    };
+  if (focus === "eighth-triplets")
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: false,
+      syncopation: false,
+      tuplets: "eighth",
+    };
+  if (focus === "triplet-combined") {
+    const tupletKind: TupletKind =
+      meter.numerator === 2 && meter.denominator === 4
+        ? "eighth"
+        : random() < 0.5
+          ? "quarter"
+          : "eighth";
+    const sources: Array<"dots" | "ties" | "sixteenths"> = [];
+    if (
+      policy.allowDots &&
+      !(meter.numerator === 2 && meter.denominator === 4) &&
+      !(tupletKind === "quarter" && meter.numerator === 3)
+    )
+      sources.push("dots");
+    if (policy.allowTies) sources.push("ties");
+    if (policy.allowSixteenths) sources.push("sixteenths");
+    const onlySixteenthsFitWithARequiredRest =
+      (tupletKind === "quarter" && meter.numerator === 3) ||
+      (tupletKind === "eighth" && meter.numerator === 2);
+    if (onlySixteenthsFitWithARequiredRest) {
+      sources.splice(0, sources.length, "sixteenths");
+    }
+    const source = sources[Math.floor(random() * sources.length)];
+    return {
+      dots: source === "dots",
+      ties: source === "ties",
+      sixteenths: source === "sixteenths",
+      syncopation: false,
+      tuplets: tupletKind,
+    };
+  }
   if (focus === "combined") {
     if (isDotsAndTiesIntroduction(policy)) {
       return {
@@ -229,6 +321,7 @@ function featureSet(
         ties: true,
         sixteenths: false,
         syncopation: false,
+        tuplets: null,
       };
     }
     if (isControlledComplexPolicy(policy)) {
@@ -237,6 +330,7 @@ function featureSet(
         ties: policy.allowTies,
         sixteenths: policy.allowSixteenths,
         syncopation: false,
+        tuplets: null,
       };
     }
     return {
@@ -244,6 +338,7 @@ function featureSet(
       ties: policy.allowTies,
       sixteenths: false,
       syncopation: false,
+      tuplets: null,
     };
   }
   if (focus === "sixteenths")
@@ -252,6 +347,7 @@ function featureSet(
       ties: false,
       sixteenths: policy.allowSixteenths,
       syncopation: false,
+      tuplets: null,
     };
   if (focus === "syncopation")
     return {
@@ -259,32 +355,72 @@ function featureSet(
       ties: policy.allowTies,
       sixteenths: false,
       syncopation: policy.allowSyncopation,
+      tuplets: null,
     };
   if (focus === "compound")
-    return { dots: false, ties: false, sixteenths: false, syncopation: false };
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: false,
+      syncopation: false,
+      tuplets: null,
+    };
   if (focus === "basic")
-    return { dots: false, ties: false, sixteenths: false, syncopation: false };
+    return {
+      dots: false,
+      ties: false,
+      sixteenths: false,
+      syncopation: false,
+      tuplets: null,
+    };
 
-  // Controlled complex tracks choose one or two genuine
-  // sources; compound meter's pulse-defining dots are not one of them.
-  const sources: Array<keyof Features> = [];
+  // Integrated tracks choose one or two genuine sources; Level-5 triplets
+  // count as one source. Compound meter's pulse-defining dots are excluded.
+  const sources: Array<"dots" | "ties" | "sixteenths" | "syncopation" | "tuplets"> = [];
   if (policy.allowDots && (meter.numerator !== 6 || random() > 0.35))
     sources.push("dots");
   if (policy.allowTies) sources.push("ties");
   if (policy.allowSixteenths) sources.push("sixteenths");
   if (policy.allowSyncopation && meter.denominator === 4)
     sources.push("syncopation");
+  if (policy.allowTuplets) sources.push("tuplets");
   const shuffled = seededShuffle(sources, random);
   const count =
     shuffled.length === 0
       ? 0
       : 1 + Math.floor(random() * Math.min(2, shuffled.length));
   const selected = new Set(shuffled.slice(0, count));
+  if (
+    selected.has("tuplets") &&
+    bars === 1 &&
+    meter.numerator === 2 &&
+    meter.denominator === 4 &&
+    (selected.has("dots") || selected.has("ties"))
+  ) {
+    // In 2/4 the required rest plus an eighth-triplet leaves no room for an
+    // independent dot or tie. Sixteenths can genuinely coexist in the other
+    // pulse, so retain the two-source budget with that feasible pairing.
+    selected.delete("dots");
+    selected.delete("ties");
+    if (policy.allowSixteenths) selected.add("sixteenths");
+  }
+  const tupletKind: TupletKind | null = selected.has("tuplets")
+    ? meter.numerator === 2 && meter.denominator === 4
+      ? "eighth"
+      : bars === 1 &&
+          meter.numerator === 3 &&
+          (selected.has("dots") || selected.has("ties"))
+        ? "eighth"
+      : random() < 0.5
+        ? "quarter"
+        : "eighth"
+    : null;
   return {
     dots: selected.has("dots"),
     ties: selected.has("ties"),
     sixteenths: selected.has("sixteenths"),
     syncopation: selected.has("syncopation"),
+    tuplets: tupletKind,
   };
 }
 
@@ -292,6 +428,7 @@ function chooseMeter(
   policy: LevelPolicy,
   requested: RhythmMeter | undefined,
   focus: RhythmFocus,
+  bars: 1 | 2 | 4,
   random: () => number
 ): RhythmMeter {
   if (requested !== undefined) {
@@ -305,6 +442,38 @@ function chooseMeter(
   }
 
   let choices = policy.allowedMeters;
+  if (
+    policy.level === 6 &&
+    (focus === "dots" || focus === "combined")
+  ) {
+    if (
+      requested?.numerator === 3 &&
+      requested.denominator === 8
+    ) {
+      fail(
+        focus === "dots"
+          ? "Level 6 dots focus is infeasible in 3/8: the taught dotted-quarter value fills the measure, leaving no room for the required rest; choose basic or ties focus, or use 6/8 or 9/8."
+          : "Level 6 combined focus is infeasible in 3/8: the taught dotted-quarter value fills the measure, leaving no room for the required rest; choose basic or ties focus, or use 6/8 or 9/8."
+      );
+    }
+    if (requested === undefined)
+      choices = choices.filter(
+        meter => !(meter.numerator === 3 && meter.denominator === 8)
+      );
+  }
+  if (focus === "combined" && combinedRequiresDotAndTie(policy)) {
+    if (
+      requested?.numerator === 2 &&
+      requested.denominator === 4 &&
+      bars === 1
+    ) {
+      fail(
+        `Level ${policy.level} combined dot-and-tie focus is infeasible in a single 2/4 measure with the required rest; choose dots or ties focus, use multiple 2/4 bars, or use 3/4 or 4/4.`
+      );
+    }
+    if (requested === undefined)
+      choices = choices.filter(meter => meter.numerator !== 2);
+  }
   if (focus === "compound")
     choices = choices.filter(
       meter => meter.denominator === 8 && meter.numerator !== 3
@@ -337,16 +506,23 @@ function resolveConfig(
 ): ResolvedConfig {
   validateBasicConfig(config);
   const policy = policyForLevel(config.level);
-  const focus = (config.focus ?? policy.defaultFocus) as RhythmFocus;
+  const omittedFocusUsesDotsInTwoFour =
+    config.focus === undefined &&
+    policy.level === 3 &&
+    config.meter?.numerator === 2 &&
+    config.meter.denominator === 4;
+  const focus = (
+    omittedFocusUsesDotsInTwoFour ? "dots" : (config.focus ?? policy.defaultFocus)
+  ) as RhythmFocus;
   if (!policy.supportedFocus.includes(focus))
     fail("Focus is not configured for this level.");
-  const meter = chooseMeter(policy, config.meter, focus, random);
+  const bars = config.bars ?? 1;
+  const meter = chooseMeter(policy, config.meter, focus, bars, random);
   // Keep the former single tempo draw consumed so seeded note/rest choices
   // remain stable, while the BPM itself is now canonical and deterministic.
   if (config.pulseBpm === undefined) random();
   const pulseBpm = config.pulseBpm ?? getDefaultPulseBpm(meter);
-  const bars = config.bars ?? 1;
-  const features = featureSet(policy, focus, meter, random);
+  const features = featureSet(policy, focus, meter, random, bars);
   return Object.freeze({ policy, meter, bars, pulseBpm, focus, features });
 }
 
@@ -378,7 +554,8 @@ function allowedDurations(
 function buildBar(
   resolved: ResolvedConfig,
   random: () => number,
-  durations: readonly WrittenDuration[]
+  durations: readonly WrittenDuration[],
+  initialSegments: readonly RawSegment[] = []
 ): RawSegment[] | null {
   const meter = deriveMeter(resolved.meter);
   const durationRows = durations.map(duration => ({
@@ -393,6 +570,7 @@ function buildBar(
   const permittedRestDurations = new Set(
     resolved.policy.restDurations.map(durationKey)
   );
+  const maxRestsPerBar = Math.min(resolved.policy.maxRestsPerBar, 2);
   const preferFine =
     resolved.features.syncopation || resolved.features.sixteenths;
 
@@ -401,17 +579,20 @@ function buildBar(
     offset: number,
     segments: RawSegment[],
     restCount: number,
-    finePulses: readonly number[]
+    finePulses: readonly number[],
+    previousWasRest: boolean
   ): RawSegment[] | null {
     nodes += 1;
     if (nodes > MAX_COMPOSITION_NODES) return null;
     if (remaining === 0) {
-      return segments.some(segment => segment.kind === "note")
+      return segments.some(segment => segment.kind === "note") &&
+        restCount >= 1 &&
+        restCount <= 2
         ? segments
         : null;
     }
     if (segments.length >= MAX_SEGMENTS_PER_BAR) return null;
-    const key = `${remaining}:${restCount}:${finePulses.join(",")}:${segments.length}`;
+    const key = `${remaining}:${restCount}:${previousWasRest}:${finePulses.join(",")}:${segments.length}`;
     if (memo.has(key)) return null;
     const eligible = durationRows
       .filter(row => row.ticks <= remaining)
@@ -429,9 +610,9 @@ function buildBar(
           if ((offset % pulseTicks) + row.ticks > pulseTicks) return false;
           const pulse = Math.floor(offset / pulseTicks);
           if (
-            isControlledComplexPolicy(resolved.policy) &&
+            resolved.policy.maxFinePulsesPerBar > 0 &&
             !finePulses.includes(pulse) &&
-            finePulses.length >= 1
+            finePulses.length >= resolved.policy.maxFinePulsesPerBar
           )
             return false;
         }
@@ -447,12 +628,13 @@ function buildBar(
       if (random() < (isDotsAndTiesIntroduction(resolved.policy) ? 0.55 : 0.28))
         kinds.reverse();
       for (const kind of kinds) {
+        if (kind === "rest" && previousWasRest) continue;
         if (
           kind === "rest" &&
           !permittedRestDurations.has(durationKey(row.duration))
         )
           continue;
-        if (kind === "rest" && restCount >= resolved.policy.maxRestsPerBar)
+        if (kind === "rest" && restCount >= maxRestsPerBar)
           continue;
         const pulse = Math.floor(offset / pulseTicks);
         const nextFinePulses =
@@ -464,7 +646,8 @@ function buildBar(
           offset + row.ticks,
           [...segments, { kind, duration: row.duration }],
           restCount + (kind === "rest" ? 1 : 0),
-          nextFinePulses
+          nextFinePulses,
+          kind === "rest"
         );
         if (answer !== null) return answer;
       }
@@ -473,7 +656,26 @@ function buildBar(
     return null;
   }
 
-  return walk(meter.measureTicks, 0, [], 0, []);
+  let initialOffset = 0;
+  const initialFinePulses: number[] = [];
+  for (const segment of initialSegments) {
+    if (
+      isSixteenthFamily(segment.duration) &&
+      !initialFinePulses.includes(Math.floor(initialOffset / pulseTicks))
+    ) {
+      initialFinePulses.push(Math.floor(initialOffset / pulseTicks));
+    }
+    initialOffset += durationToTicks(segment.duration);
+  }
+  if (initialOffset > meter.measureTicks) return null;
+  return walk(
+    meter.measureTicks - initialOffset,
+    initialOffset,
+    [...initialSegments],
+    initialSegments.filter(segment => segment.kind === "rest").length,
+    initialFinePulses,
+    initialSegments.at(-1)?.kind === "rest"
+  );
 }
 
 function splitOptions(
@@ -505,7 +707,7 @@ function applyIntraBarTie(
   }> = [];
   bars.forEach((bar, barIndex) => {
     bar.forEach((segment, index) => {
-      if (segment.kind !== "note") return;
+      if (segment.kind !== "note" || segment.tupletGroup !== undefined) return;
       const options = splitOptions(segment.duration, durations).filter(
         ([left, right]) => {
           if (resolved.features.sixteenths) return true;
@@ -551,6 +753,8 @@ function applyIntraBarTie(
           next &&
           segment.kind === "note" &&
           next.kind === "note" &&
+          segment.tupletGroup === undefined &&
+          next.tupletGroup === undefined &&
           isSixteenthFamily(segment.duration) &&
           isSixteenthFamily(next.duration) &&
           (resolved.features.syncopation ||
@@ -580,7 +784,13 @@ function applyIntraBarTie(
       bar.forEach((segment, index) => {
         const next = bar[index + 1];
         const ticks = durationToTicks(segment.duration);
-        if (next && segment.kind === "note" && next.kind === "note") {
+        if (
+          next &&
+          segment.kind === "note" &&
+          next.kind === "note" &&
+          segment.tupletGroup === undefined &&
+          next.tupletGroup === undefined
+        ) {
           const end = offset + ticks + durationToTicks(next.duration);
           const pulseEnd = (Math.floor(offset / pulseTicks) + 1) * pulseTicks;
           if (
@@ -621,11 +831,112 @@ function applyCrossBarTie(bars: RawSegment[][]): boolean {
     return false;
   const left = bars[0][bars[0].length - 1];
   const right = bars[1][0];
+  if (left.tupletGroup !== undefined || right.tupletGroup !== undefined)
+    return false;
   if (left.kind !== "note") left.kind = "note";
   if (right.kind !== "note") right.kind = "note";
   left.tieGroupId = "tie-1";
   right.tieGroupId = "tie-1";
   return true;
+}
+
+function applyTupletGroup(
+  bars: RawSegment[][],
+  kind: TupletKind,
+  meter: RhythmMeter,
+  random: () => number
+): boolean {
+  if (meter.denominator !== 4) return false;
+  const duration: WrittenDuration =
+    kind === "quarter"
+      ? { denominator: 4, dots: 0 }
+      : { denominator: 8, dots: 0 };
+  const pulseTicks = deriveMeter(meter).pulseTicks;
+  const spanTicks = kind === "quarter" ? pulseTicks * 2 : pulseTicks;
+  const startAlignment = spanTicks;
+  const candidates: Array<{ bar: number; index: number; count: number }> = [];
+
+  bars.forEach((bar, barIndex) => {
+    let offset = 0;
+    bar.forEach((segment, index) => {
+      const eligible =
+        segment.kind === "note" &&
+        segment.tieGroupId === undefined &&
+        segment.tupletGroup === undefined &&
+        segment.duration.dots === 0;
+      if (eligible && offset % startAlignment === 0) {
+        if (
+          kind === "quarter" &&
+          segment.duration.denominator === 2 &&
+          durationToTicks(segment.duration) === spanTicks
+        ) {
+          candidates.push({ bar: barIndex, index, count: 1 });
+        } else if (
+          kind === "eighth" &&
+          segment.duration.denominator === 4 &&
+          durationToTicks(segment.duration) === spanTicks
+        ) {
+          candidates.push({ bar: barIndex, index, count: 1 });
+        } else if (kind === "quarter") {
+          const next = bar[index + 1];
+          if (
+            segment.duration.denominator === 4 &&
+            next?.kind === "note" &&
+            next.tieGroupId === undefined &&
+            next.tupletGroup === undefined &&
+            next.duration.denominator === 4 &&
+            next.duration.dots === 0 &&
+            durationToTicks(segment.duration) +
+              durationToTicks(next.duration) ===
+              spanTicks
+          ) {
+            candidates.push({ bar: barIndex, index, count: 2 });
+          }
+        }
+      }
+      offset += durationToTicks(segment.duration);
+    });
+  });
+  if (candidates.length === 0) return false;
+  const chosen = candidates[Math.floor(random() * candidates.length)];
+  const group: RhythmTupletGroup = Object.freeze({
+    groupId: "triplet-1",
+    actualNotes: 3,
+    normalNotes: 2,
+  });
+  bars[chosen.bar].splice(
+    chosen.index,
+    chosen.count,
+    ...Array.from({ length: 3 }, () => ({
+      kind: "note" as const,
+      duration,
+      tupletGroup: group,
+    }))
+  );
+  return true;
+}
+
+function requiredBarPrefix(resolved: ResolvedConfig): readonly RawSegment[] {
+  if (resolved.focus === "snap") {
+    return [
+      { kind: "note", duration: { denominator: 8, dots: 1 } },
+      { kind: "note", duration: { denominator: 16, dots: 0 } },
+    ];
+  }
+  if (resolved.focus === "sandwich") {
+    return [
+      { kind: "note", duration: { denominator: 16, dots: 0 } },
+      { kind: "note", duration: { denominator: 8, dots: 0 } },
+      { kind: "note", duration: { denominator: 16, dots: 0 } },
+    ];
+  }
+  if (resolved.features.tuplets === "quarter") {
+    return [{ kind: "note", duration: { denominator: 2, dots: 0 } }];
+  }
+  if (resolved.features.tuplets === "eighth") {
+    return [{ kind: "note", duration: { denominator: 4, dots: 0 } }];
+  }
+  return [];
 }
 
 function rawPattern(
@@ -654,6 +965,9 @@ function rawPattern(
         ...(segment.tieGroupId === undefined
           ? {}
           : { tieGroupId: segment.tieGroupId }),
+        ...(segment.tupletGroup === undefined
+          ? {}
+          : { tupletGroup: segment.tupletGroup }),
       })),
     })),
   };
@@ -675,6 +989,7 @@ function patternFlags(pattern: RhythmPattern) {
         position =>
           position.measureIndex === measureIndex &&
           position.isOnset &&
+          position.tupletGroup === undefined &&
           position.measureOffsetTicks % meter.pulseTicks !== 0 &&
           timeline.soundingSpans.some(
             span =>
@@ -720,10 +1035,58 @@ function patternFlags(pattern: RhythmPattern) {
   const hasTie = pattern.measures.some(measure =>
     measure.segments.some(segment => segment.tieGroupId !== undefined)
   );
+  const tupletSegments = pattern.measures.flatMap(measure =>
+    measure.segments.filter(segment => segment.tupletGroup !== undefined)
+  );
+  const hasTuplets = tupletSegments.length > 0;
+  const hasQuarterTriplets = tupletSegments.some(
+    segment => segment.duration.denominator === 4
+  );
+  const hasEighthTriplets = tupletSegments.some(
+    segment => segment.duration.denominator === 8
+  );
+  const hasMotif = (focus: "snap" | "sandwich") =>
+    pattern.measures.some((measure, measureIndex) => {
+      const positions = timeline.segments.filter(
+        position => position.measureIndex === measureIndex
+      );
+      return measure.segments.some((segment, index) => {
+        const next = measure.segments[index + 1];
+        const third = measure.segments[index + 2];
+        const start = positions[index]?.measureOffsetTicks;
+        if (start === undefined || start % meter.pulseTicks !== 0) return false;
+        if (focus === "snap")
+          return (
+            segment.kind === "note" &&
+            segment.duration.denominator === 8 &&
+            segment.duration.dots === 1 &&
+            next?.kind === "note" &&
+            next.duration.denominator === 16 &&
+            next.duration.dots === 0
+          );
+        return (
+          segment.kind === "note" &&
+          segment.duration.denominator === 16 &&
+          segment.duration.dots === 0 &&
+          next?.kind === "note" &&
+          next.duration.denominator === 8 &&
+          next.duration.dots === 0 &&
+          third?.kind === "note" &&
+          third.duration.denominator === 16 &&
+          third.duration.dots === 0
+        );
+      });
+    });
+  const hasSnap = hasMotif("snap");
+  const hasSandwich = hasMotif("sandwich");
   const hasSyncopation = offbeatOnsetsPerBar.some(count => count > 0);
-  const sourceCount = [hasDotConcept, hasTie, hasFine, hasSyncopation].filter(
-    Boolean
-  ).length;
+  const sourceCount = [
+    hasDotConcept,
+    hasTie,
+    hasFine,
+    hasSyncopation,
+    hasTuplets,
+  ].filter(Boolean).length;
   return {
     timeline,
     meter,
@@ -734,6 +1097,11 @@ function patternFlags(pattern: RhythmPattern) {
     hasDotConcept,
     hasFine,
     hasTie,
+    hasTuplets,
+    hasQuarterTriplets,
+    hasEighthTriplets,
+    hasSnap,
+    hasSandwich,
     hasSyncopation,
     sourceCount,
   };
@@ -765,6 +1133,10 @@ function assertFeatures(
     fail("Pattern contains sixteenths outside the selected difficulty focus.");
   if (strictFocus && flags.hasTie && !features.ties)
     fail("Pattern contains ties outside the selected difficulty focus.");
+  if (strictFocus && flags.hasTuplets && features.tuplets === null)
+    fail("Pattern contains tuplets outside the selected difficulty focus.");
+  if (focus !== "integrated" && features.tuplets !== null && !flags.hasTuplets)
+    fail("The selected focus requires a complete triplet group.");
   if (
     flags.hasSyncopation &&
     strictFocus &&
@@ -798,6 +1170,31 @@ function assertFeatures(
   ) {
     fail("Combined focus requires the configured combined sources.");
   }
+  if (focus === "snap" && (!flags.hasSnap || flags.hasSandwich || flags.hasTie))
+    fail("Snap focus requires a dotted-eighth–sixteenth snap cell.");
+  if (
+    focus === "sandwich" &&
+    (!flags.hasSandwich || flags.hasSnap || flags.hasTie || flags.hasDot)
+  )
+    fail("Sandwich focus requires a sixteenth–eighth–sixteenth cell.");
+  if (
+    focus === "quarter-triplets" &&
+    (!flags.hasQuarterTriplets || flags.hasEighthTriplets || flags.hasTie)
+  )
+    fail("Quarter-triplets focus requires a quarter-note triplet group.");
+  if (
+    focus === "eighth-triplets" &&
+    (!flags.hasEighthTriplets || flags.hasQuarterTriplets || flags.hasTie)
+  )
+    fail("Eighth-triplets focus requires an eighth-note triplet group.");
+  if (focus === "triplet-combined") {
+    const selectedLearnedSource =
+      (features.dots && flags.hasDotConcept) ||
+      (features.ties && flags.hasTie) ||
+      (features.sixteenths && flags.hasFine);
+    if (!flags.hasTuplets || !selectedLearnedSource)
+      fail("Triplet-combined focus requires a triplet and learned vocabulary.");
+  }
   if (focus === "syncopation" && !flags.hasSyncopation)
     fail("Syncopation focus requires an offbeat onset.");
   if (
@@ -813,7 +1210,11 @@ function assertFeatures(
     flags.hasDotConcept && (focus === "integrated" || features.dots),
     flags.hasTie && (focus === "integrated" || features.ties),
     flags.hasFine && (focus === "integrated" || features.sixteenths),
-    flags.hasSyncopation && (focus === "integrated" || features.syncopation),
+    flags.hasSyncopation &&
+      (focus === "integrated" ||
+        features.syncopation ||
+        focus === "triplet-combined"),
+    flags.hasTuplets && (focus === "integrated" || features.tuplets !== null),
   ].filter(Boolean).length;
   if (configuredSourceCount > policy.maxDifficultySources) {
     fail(
@@ -852,6 +1253,9 @@ function auditVocabulary(
           "Pattern contains a duration outside the configured level vocabulary."
         );
       }
+      if (segment.tupletGroup !== undefined && !resolved.policy.allowTuplets) {
+        fail("Tuplets are only available in Level 5.");
+      }
       if (segment.kind === "rest" && segment.accent === "strong") {
         fail("A rest cannot carry a strong accent.");
       }
@@ -875,6 +1279,11 @@ export function patternMetrics(pattern: RhythmPattern) {
     hasDotConcept: flags.hasDotConcept,
     hasFine: flags.hasFine,
     hasTie: flags.hasTie,
+    hasTuplets: flags.hasTuplets,
+    hasQuarterTriplets: flags.hasQuarterTriplets,
+    hasEighthTriplets: flags.hasEighthTriplets,
+    hasSnap: flags.hasSnap,
+    hasSandwich: flags.hasSandwich,
     hasSyncopation: flags.hasSyncopation,
     sourceCount: flags.sourceCount,
     restsPerBar: Object.freeze([...flags.restsPerBar]),
@@ -926,6 +1335,12 @@ export function assertLevelConstraints(
   if (flags.restsPerBar.some(count => count > resolved.policy.maxRestsPerBar)) {
     fail("Pattern exceeds the level rest budget.");
   }
+  if (flags.restsPerBar.some(count => count > 2)) {
+    fail("Pattern exceeds the level rest budget.");
+  }
+  if (flags.hasTuplets && !resolved.policy.allowTuplets) {
+    fail("Tuplets are only available in Level 5.");
+  }
   if (
     enforcesPreIntroductionPulseSustain(resolved.policy) &&
     flags.timeline.segments.some(position => {
@@ -946,11 +1361,14 @@ export function assertLevelConstraints(
     );
   }
   if (
-    isControlledComplexPolicy(resolved.policy) &&
-    flags.finePulsesPerBar.some(count => count > 1)
+    flags.finePulsesPerBar.some(
+      count => count > resolved.policy.maxFinePulsesPerBar
+    )
   ) {
     fail(
-      "Level 5 permits sixteenth-family notation in only one pulse per bar."
+      resolved.policy.level === 5
+        ? "Level 5 permits sixteenth-family notation in only one pulse per bar."
+        : "Pattern exceeds the sixteenth-family density for this level."
     );
   }
   if (
@@ -1001,6 +1419,15 @@ export function generateRhythmPattern(
   validateBasicConfig(config);
   const random = createSeededRandom(config.seed);
   const resolved = resolveConfig(config, random);
+  if (
+    resolved.features.tuplets === "quarter" &&
+    resolved.meter.numerator === 2 &&
+    resolved.meter.denominator === 4
+  ) {
+    fail(
+      "Quarter-note triplets fill a 2/4 measure exactly, so they cannot coexist with the required 1–2 rests in that measure."
+    );
+  }
   const durations = allowedDurations(resolved);
   if (durations.length === 0)
     fail("No durations are available for this level and focus.");
@@ -1008,8 +1435,14 @@ export function generateRhythmPattern(
   for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
     const bars: RawSegment[][] = [];
     let complete = true;
+    const prefix = requiredBarPrefix(resolved);
     for (let bar = 0; bar < resolved.bars; bar += 1) {
-      const result = buildBar(resolved, random, durations);
+      const result = buildBar(
+        resolved,
+        random,
+        durations,
+        bar === 0 ? prefix : undefined
+      );
       if (result === null) {
         complete = false;
         break;
@@ -1017,6 +1450,13 @@ export function generateRhythmPattern(
       bars.push(result);
     }
     if (!complete) continue;
+
+    if (
+      resolved.features.tuplets !== null &&
+      !applyTupletGroup(bars, resolved.features.tuplets, resolved.meter, random)
+    ) {
+      continue;
+    }
 
     // The syncopation lesson may reuse known ties without making every item
     // a tie question; dedicated ties/combined focus still always includes one.
@@ -1031,6 +1471,19 @@ export function generateRhythmPattern(
           ? applyCrossBarTie(bars)
           : applyIntraBarTie(bars, resolved, random, durations);
       if (!tied) continue;
+    }
+    if (
+      !bars.every(bar => {
+        const rests = bar.map(segment => segment.kind === "rest");
+        const count = rests.filter(Boolean).length;
+        return (
+          count >= 1 &&
+          count <= 2 &&
+          !rests.some((isRest, index) => isRest && rests[index - 1])
+        );
+      })
+    ) {
+      continue;
     }
     const candidate = requireValidRhythmPattern(
       rawPattern(resolved, bars, config.seed)

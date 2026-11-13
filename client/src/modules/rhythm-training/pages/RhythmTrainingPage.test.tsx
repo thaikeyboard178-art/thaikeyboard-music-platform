@@ -15,7 +15,6 @@ import { memoryLocation } from "wouter/memory-location";
 import RhythmTrainingPage from "./RhythmTrainingPage";
 import { isExerciseKindAllowed } from "../curriculum/curriculum";
 import { generateRhythmPattern } from "../generation/generator";
-import { policyForLevel } from "../generation/levels";
 import { QUIZ_QUESTION_BANK } from "../quiz/questionBank";
 
 const scenario = vi.hoisted(() => ({ mode: "normal" }));
@@ -43,8 +42,25 @@ vi.mock("../components/RhythmNotation", () => ({
   },
 }));
 vi.mock("../components/TapResultNotation", () => ({
-  TapResultNotation: ({ result }: { result: { status: string } }) => (
-    <div data-testid="tap-result-notation">Receipt: {result.status}</div>
+  TapResultNotation: ({
+    result,
+    liveRounds,
+    currentRound,
+    isLive = false,
+  }: {
+    result: { status: string } | null;
+    liveRounds?: readonly ({ status: string } | null)[];
+    currentRound?: 1 | 2 | null;
+    isLive?: boolean;
+  }) => (
+    <div
+      data-testid="tap-result-notation"
+      data-live={String(isLive)}
+      data-current-round={currentRound ?? "none"}
+      data-round-one-status={liveRounds?.[0]?.status ?? "none"}
+    >
+      {isLive ? "Live round markers" : `Receipt: ${result?.status ?? "none"}`}
+    </div>
   ),
 }));
 vi.mock("../components/VisualMetronome", () => ({
@@ -493,12 +509,21 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect((screen.getByLabelText("Độ dài") as HTMLSelectElement).value).toBe(
       "2"
     );
+    expect(() =>
+      generateRhythmPattern({
+        level: 3,
+        seed: "rhythm-ui-setup-impossible-combined-2/4",
+        meter: { numerator: 2, denominator: 4 },
+        bars: 1,
+        focus: "combined",
+      })
+    ).toThrow(/infeasible in a single 2\/4 measure with the required rest/);
     const defaultPattern = generateRhythmPattern({
       level: 3,
       seed: "rhythm-ui-setup-default-3-2/4",
       meter: { numerator: 2, denominator: 4 },
       bars: 2,
-      focus: policyForLevel(3).defaultFocus,
+      focus: "dots",
     });
     expect(
       (screen.getByLabelText("Nhập tempo BPM") as HTMLInputElement).value

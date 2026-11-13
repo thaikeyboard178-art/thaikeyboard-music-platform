@@ -168,4 +168,35 @@ describe("Rhythm Training V1 runtime curriculum", () => {
       "count-beat",
     ]);
   });
+
+  it("places dots/ties in Level 3, snap/sandwich without tuplets in Level 4, and 3:2 triplets in Level 5", () => {
+    const level3 = getCurriculumUnit(3);
+    const level4 = getCurriculumUnit(4);
+    const level5 = getCurriculumUnit(5);
+
+    expect(level3.knowledge).toEqual(
+      expect.arrayContaining(["dotted-quarter", "dotted-half", "tie"])
+    );
+    expect(level4.generationFocuses).toEqual(
+      expect.arrayContaining(["snap", "sandwich", "integrated"])
+    );
+    expect(level4.allowedDurations).toContainEqual({ denominator: 8, dots: 1 });
+    expect(level4.generationFocuses).not.toContain("quarter-triplets");
+    expect(level4.generationFocuses).not.toContain("eighth-triplets");
+    expect(level5.knowledge).toEqual(
+      expect.arrayContaining([
+        "quarter-note-triplet-3-to-2",
+        "eighth-note-triplet-3-to-2",
+        "actual-duration-320-ticks",
+        "actual-duration-160-ticks",
+      ])
+    );
+    expect(level5.generationFocuses).toEqual(
+      expect.arrayContaining([
+        "quarter-triplets",
+        "eighth-triplets",
+        "triplet-combined",
+      ])
+    );
+  });
 });

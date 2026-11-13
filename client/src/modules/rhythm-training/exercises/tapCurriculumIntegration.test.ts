@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CurriculumSection } from "../curriculum/curriculum";
 import { generateTapRhythmExercise } from "./tapRhythm";
 import { patternMetrics } from "../generation/generator";
+import { policyForLevel } from "../generation/levels";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import type { RhythmMeter, RhythmTrack } from "../types";
 
@@ -29,6 +30,22 @@ function durationKey(duration: { denominator: number; dots: number }): string {
   return `${duration.denominator}/${duration.dots}`;
 }
 
+function expectGeneratedRestRules(exercise: Exercise): void {
+  for (const measure of exercise.pattern.measures) {
+    const segments = measure.segments;
+    const restCount = segments.filter(
+      segment => segment.kind === "rest"
+    ).length;
+    expect(restCount).toBeGreaterThanOrEqual(1);
+    expect(restCount).toBeLessThanOrEqual(2);
+    for (let index = 1; index < segments.length; index += 1) {
+      expect(
+        segments[index - 1].kind === "rest" && segments[index].kind === "rest"
+      ).toBe(false);
+    }
+  }
+}
+
 function expectNoDotsTiesOrSixteenths(exercise: Exercise): void {
   const flat = segments(exercise);
   expect(flat.some(segment => segment.duration.dots !== 0)).toBe(false);
@@ -48,14 +65,16 @@ function generateSeries(
   meter: RhythmMeter,
   section: CurriculumSection = "practice"
 ): Exercise[] {
-  return Array.from({ length: count }, (_, index) =>
-    generateTapRhythmExercise({
+  return Array.from({ length: count }, (_, index) => {
+    const exercise = generateTapRhythmExercise({
       track,
       section,
       seed: `tap-curriculum-${String(track)}-${section}-${index}`,
       meter,
-    })
-  );
+    });
+    expectGeneratedRestRules(exercise);
+    return exercise;
+  });
 }
 
 describe("Tap Rhythm curriculum production integration", () => {
@@ -84,10 +103,11 @@ describe("Tap Rhythm curriculum production integration", () => {
       expect(exercise.section).toBe(section);
       expect(exercise.pattern.meter).toEqual(requestedMeter);
       expect(exercise.targets.length).toBeGreaterThan(0);
+      expectGeneratedRestRules(exercise);
     }
   );
 
-  it("generates Level 1 4/4 Tap patterns using only whole/half/quarter notes and quarter rests", () => {
+  it("generates Level 1 4/4 patterns with half/quarter notes and quarter rests while retaining whole-note vocabulary", () => {
     const exercises = generateSeries(1, 48, fourFour);
     const observedNotes = new Set(
       exercises.flatMap(exercise =>
@@ -104,7 +124,14 @@ describe("Tap Rhythm curriculum production integration", () => {
       )
     );
 
-    expect([...observedNotes]).toEqual(expect.arrayContaining([1, 2, 4]));
+    // A whole note is valid taught vocabulary, but cannot coexist with the
+    // required rest in one 4/4 bar, so it is not expected in generated bars.
+    expect(policyForLevel(1).durations).toContainEqual({
+      denominator: 1,
+      dots: 0,
+    });
+    expect([...observedNotes]).toEqual(expect.arrayContaining([2, 4]));
+    expect(observedNotes.has(1)).toBe(false);
     expect([...observedNotes].every(value => [1, 2, 4].includes(value))).toBe(
       true
     );
@@ -149,8 +176,33 @@ describe("Tap Rhythm curriculum production integration", () => {
     expect([...observedRests]).toEqual(expect.arrayContaining(["4/0", "8/0"]));
   });
 
-  it("generates Level 3 dots-and-ties combinations in simple meters without sixteenths", () => {
-    for (const [index, meter] of simpleMeters.entries()) {
+  it("rejects impossible Level 3 combined focus in 2/4 and keeps dots/ties combinations in feasible simple meters", () => {
+    const twoFour = simpleMeters[0];
+    expect(() =>
+      generateTapRhythmExercise({
+        track: 3,
+        seed: "tap-curriculum-level-3-combined-2-4-impossible",
+        meter: twoFour,
+        focus: "combined",
+      })
+    ).toThrow(/infeasible in a single 2\/4 measure with the required rest/);
+
+    const twoFourDots = generateTapRhythmExercise({
+      track: 3,
+      seed: "tap-curriculum-level-3-dots-2-4",
+      meter: twoFour,
+      focus: "dots",
+    });
+    expect(twoFourDots.pattern.meter).toEqual(twoFour);
+    expect(
+      segments(twoFourDots).some(segment => segment.duration.dots === 1)
+    ).toBe(true);
+    expect(
+      segments(twoFourDots).some(segment => segment.tieGroupId !== undefined)
+    ).toBe(false);
+    expectGeneratedRestRules(twoFourDots);
+
+    for (const [index, meter] of simpleMeters.slice(1).entries()) {
       const exercise = generateTapRhythmExercise({
         track: 3,
         seed: `tap-curriculum-level-3-meter-${index}`,
@@ -164,6 +216,7 @@ describe("Tap Rhythm curriculum production integration", () => {
       expect(flat.some(segment => segment.duration.denominator === 16)).toBe(
         false
       );
+      expectGeneratedRestRules(exercise);
     }
   });
 

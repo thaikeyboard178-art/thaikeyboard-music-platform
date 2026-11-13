@@ -37,10 +37,12 @@ function fixture() {
 function exactAndFinish(clock: TapFakeClock, engine: TapRhythmEngine) {
   const snapshot = engine.snapshot!;
   for (const onset of snapshot.expectedOnsets) {
-    clock.at(onset.audioTime);
-    engine.handleEvent(clock.nativeTap(onset.audioTime));
+    const round = snapshot.rounds[onset.roundNumber - 1];
+    const time = round.anchorAudioTime + (onset.audioTime - round.anchorAudioTime);
+    clock.at(time);
+    engine.handleEvent(clock.nativeTap(time));
   }
-  clock.at(snapshot.drainEndAudioTime + 0.05);
+  clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.1);
   expect(engine.state, engine.result?.reason ?? "no result").toBe("completed");
 }
 

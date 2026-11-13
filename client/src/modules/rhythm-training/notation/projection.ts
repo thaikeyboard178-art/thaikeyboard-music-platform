@@ -3,6 +3,7 @@ import type {
   SegmentPosition,
   TieRole,
   WrittenDuration,
+  RhythmTupletGroup,
 } from "../types";
 import {
   deriveRhythmTimeline,
@@ -33,6 +34,7 @@ export type NotationSegmentProjection = Readonly<{
   isOnset: boolean;
   tieRole: TieRole;
   tieGroupId?: string;
+  tupletGroup?: RhythmTupletGroup;
   accent: "normal" | "strong";
   structuralAccent: StructuralAccent;
   pulseIndex: number;
@@ -62,6 +64,16 @@ export type NotationTieEdge = Readonly<{
   crossesBarline: boolean;
 }>;
 
+export type NotationTupletGroup = Readonly<{
+  groupId: string;
+  segmentIds: readonly string[];
+  actualNotes: 3;
+  normalNotes: 2;
+  measureIndex: number;
+  startTicks: number;
+  endTicks: number;
+}>;
+
 export type ImmutableRhythmNotationProjection = Readonly<{
   canonicalPattern: RhythmPattern;
   pattern: RhythmPattern;
@@ -69,6 +81,7 @@ export type ImmutableRhythmNotationProjection = Readonly<{
   segments: readonly NotationSegmentProjection[];
   beamGroups: readonly NotationBeamGroup[];
   tieEdges: readonly NotationTieEdge[];
+  tupletGroups: readonly NotationTupletGroup[];
 }>;
 
 function durationString(
@@ -104,6 +117,9 @@ function freezeProjectionSegment(
     tieRole: position.tieRole,
     ...(position.tieGroupId !== undefined
       ? { tieGroupId: position.tieGroupId }
+      : {}),
+    ...(position.tupletGroup !== undefined
+      ? { tupletGroup: position.tupletGroup }
       : {}),
     accent: position.accent,
     structuralAccent,
@@ -231,6 +247,34 @@ function deriveTieEdges(
   return Object.freeze(edges);
 }
 
+function deriveTupletGroups(
+  segments: readonly NotationSegmentProjection[]
+): readonly NotationTupletGroup[] {
+  const membersById = new Map<string, NotationSegmentProjection[]>();
+  for (const segment of segments) {
+    const group = segment.tupletGroup;
+    if (group === undefined) continue;
+    const members = membersById.get(group.groupId) ?? [];
+    members.push(segment);
+    membersById.set(group.groupId, members);
+  }
+  return Object.freeze(
+    [...membersById.entries()].map(([groupId, members]) => {
+      const first = members[0];
+      const last = members[members.length - 1];
+      return Object.freeze({
+        groupId,
+        segmentIds: Object.freeze(members.map(member => member.segmentId)),
+        actualNotes: first.tupletGroup!.actualNotes,
+        normalNotes: first.tupletGroup!.normalNotes,
+        measureIndex: first.measureIndex,
+        startTicks: first.startTicks,
+        endTicks: last.endTicks,
+      });
+    })
+  );
+}
+
 export function projectRhythmNotation(
   input: unknown
 ): ImmutableRhythmNotationProjection {
@@ -262,6 +306,7 @@ export function projectRhythmNotation(
     segments,
     beamGroups: deriveBeamGroups(timeline, segments),
     tieEdges: deriveTieEdges(timeline, segments),
+    tupletGroups: deriveTupletGroups(segments),
   };
   return Object.freeze(projection);
 }

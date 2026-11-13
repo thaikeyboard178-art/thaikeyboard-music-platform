@@ -27,6 +27,10 @@ import type { CurriculumSection } from "../curriculum/curriculum";
 import type { RhythmFocus } from "../generation/levels";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
 import type { RhythmVoiceSettings } from "../audio/voices";
+import type {
+  TapRoundNumber,
+  TapRoundResult,
+} from "../exercises/tapRoundScoring";
 import { TAP_UI_VOICE_SETTINGS } from "./voiceSettings";
 import {
   experienceVoiceSettings,
@@ -69,6 +73,9 @@ export type TapUiState = Readonly<{
   practice: boolean;
   /** UI-only acknowledgement sequence; never passed to the engine/scorer. */
   tapVisualSequence: number;
+  currentRound: TapRoundNumber | null;
+  skippedRounds: readonly TapRoundNumber[];
+  roundResults: readonly [TapRoundResult | null, TapRoundResult | null];
   session: RhythmTrainingSession | null;
   selectedMode: TapMode;
   /** Replay attempts are rehearsals while preserving the visible mode choice. */
@@ -103,6 +110,10 @@ const TERMINAL_ATTEMPT_STATES: readonly TapEngineState[] = [
   "completed",
   "aborted",
 ];
+const EMPTY_ROUND_RESULTS = Object.freeze([null, null]) as readonly [
+  TapRoundResult | null,
+  TapRoundResult | null,
+];
 
 function initialState(): TapUiState {
   return Object.freeze({
@@ -118,6 +129,9 @@ function initialState(): TapUiState {
     trialNumber: 0,
     practice: false,
     tapVisualSequence: 0,
+    currentRound: null,
+    skippedRounds: Object.freeze([]),
+    roundResults: EMPTY_ROUND_RESULTS,
     session: null,
     selectedMode: "graded",
     replayOnly: false,
@@ -361,6 +375,16 @@ export class TapTrainingController {
     );
   }
 
+  /** Round skip excludes only the active round and never applies an exercise penalty. */
+  get canSkipCurrentRound(): boolean {
+    return (
+      !this.disposed &&
+      !this.snapshot.busy &&
+      !this.previewBusy &&
+      this.engine?.canSkipCurrentRound === true
+    );
+  }
+
   /** References repeat in practice mode; the graded-mode slot is limited to one. */
   get canReference(): boolean {
     if (
@@ -574,7 +598,25 @@ export class TapTrainingController {
     if (this.disposed || this.engine !== engine) return;
     const phase = phaseForEngine(engine.state);
     if (!ACTIVE_ENGINE_STATES.includes(engine.state)) this.stopObservation();
-    if (phase !== this.snapshot.phase) this.publish({ phase });
+    const currentRound = engine.currentRound;
+    const skippedRounds = engine.skippedRounds;
+    const roundResults = engine.roundResults;
+    const sameSkippedRounds =
+      skippedRounds.length === this.snapshot.skippedRounds.length &&
+      skippedRounds.every(
+        (round, index) => round === this.snapshot.skippedRounds[index]
+      );
+    const sameRoundResults = roundResults.every(
+      (round, index) => round === this.snapshot.roundResults[index]
+    );
+    if (
+      phase !== this.snapshot.phase ||
+      currentRound !== this.snapshot.currentRound ||
+      !sameSkippedRounds ||
+      !sameRoundResults
+    ) {
+      this.publish({ phase, currentRound, skippedRounds, roundResults });
+    }
   }
 
   private isEngineActive(): boolean {
@@ -761,6 +803,9 @@ export class TapTrainingController {
       session: nextSession,
       configuration,
       result: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
       points: null,
       referenceUsed,
       busy: false,
@@ -812,6 +857,8 @@ export class TapTrainingController {
       result.status === "completed" &&
       result.mode === "graded" &&
       result.accuracyPercent !== null &&
+      result.scoreOutOfTen !== null &&
+      result.scoreOutOfTen !== undefined &&
       this.snapshot.exercise?.section !== "lessons" &&
       gradedResult === null &&
       session !== null &&
@@ -846,6 +893,16 @@ export class TapTrainingController {
       practice:
         result.mode === "practice" ||
         this.snapshot.exercise?.section === "lessons",
+      currentRound: null,
+      skippedRounds: Object.freeze(
+        (result.rounds ?? [])
+          .filter(round => round.status === "skipped")
+          .map(round => round.roundNumber)
+      ),
+      roundResults:
+        result.status === "completed"
+          ? (result.rounds ?? this.engine.roundResults)
+          : EMPTY_ROUND_RESULTS,
       session,
       error,
     });
@@ -886,6 +943,9 @@ export class TapTrainingController {
       phase: "preparing",
       exercise: null,
       result: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
       gradedResult: null,
       points: null,
       originalPoints: null,
@@ -976,6 +1036,9 @@ export class TapTrainingController {
     this.publish({
       busy: true,
       result: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
       points: null,
       practice: effectiveMode === "practice",
       trialNumber,
@@ -1142,6 +1205,9 @@ export class TapTrainingController {
       busy: true,
       error: null,
       result: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
       points: null,
       practice: false,
       replayOnly: true,
@@ -1159,6 +1225,9 @@ export class TapTrainingController {
         busy: false,
         error: null,
         result: null,
+        currentRound: null,
+        skippedRounds: Object.freeze([]),
+        roundResults: EMPTY_ROUND_RESULTS,
         points: null,
         practice: false,
         replayOnly: true,
@@ -1204,7 +1273,7 @@ export class TapTrainingController {
     this.engineEpoch += 1;
     this.engine = null;
     this.stopObservation();
-    this.publish({ phase: "preparing", busy: true, error: null });
+    this.publish({ phase: "preparing", busy: true, error: null, currentRound: null, skippedRounds: Object.freeze([]), roundResults: EMPTY_ROUND_RESULTS });
 
     try {
       if (oldEngine) await oldEngine.dispose();
@@ -1229,6 +1298,9 @@ export class TapTrainingController {
         exercise: nextExercise,
         session: nextSession,
         result: null,
+        currentRound: null,
+        skippedRounds: Object.freeze([]),
+        roundResults: EMPTY_ROUND_RESULTS,
         gradedResult: null,
         points: null,
         originalPoints: null,
@@ -1278,7 +1350,7 @@ export class TapTrainingController {
     const oldEngine = this.engine;
     this.engine = null;
     this.stopObservation();
-    this.publish({ phase: "preparing", busy: true, error: null });
+    this.publish({ phase: "preparing", busy: true, error: null, currentRound: null, skippedRounds: Object.freeze([]), roundResults: EMPTY_ROUND_RESULTS });
 
     try {
       if (oldEngine) await oldEngine.dispose();
@@ -1311,6 +1383,9 @@ export class TapTrainingController {
         exercise: nextExercise,
         session: freezeSession(skipped.session),
         result: null,
+        currentRound: null,
+        skippedRounds: Object.freeze([]),
+        roundResults: EMPTY_ROUND_RESULTS,
         gradedResult: null,
         points: null,
         originalPoints: null,
@@ -1363,6 +1438,18 @@ export class TapTrainingController {
     )
       return;
     this.publish({ tapVisualSequence: this.snapshot.tapVisualSequence + 1 });
+  }
+
+  /** Explicitly skips only the current round; no shared answer or score is created. */
+  skipCurrentRound(): boolean {
+    if (!this.canSkipCurrentRound || !this.engine) return false;
+    if (!this.engine.skipCurrentRound()) return false;
+    this.publish({
+      currentRound: this.engine.currentRound,
+      skippedRounds: this.engine.skippedRounds,
+      roundResults: this.engine.roundResults,
+    });
+    return true;
   }
 
   /** Invalidate result callbacks before abort/disposal can emit a technical receipt. */

@@ -1,9 +1,17 @@
 import type { RhythmNotationMeasureGeometry } from "../notation/VexFlowRhythm";
 import { deriveMeter } from "../rhythm/meters";
 import type { TapAttemptResult } from "../exercises/tapCompletion";
+import type { TapEvaluation, TapMatchInput } from "../exercises/tapMatcher";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
+import type { TapRoundResult } from "../exercises/tapRoundScoring";
 
-export type TapMarkerStatus = "matched" | "early" | "late" | "missing" | "extra";
+export type TapMarkerStatus =
+  | "reference"
+  | "matched"
+  | "early"
+  | "late"
+  | "missing"
+  | "extra";
 
 export type TapMarkerProjection = Readonly<{
   status: TapMarkerStatus;
@@ -19,6 +27,11 @@ export type TapMarkerProjection = Readonly<{
 }>;
 
 type EngravingAnchor = Readonly<{ tick: number; x: number }>;
+type TapMarkerResultSource = Readonly<{
+  status: TapAttemptResult["status"] | TapRoundResult["status"];
+  evaluation: TapEvaluation | null;
+  taps: readonly TapMatchInput[];
+}>;
 
 function xAtTick(
   geometry: RhythmNotationMeasureGeometry,
@@ -82,11 +95,16 @@ function actualTickForOffset(
  */
 export function projectTapMarkers(
   exercise: TapRhythmExercise,
-  result: TapAttemptResult,
-  geometries: readonly RhythmNotationMeasureGeometry[]
+  result: TapMarkerResultSource,
+  geometries: readonly RhythmNotationMeasureGeometry[],
+  laneIndex = 0
 ): readonly TapMarkerProjection[] {
   const evaluation = result.evaluation;
-  if (result.status !== "completed" || evaluation === null || geometries.length === 0) {
+  if (
+    (result.status !== "completed" && result.status !== "played") ||
+    evaluation === null ||
+    geometries.length === 0
+  ) {
     return Object.freeze([]);
   }
 
@@ -95,20 +113,18 @@ export function projectTapMarkers(
   const targetMarkers: TapMarkerProjection[] = [];
 
   for (const targetResult of evaluation.targetResults) {
+    // Learner lanes show captured taps only; Missing is reported by the table
+    // and the absent marker under the permanent Reference row.
+    if (targetResult.status === "missing") continue;
     const target = exercise.targets.find(item => item.id === targetResult.targetId);
     if (!target) continue;
 
-    let tick = target.tick;
-    let sequence: number | null = null;
-    let offsetMs: number | null = null;
-    if (targetResult.status !== "missing") {
-      sequence = targetResult.tapSequence;
-      if (sequence === null) continue;
-      const tap = result.taps.find(item => item.sequence === sequence);
-      if (!tap) continue;
-      offsetMs = tap.offsetMs;
-      tick = actualTickForOffset(tap.offsetMs, exercise, pulseTicks);
-    }
+    const sequence = targetResult.tapSequence;
+    if (sequence === null) continue;
+    const tap = result.taps.find(item => item.sequence === sequence);
+    if (!tap) continue;
+    const offsetMs = tap.offsetMs;
+    const tick = actualTickForOffset(tap.offsetMs, exercise, pulseTicks);
 
     const location = locationForTick(tick, geometries);
     if (!location) continue;
@@ -119,7 +135,7 @@ export function projectTapMarkers(
         measureIndex: location.geometry.measureIndex,
         rowIndex: location.geometry.rowIndex,
         x: location.x,
-        y: location.geometry.staveBounds.bottom + 22,
+        y: location.geometry.staveBounds.bottom + 22 + laneIndex * 22,
         sequence,
         offsetMs,
         errorMs: targetResult.errorMs,
@@ -143,7 +159,7 @@ export function projectTapMarkers(
         measureIndex: location.geometry.measureIndex,
         rowIndex: location.geometry.rowIndex,
         x: location.x,
-        y: location.geometry.staveBounds.bottom + 36,
+        y: location.geometry.staveBounds.bottom + 22 + laneIndex * 22,
         sequence: tap.sequence,
         offsetMs: tap.offsetMs,
         errorMs: tapResult.errorMs,
@@ -160,4 +176,32 @@ export function projectTapMarkers(
           (right.sequence ?? Number.MAX_SAFE_INTEGER)
     )
   );
+}
+
+/** Projects the fixed, learner-independent 100% target row. */
+export function projectReferenceMarkers(
+  exercise: TapRhythmExercise,
+  geometries: readonly RhythmNotationMeasureGeometry[]
+): readonly TapMarkerProjection[] {
+  if (geometries.length === 0) return Object.freeze([]);
+  const markers: TapMarkerProjection[] = [];
+  for (const [index, target] of exercise.targets.entries()) {
+    const location = locationForTick(target.tick, geometries);
+    if (!location) continue;
+    markers.push(
+      Object.freeze({
+        status: "reference",
+        tick: target.tick,
+        measureIndex: location.geometry.measureIndex,
+        rowIndex: location.geometry.rowIndex,
+        x: location.x,
+        y: location.geometry.staveBounds.bottom + 22,
+        sequence: null,
+        offsetMs: null,
+        errorMs: 0,
+        targetId: target.id,
+      })
+    );
+  }
+  return Object.freeze(markers);
 }

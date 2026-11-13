@@ -8,8 +8,16 @@ import { createListenPlaybackPlan } from "./plan";
 import { createTapReferencePlan, createTapAttemptPlan } from "./tapPlan";
 import { OutputClockBridge } from "./tapClock";
 import { NativeTapCapture, type CapturedTap } from "./tapInput";
-import { matchTapRhythm, type TapMatchInput } from "../exercises/tapMatcher";
+import type { TapMatchInput } from "../exercises/tapMatcher";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
+import {
+  calculateTapRoundResult,
+  calculateTapTwoRoundScore,
+  type TapRoundInput,
+  type TapRoundNumber,
+  type TapRoundResult,
+} from "../exercises/tapRoundScoring";
+import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
 import {
   sealTapAttempt,
   type TapAttemptResult,
@@ -36,9 +44,10 @@ export type TapEngineOptions = Readonly<{
   /** Set false only when an owning controller will close its shared context. */
   disposeAudioContext?: boolean;
 }>;
-export type TapCollectionSnapshot = Readonly<{
-  generation: number;
-  transportGeneration: number;
+export type TapRoundSnapshot = Readonly<{
+  roundNumber: TapRoundNumber;
+  startAudioTime: number;
+  endAudioTime: number;
   anchorAudioTime: number;
   collectionStartAudioTime: number;
   collectionEndAudioTime: number;
@@ -47,6 +56,24 @@ export type TapCollectionSnapshot = Readonly<{
     id: string;
     tick: number;
     audioTime: number;
+    targetIndex: number;
+  }>[];
+}>;
+export type TapCollectionSnapshot = Readonly<{
+  generation: number;
+  transportGeneration: number;
+  anchorAudioTime: number;
+  collectionStartAudioTime: number;
+  collectionEndAudioTime: number;
+  drainEndAudioTime: number;
+  planEndAudioTime: number;
+  rounds: readonly [TapRoundSnapshot, TapRoundSnapshot];
+  expectedOnsets: readonly Readonly<{
+    id: string;
+    tick: number;
+    audioTime: number;
+    roundNumber: TapRoundNumber;
+    targetIndex: number;
   }>[];
 }>;
 
@@ -69,8 +96,16 @@ export class TapRhythmEngine {
   private stateValue: TapEngineState = "idle";
   private resultValue: TapAttemptResult | null = null;
   private snapshotValue: TapCollectionSnapshot | null = null;
-  private taps: TapMatchInput[] = [];
-  private raw: TapAttemptResult["rawCaptures"][number][] = [];
+  private roundTaps: [TapMatchInput[], TapMatchInput[]] = [[], []];
+  private roundRaw: [
+    TapAttemptResult["rawCaptures"][number][],
+    TapAttemptResult["rawCaptures"][number][],
+  ] = [[], []];
+  private roundResultsValue = Object.freeze([null, null]) as readonly [
+    TapRoundResult | null,
+    TapRoundResult | null,
+  ];
+  private readonly skippedRoundNumbers = new Set<TapRoundNumber>();
   private detachInput: (() => void) | null = null;
   private referenceResolve: (() => void) | null = null;
   private referenceReject: ((error: Error) => void) | null = null;
@@ -141,6 +176,80 @@ export class TapRhythmEngine {
   }
   get canStartGraded(): boolean {
     return !this.gradedAttemptStarted;
+  }
+  get currentRound(): TapRoundNumber | null {
+    const snapshot = this.snapshotValue;
+    const context = this.context;
+    if (!snapshot || !context || !this.active()) return null;
+    const nowAudio = context.currentTime;
+    if (
+      nowAudio >= snapshot.rounds[0].startAudioTime &&
+      nowAudio < snapshot.rounds[0].endAudioTime
+    ) {
+      return 1;
+    }
+    if (
+      nowAudio >= snapshot.rounds[1].startAudioTime &&
+      nowAudio < snapshot.rounds[1].endAudioTime
+    ) {
+      return 2;
+    }
+    return null;
+  }
+  get skippedRounds(): readonly TapRoundNumber[] {
+    return Object.freeze([...this.skippedRoundNumbers].sort());
+  }
+  get roundResults(): readonly [TapRoundResult | null, TapRoundResult | null] {
+    return this.roundResultsValue;
+  }
+  get canSkipCurrentRound(): boolean {
+    const roundNumber = this.currentRound;
+    return (
+      roundNumber !== null &&
+      !this.skippedRoundNumbers.has(roundNumber) &&
+      this.roundResultsValue[roundNumber - 1] === null
+    );
+  }
+  /** Marks only the musically current round; transport and clock keep running. */
+  skipCurrentRound(): boolean {
+    if (!this.canSkipCurrentRound) return false;
+    const roundNumber = this.currentRound;
+    if (roundNumber === null) return false;
+    this.skippedRoundNumbers.add(roundNumber);
+    const index = roundNumber - 1;
+    this.roundTaps[index] = [];
+    this.roundRaw[index] = [];
+    this.setRoundResult(
+      roundNumber,
+      calculateTapRoundResult(
+        this.options.exercise.targets,
+        { roundNumber, skipped: true, taps: [] },
+        this.canonicalPulseDurationMs()
+      )
+    );
+    return true;
+  }
+
+  private setRoundResult(
+    roundNumber: TapRoundNumber,
+    result: TapRoundResult
+  ): void {
+    const next: [TapRoundResult | null, TapRoundResult | null] = [
+      ...this.roundResultsValue,
+    ];
+    next[roundNumber - 1] = result;
+    this.roundResultsValue = Object.freeze(next);
+  }
+
+  private canonicalPulseDurationMs(): number | null {
+    const meter = deriveMeter(this.options.exercise.pattern.meter);
+    const pulseMs =
+      ticksToSeconds(
+        meter.pulseTicks,
+        this.options.exercise.pattern.meter,
+        this.options.exercise.pattern.tempo.pulseBpm
+      ) * 1000;
+    return Number.isFinite(pulseMs) && pulseMs > 0 ? pulseMs : null;
   }
 
   /** A frozen scheduler snapshot for rendering; it is not a second clock. */
@@ -241,8 +350,10 @@ export class TapRhythmEngine {
     this.stateValue = "starting";
     this.resultValue = null;
     this.snapshotValue = null;
-    this.taps = [];
-    this.raw = [];
+    this.roundTaps = [[], []];
+    this.roundRaw = [[], []];
+    this.roundResultsValue = Object.freeze([null, null]);
+    this.skippedRoundNumbers.clear();
     this.bridge.reset();
     this.clearWake();
     const token = ++this.token;
@@ -261,14 +372,16 @@ export class TapRhythmEngine {
       return;
     }
     if (
-      reference.expectedOnsets.length !== this.options.exercise.targets.length
+      reference.expectedOnsets.length !==
+      this.options.exercise.targets.length * 2
     ) {
       this.abort("target-snapshot-mismatch");
       return;
     }
-    this.snapshotValue = this.createSnapshot(reference, token);
-    if (!this.snapshotValue.expectedOnsets.length) {
-      this.finish();
+    try {
+      this.snapshotValue = this.createSnapshot(reference, token);
+    } catch {
+      this.abort("target-snapshot-mismatch");
       return;
     }
     this.stateValue = "count-in";
@@ -294,8 +407,10 @@ export class TapRhythmEngine {
     this.clearPlaybackEvents();
     this.resultValue = null;
     this.snapshotValue = null;
-    this.taps = [];
-    this.raw = [];
+    this.roundTaps = [[], []];
+    this.roundRaw = [[], []];
+    this.roundResultsValue = Object.freeze([null, null]);
+    this.skippedRoundNumbers.clear();
     this.stateValue = "starting";
     this.abort(reason);
   }
@@ -317,23 +432,127 @@ export class TapRhythmEngine {
   ): TapCollectionSnapshot {
     const targets = this.options.exercise.targets;
     const onsets = reference.expectedOnsets;
-    const first = onsets[0]?.audioTime ?? reference.anchorTime;
-    const last = onsets[onsets.length - 1]?.audioTime ?? reference.anchorTime;
-    const open = first - (targets[0]?.associationMs ?? 0) / 1000;
-    const close =
-      last + (targets[targets.length - 1]?.associationMs ?? 0) / 1000;
+    const targetCount = targets.length;
+    if (targetCount === 0) {
+      const makeEmptyRound = (roundNumber: TapRoundNumber): TapRoundSnapshot =>
+        Object.freeze({
+          roundNumber,
+          startAudioTime: reference.anchorTime,
+          endAudioTime: reference.anchorTime,
+          anchorAudioTime: reference.anchorTime,
+          collectionStartAudioTime: reference.anchorTime,
+          collectionEndAudioTime: reference.anchorTime,
+          drainEndAudioTime: reference.anchorTime + 0.1,
+          expectedOnsets: Object.freeze([]),
+        });
+      const rounds = Object.freeze([
+        makeEmptyRound(1),
+        makeEmptyRound(2),
+      ]) as readonly [TapRoundSnapshot, TapRoundSnapshot];
+      return Object.freeze({
+        generation: token,
+        transportGeneration: reference.generation,
+        anchorAudioTime: reference.anchorTime,
+        collectionStartAudioTime: reference.anchorTime,
+        collectionEndAudioTime: reference.anchorTime,
+        drainEndAudioTime: reference.anchorTime + 0.1,
+        planEndAudioTime: reference.anchorTime,
+        rounds,
+        expectedOnsets: Object.freeze([]),
+      });
+    }
+    if (onsets.length !== targetCount * 2) {
+      throw new RangeError("A Tap attempt needs two complete onset grids.");
+    }
+    const rawRounds = [onsets.slice(0, targetCount), onsets.slice(targetCount)];
+    const roundAnchors = rawRounds.map((round, roundIndex) => {
+      const firstTarget = targets[0];
+      const firstOnset = round[0];
+      if (!firstTarget || !firstOnset)
+        throw new RangeError("A Tap round has no first target onset.");
+      const anchor = firstOnset.audioTime - firstTarget.offsetMs / 1000;
+      if (!Number.isFinite(anchor))
+        throw new RangeError(`Tap round ${roundIndex + 1} has an invalid anchor.`);
+      return anchor;
+    });
+    const roundDuration = roundAnchors[1] - roundAnchors[0];
+    if (!(Number.isFinite(roundDuration) && roundDuration > 0)) {
+      throw new RangeError("Tap round anchors are not increasing.");
+    }
+    const lastTarget = targets[targetCount - 1];
+    const firstRoundLastOnset = rawRounds[0][targetCount - 1];
+    const secondRoundFirstOnset = rawRounds[1][0];
+    if (!lastTarget || !firstRoundLastOnset || !secondRoundFirstOnset) {
+      throw new RangeError("A Tap round has an incomplete onset grid.");
+    }
+    const midpoint =
+      (firstRoundLastOnset.audioTime + secondRoundFirstOnset.audioTime) / 2;
+    const mappedOnsets = onsets.map((onset, index) => {
+      const roundNumber: TapRoundNumber = index < targetCount ? 1 : 2;
+      const targetIndex = index % targetCount;
+      return Object.freeze({
+        ...onset,
+        tick: targets[targetIndex].tick,
+        roundNumber,
+        targetIndex,
+      });
+    });
+    const roundSnapshots = rawRounds.map((rawOnsets, roundIndex) => {
+      const roundNumber = (roundIndex + 1) as TapRoundNumber;
+      const roundOnsets = mappedOnsets.slice(
+        roundIndex * targetCount,
+        (roundIndex + 1) * targetCount
+      );
+      const firstOnset = rawOnsets[0];
+      const lastOnset = rawOnsets[targetCount - 1];
+      if (!firstOnset || !lastOnset)
+        throw new RangeError("A Tap round has an incomplete onset grid.");
+      const collectionStart =
+        firstOnset.audioTime - targets[0].associationMs / 1000;
+      const naturalCollectionEnd =
+        lastOnset.audioTime + lastTarget.associationMs / 1000;
+      const collectionEnd =
+        roundIndex === 0
+          ? Math.min(naturalCollectionEnd, midpoint)
+          : naturalCollectionEnd;
+      const roundStart = roundAnchors[roundIndex];
+      return Object.freeze({
+        roundNumber,
+        startAudioTime: roundStart,
+        endAudioTime: roundStart + roundDuration,
+        anchorAudioTime: roundStart,
+        collectionStartAudioTime:
+          roundIndex === 1 ? Math.max(collectionStart, midpoint) : collectionStart,
+        collectionEndAudioTime: collectionEnd,
+        drainEndAudioTime: collectionEnd + 0.1,
+        expectedOnsets: Object.freeze(
+          roundOnsets.map(onset =>
+            Object.freeze({
+              id: onset.id,
+              tick: onset.tick,
+              audioTime: onset.audioTime,
+              targetIndex: onset.targetIndex,
+            })
+          )
+        ),
+      });
+    }) as [TapRoundSnapshot, TapRoundSnapshot];
+    const rounds = Object.freeze(roundSnapshots) as readonly [
+      TapRoundSnapshot,
+      TapRoundSnapshot,
+    ];
+    const open = rounds[0].collectionStartAudioTime;
+    const close = rounds[1].collectionEndAudioTime;
     return Object.freeze({
       generation: token,
       transportGeneration: reference.generation,
-      anchorAudioTime: first - (targets[0]?.offsetMs ?? 0) / 1000,
+      anchorAudioTime: rounds[0].anchorAudioTime,
       collectionStartAudioTime: open,
       collectionEndAudioTime: close,
       drainEndAudioTime: close + 0.1,
-      expectedOnsets: Object.freeze(
-        onsets.map((onset, index) =>
-          Object.freeze({ ...onset, tick: targets[index].tick })
-        )
-      ),
+      planEndAudioTime: rounds[1].endAudioTime,
+      rounds,
+      expectedOnsets: Object.freeze(mappedOnsets),
     });
   }
 
@@ -418,11 +637,38 @@ export class TapRhythmEngine {
       this.stateValue =
         nowAudio > snapshot.collectionEndAudioTime ? "draining" : "collecting";
     }
+    this.finalizeClosedRounds(nowAudio);
     if (nowAudio >= snapshot.drainEndAudioTime) {
-      this.finish();
+      if (this.transport.state === "completed") this.finish();
+      else this.scheduleWake(token);
       return;
     }
     this.scheduleWake(token);
+  }
+
+  private finalizeClosedRounds(nowAudio: number): void {
+    const snapshot = this.snapshotValue;
+    if (!snapshot) return;
+    for (const round of snapshot.rounds) {
+      const index = round.roundNumber - 1;
+      if (
+        this.roundResultsValue[index] !== null ||
+        nowAudio < Math.max(round.endAudioTime, round.drainEndAudioTime)
+      )
+        continue;
+      this.setRoundResult(
+        round.roundNumber,
+        calculateTapRoundResult(
+          this.options.exercise.targets,
+          {
+            roundNumber: round.roundNumber,
+            skipped: this.skippedRoundNumbers.has(round.roundNumber),
+            taps: this.roundTaps[index],
+          },
+          this.canonicalPulseDurationMs()
+        )
+      );
+    }
   }
 
   private accept(tap: CapturedTap): void {
@@ -442,9 +688,26 @@ export class TapRhythmEngine {
         tap.performanceMs,
         sample
       );
+      const round = snapshot.rounds.find((candidate, index) => {
+        const afterStart = tapAudio >= candidate.collectionStartAudioTime;
+        const next = snapshot.rounds[index + 1];
+        const boundaryTie =
+          index === 0 &&
+          next !== undefined &&
+          candidate.collectionEndAudioTime === next.collectionStartAudioTime;
+        const beforeEnd = boundaryTie
+          ? tapAudio < candidate.collectionEndAudioTime
+          : tapAudio <= candidate.collectionEndAudioTime;
+        return (
+          afterStart &&
+          beforeEnd &&
+          this.context!.currentTime < candidate.drainEndAudioTime
+        );
+      });
       if (
-        tapAudio < snapshot.collectionStartAudioTime ||
-        tapAudio > snapshot.collectionEndAudioTime
+        !round ||
+        this.skippedRoundNumbers.has(round.roundNumber) ||
+        this.roundResultsValue[round.roundNumber - 1] !== null
       )
         return;
       const live = this.transport.getReferenceTiming();
@@ -455,13 +718,14 @@ export class TapRhythmEngine {
         this.abort(this.transport.abortReason ?? "generation-mismatch");
         return;
       }
-      this.taps.push(
+      const roundIndex = round.roundNumber - 1;
+      this.roundTaps[roundIndex].push(
         Object.freeze({
           sequence: tap.sequence,
-          offsetMs: (tapAudio - snapshot.anchorAudioTime) * 1000,
+          offsetMs: (tapAudio - round.anchorAudioTime) * 1000,
         })
       );
-      this.raw.push(
+      this.roundRaw[roundIndex].push(
         Object.freeze({
           ...tap,
           sampleContextTime: sample.contextTime,
@@ -480,14 +744,29 @@ export class TapRhythmEngine {
   }
   private finish(): void {
     if (!this.snapshotValue || !this.active()) return;
+    if (this.transport.state !== "completed") return;
     this.clearWake();
-    let evaluation;
+    let score;
     try {
-      evaluation = matchTapRhythm(this.options.exercise.targets, this.taps);
+      const canonicalPulseMs = this.canonicalPulseDurationMs();
+      const rounds: readonly TapRoundInput[] = this.snapshotValue.rounds.map(
+        (round, index) => ({
+          roundNumber: round.roundNumber,
+          skipped: this.skippedRoundNumbers.has(round.roundNumber),
+          taps: this.roundTaps[index],
+        })
+      );
+      score = calculateTapTwoRoundScore(
+        this.options.exercise.targets,
+        rounds,
+        canonicalPulseMs
+      );
     } catch (error) {
       this.abort(this.errorReason(error));
       return;
     }
+    this.roundResultsValue = score.rounds;
+    const firstPlayed = score.rounds.find(round => round.status === "played");
     const result = sealTapAttempt({
       exerciseId: this.options.exercise.id,
       generation: this.token,
@@ -495,15 +774,16 @@ export class TapRhythmEngine {
       status: "completed",
       reason: null,
       targetTicks: this.options.exercise.targets.map(target => target.tick),
-      taps: this.taps,
-      evaluation,
-      accuracyPercent: evaluation.accuracyPercent,
-      rawCaptures: this.raw,
+      taps: firstPlayed?.taps ?? [],
+      evaluation: firstPlayed?.evaluation ?? null,
+      accuracyPercent: score.overallAccuracyPercent,
+      scoreOutOfTen: score.scoreOutOfTen,
+      rounds: score.rounds,
+      rawCaptures: this.roundRaw.flat(),
     });
     this.stateValue = "completed";
-    // Scoring closes at the approved onset-based drain boundary, but the
-    // independent finite metronome plan must finish the last full measure.
-    // Explicit stop/abort/dispose paths still cancel the transport promptly.
+    // Results are sealed only after both the final collection drain and the
+    // complete finite metronome plan; explicit abort still stops immediately.
     this.emit(result);
   }
   private abort(reason: string): void {
@@ -525,10 +805,11 @@ export class TapRhythmEngine {
         status: "technical-abort",
         reason,
         targetTicks: this.options.exercise.targets.map(target => target.tick),
-        taps: this.taps,
+        taps: this.roundTaps.flat(),
         evaluation: null,
         accuracyPercent: null,
-        rawCaptures: this.raw,
+        scoreOutOfTen: null,
+        rawCaptures: this.roundRaw.flat(),
       })
     );
   }

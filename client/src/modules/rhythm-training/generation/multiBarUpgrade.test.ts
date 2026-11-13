@@ -29,7 +29,7 @@ const sevenMeters: readonly Readonly<{
     name: "2/4",
     track: 3,
     meter: { numerator: 2, denominator: 4 },
-    focus: "combined",
+    focus: "dots",
     pulseBpm: 72,
   },
   {
@@ -101,6 +101,36 @@ function crossBarTiePairs(pattern: RhythmPattern) {
 }
 
 describe("independent multibar Tap Rhythm production pipeline", () => {
+  it("keeps combined 2/4 feasible across multiple bars and rejects only one bar", () => {
+    expect(() =>
+      generateRhythmPattern({
+        seed: "combined-two-four-single",
+        level: 3,
+        meter: { numerator: 2, denominator: 4 },
+        bars: 1,
+        focus: "combined",
+      })
+    ).toThrow(/single 2\/4 measure.*required rest/i);
+
+    for (const bars of [2, 4] as const) {
+      const config: RhythmGenerationConfig = {
+        seed: `combined-two-four-multibar-${bars}`,
+        level: 3,
+        meter: { numerator: 2, denominator: 4 },
+        bars,
+        focus: "combined",
+      };
+      const pattern = generateRhythmPattern(config);
+      expect(pattern.measures).toHaveLength(bars);
+      expect(patternMetrics(pattern)).toMatchObject({
+        hasDot: true,
+        hasTie: true,
+        hasFine: false,
+      });
+      expect(() => assertLevelConstraints(pattern, config)).not.toThrow();
+    }
+  });
+
   it("executes generation, canonical validation, timeline, targets, audio and notation for all seven meters at 1/2/4 bars", () => {
     for (const entry of sevenMeters) {
       for (const bars of supportedBarCounts) {

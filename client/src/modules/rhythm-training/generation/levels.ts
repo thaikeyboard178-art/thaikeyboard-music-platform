@@ -15,7 +15,12 @@ export type RhythmFocus =
   | "sixteenths"
   | "compound"
   | "syncopation"
-  | "integrated";
+  | "integrated"
+  | "snap"
+  | "sandwich"
+  | "quarter-triplets"
+  | "eighth-triplets"
+  | "triplet-combined";
 
 export type TempoBand = Readonly<{
   min: number;
@@ -38,6 +43,9 @@ export type LevelPolicy = Readonly<{
   allowCrossBarTies: boolean;
   allowSixteenths: boolean;
   allowSyncopation: boolean;
+  allowTuplets: boolean;
+  /** Maximum quarter pulses containing sixteenth-family notation per bar. */
+  maxFinePulsesPerBar: number;
   tempo: Readonly<{
     simple: TempoBand;
     eighth?: TempoBand;
@@ -116,6 +124,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: false,
       allowSyncopation: false,
+      allowTuplets: false,
+      maxFinePulsesPerBar: 0,
       tempo: { simple: band(60, 84, "quarter") },
     }),
     2: levelPolicy({
@@ -133,6 +143,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: false,
       allowSyncopation: false,
+      allowTuplets: false,
+      maxFinePulsesPerBar: 0,
       tempo: { simple: band(60, 96, "quarter") },
     }),
     3: levelPolicy({
@@ -149,7 +161,7 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       restDurations: durationList(quarter, eighth, dottedHalf, dottedQuarter),
       supportedFocus: focusList("dots", "ties", "combined"),
       defaultFocus: "combined",
-      maxRestsPerBar: 3,
+      maxRestsPerBar: 2,
       maxSyncopatedOnsetsPerBar: 0,
       maxDifficultySources: 2,
       allowDots: true,
@@ -157,6 +169,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: true,
       allowSixteenths: false,
       allowSyncopation: false,
+      allowTuplets: false,
+      maxFinePulsesPerBar: 0,
       tempo: { simple: band(60, 108, "quarter") },
     }),
     4: levelPolicy({
@@ -169,7 +183,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
         eighth,
         sixteenth,
         dottedHalf,
-        dottedQuarter
+        dottedQuarter,
+        dottedEighth
       ),
       restDurations: durationList(
         quarter,
@@ -178,16 +193,26 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
         dottedHalf,
         dottedQuarter
       ),
-      supportedFocus: focusList("dots", "ties", "combined", "sixteenths"),
+      supportedFocus: focusList(
+        "dots",
+        "ties",
+        "combined",
+        "sixteenths",
+        "snap",
+        "sandwich",
+        "integrated"
+      ),
       defaultFocus: "sixteenths",
-      maxRestsPerBar: 3,
-      maxSyncopatedOnsetsPerBar: 0,
+      maxRestsPerBar: 2,
+      maxSyncopatedOnsetsPerBar: 1,
       maxDifficultySources: 2,
       allowDots: true,
       allowTies: true,
       allowCrossBarTies: true,
       allowSixteenths: true,
-      allowSyncopation: false,
+      allowSyncopation: true,
+      allowTuplets: false,
+      maxFinePulsesPerBar: 2,
       tempo: { simple: band(60, 96, "quarter") },
     }),
     5: levelPolicy({
@@ -217,10 +242,13 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
         "combined",
         "sixteenths",
         "syncopation",
-        "integrated"
+        "integrated",
+        "quarter-triplets",
+        "eighth-triplets",
+        "triplet-combined"
       ),
       defaultFocus: "integrated",
-      maxRestsPerBar: 3,
+      maxRestsPerBar: 2,
       maxSyncopatedOnsetsPerBar: 1,
       maxDifficultySources: 2,
       allowDots: true,
@@ -228,6 +256,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: false,
       allowSixteenths: true,
       allowSyncopation: true,
+      allowTuplets: true,
+      maxFinePulsesPerBar: 1,
       tempo: { simple: band(50, 108, "quarter") },
     }),
     6: levelPolicy({
@@ -251,6 +281,8 @@ export const LEVEL_POLICIES: Readonly<Record<RhythmLevel, LevelPolicy>> =
       allowCrossBarTies: true,
       allowSixteenths: false,
       allowSyncopation: false,
+      allowTuplets: false,
+      maxFinePulsesPerBar: 0,
       tempo: {
         simple: band(30, 300, "eighth"),
         eighth: band(30, 300, "eighth"),
@@ -275,6 +307,8 @@ export const BONUS_POLICY: LevelPolicy = levelPolicy({
   allowCrossBarTies: false,
   allowSixteenths: false,
   allowSyncopation: false,
+  allowTuplets: false,
+  maxFinePulsesPerBar: 0,
   tempo: { simple: band(40, 72, "half"), half: band(40, 72, "half") },
 });
 

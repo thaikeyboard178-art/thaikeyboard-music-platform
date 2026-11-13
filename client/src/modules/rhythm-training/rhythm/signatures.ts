@@ -7,6 +7,7 @@ import { requireValidRhythmPattern } from "./validate";
 export function notationSignature(input: unknown): string {
   const pattern = requireValidRhythmPattern(input);
   const tieIds = new Map<string, number>();
+  const tupletIds = new Map<string, number>();
   return JSON.stringify({
     version: 1,
     kind: "notation",
@@ -20,7 +21,7 @@ export function notationSignature(input: unknown): string {
             tieIds.set(segment.tieGroupId, tieIds.size);
           tie = tieIds.get(segment.tieGroupId)!;
         }
-        return [
+        const identity: unknown[] = [
           segment.kind,
           segment.duration.denominator,
           segment.duration.dots,
@@ -28,6 +29,16 @@ export function notationSignature(input: unknown): string {
           segment.accent ?? "normal",
           segment.articulation ?? "ordinary",
         ];
+        if (segment.tupletGroup !== undefined) {
+          const groupId = segment.tupletGroup.groupId;
+          if (!tupletIds.has(groupId)) tupletIds.set(groupId, tupletIds.size);
+          identity.push([
+            tupletIds.get(groupId),
+            segment.tupletGroup.actualNotes,
+            segment.tupletGroup.normalNotes,
+          ]);
+        }
+        return identity;
       })
     ),
   });

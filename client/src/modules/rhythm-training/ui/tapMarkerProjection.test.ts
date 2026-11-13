@@ -123,8 +123,12 @@ describe("projectTapMarkers", () => {
     const after = JSON.stringify({ exercise, result });
 
     expect(new Set(markers.map(marker => marker.status))).toEqual(
-      new Set(["matched", "early", "late", "missing", "extra"])
+      new Set(["matched", "early", "late", "extra"])
     );
+    expect(
+      result.evaluation?.targetResults.some(row => row.status === "missing")
+    ).toBe(true);
+    expect(markers.some(marker => marker.status === "missing")).toBe(false);
     expect(after).toBe(before);
     expect(Object.isFrozen(markers)).toBe(true);
     expect(Object.isFrozen(markers[0])).toBe(true);
@@ -182,7 +186,7 @@ describe("projectTapMarkers", () => {
     }
   });
 
-  it("keeps a near-edge early tap before the first note and assigns barline/last-row markers correctly", () => {
+  it("keeps early taps before the first note, omits missing targets, and projects a captured barline onset correctly", () => {
     const exercise = fourMeasureExercise();
     const result = resultWithFiveStatuses(exercise);
     const geometry = renderedGeometry(exercise);
@@ -197,9 +201,31 @@ describe("projectTapMarkers", () => {
       target => target.tick === 2 * measureTicks
     );
     expect(barlineTarget).toBeDefined();
-    const barlineMarker = markers.find(
-      marker => marker.targetId === barlineTarget?.id
-    )!;
+    expect(markers.some(marker => marker.targetId === barlineTarget?.id)).toBe(
+      false
+    );
+    const barlineTap = {
+      sequence: 41,
+      offsetMs: barlineTarget!.offsetMs,
+    };
+    const barlineEvaluation = matchTapRhythm(exercise.targets, [barlineTap]);
+    const barlineResult = sealTapAttempt({
+      exerciseId: exercise.id,
+      generation: 2,
+      mode: "practice",
+      status: "completed",
+      reason: null,
+      targetTicks: exercise.targets.map(target => target.tick),
+      taps: [barlineTap],
+      evaluation: barlineEvaluation,
+      accuracyPercent: barlineEvaluation.accuracyPercent,
+      rawCaptures: [],
+    });
+    const barlineMarker = projectTapMarkers(
+      exercise,
+      barlineResult,
+      geometry
+    ).find(marker => marker.targetId === barlineTarget?.id)!;
     expect(barlineMarker.measureIndex).toBe(2);
     expect(barlineMarker.rowIndex).toBe(2);
 
@@ -208,7 +234,17 @@ describe("projectTapMarkers", () => {
     expect(extra.rowIndex).toBe(3);
     expect(extra.tick).toBeGreaterThan(4 * measureTicks);
     expect(extra.x).toBeGreaterThan(geometry[3].xEnd);
-    expect(extra.y).toBe(geometry[3].staveBounds.bottom + 36);
+    expect(extra.y).toBe(geometry[3].staveBounds.bottom + 22);
+    const roundOneMarkers = projectTapMarkers(
+      exercise,
+      result,
+      geometry,
+      1
+    );
+    const roundOneExtra = roundOneMarkers.find(
+      marker => marker.status === "extra"
+    )!;
+    expect(roundOneExtra.y).toBe(geometry[3].staveBounds.bottom + 44);
   });
 });
 

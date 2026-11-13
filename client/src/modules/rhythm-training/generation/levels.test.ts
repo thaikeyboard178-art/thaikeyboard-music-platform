@@ -59,14 +59,19 @@ describe("curriculum-aligned immutable rhythm policies", () => {
       denominator: 4,
       dots: 1,
     });
-    expect(LEVEL_POLICIES[3].maxRestsPerBar).toBeGreaterThan(
-      LEVEL_POLICIES[2].maxRestsPerBar
-    );
+    for (const policy of Object.values(LEVEL_POLICIES))
+      expect(policy.maxRestsPerBar).toBeLessThanOrEqual(2);
+    expect(LEVEL_POLICIES[3].maxRestsPerBar).toBe(2);
+    expect(LEVEL_POLICIES[4].maxRestsPerBar).toBe(2);
+    expect(LEVEL_POLICIES[5].maxRestsPerBar).toBe(2);
     expect(LEVEL_POLICIES[4].supportedFocus).toEqual([
       "dots",
       "ties",
       "combined",
       "sixteenths",
+      "snap",
+      "sandwich",
+      "integrated",
     ]);
     expect(LEVEL_POLICIES[4].defaultFocus).toBe("sixteenths");
     expect(LEVEL_POLICIES[4].allowSixteenths).toBe(true);
@@ -74,7 +79,10 @@ describe("curriculum-aligned immutable rhythm policies", () => {
       denominator: 16,
       dots: 0,
     });
-    expect(LEVEL_POLICIES[4].allowSyncopation).toBe(false);
+    expect(LEVEL_POLICIES[4].allowSyncopation).toBe(true);
+    expect(LEVEL_POLICIES[4].maxSyncopatedOnsetsPerBar).toBe(1);
+    expect(LEVEL_POLICIES[4].allowTuplets).toBe(false);
+    expect(LEVEL_POLICIES[4].supportedFocus).not.toContain("syncopation");
   });
 
   it("keeps controlled multi-duration combinations and syncopation in Level 5", () => {

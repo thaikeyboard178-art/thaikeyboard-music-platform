@@ -644,7 +644,7 @@ describe("Seven-meter runtime completion gate", () => {
           const reference = createTapReferencePlan(exercise);
           const countInTicks = expected.pulseStarts;
           expect(attempt.pulseEvents).toHaveLength(
-            (bars + 1) * countInTicks.length
+            (2 * bars + 1) * countInTicks.length
           );
           expect(
             attempt.pulseEvents
@@ -660,9 +660,49 @@ describe("Seven-meter runtime completion gate", () => {
               ticksToSeconds(tick, f.pattern.meter, pulseBpm)
             )
           );
+          const attemptPulseRounds = [
+            {
+              tickShift: measureTicks,
+              secondsShift: ticksToSeconds(
+                measureTicks,
+                f.pattern.meter,
+                pulseBpm
+              ),
+            },
+            {
+              tickShift: measureTicks + totalTicks,
+              secondsShift:
+                ticksToSeconds(measureTicks, f.pattern.meter, pulseBpm) +
+                expectedSeconds,
+            },
+          ];
+          for (const [roundIndex, round] of attemptPulseRounds.entries()) {
+            const roundEvents = attempt.pulseEvents.slice(
+              countInTicks.length + roundIndex * bars * countInTicks.length,
+              countInTicks.length + (roundIndex + 1) * bars * countInTicks.length
+            );
+            expect(roundEvents.map(event => event.tick - round.tickShift)).toEqual(
+              exercisePulseTicks
+            );
+            roundEvents.forEach((event, index) =>
+              expect(event.offsetSeconds - round.secondsShift).toBeCloseTo(
+                ticksToSeconds(
+                  exercisePulseTicks[index],
+                  f.pattern.meter,
+                  pulseBpm
+                ),
+                10
+              )
+            );
+          }
           expect(reference.pulseEvents).toHaveLength(
             (bars + 1) * countInTicks.length
           );
+          expect(
+            reference.pulseEvents
+              .slice(countInTicks.length)
+              .map(event => event.tick - measureTicks)
+          ).toEqual(exercisePulseTicks);
           expect(
             reference.toneEvents.map(event => event.tick - measureTicks)
           ).toEqual(targetTicks);

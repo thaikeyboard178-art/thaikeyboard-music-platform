@@ -24,10 +24,6 @@ describe("complete curriculum generator matrix", () => {
             (meter.numerator === 3 || meter.denominator !== 8)
           )
             continue;
-          // A 3/8 bar has only 720 ticks: its dotted-quarter value fills the
-          // entire bar, so there is no room for a separate tie plus dot event.
-          if (track === 6 && focus === "combined" && meter.numerator === 3)
-            continue;
           if (focus === "syncopation" && meter.denominator !== 4) continue;
           if (
             ["dots", "ties", "sixteenths"].includes(focus) &&
@@ -44,6 +40,48 @@ describe("complete curriculum generator matrix", () => {
                 focus,
                 pulseBpm: getDefaultPulseBpm(meter),
               };
+              if (
+                track === 6 &&
+                meter.numerator === 3 &&
+                meter.denominator === 8 &&
+                (focus === "dots" || focus === "combined")
+              ) {
+                expect(() => generateRhythmPattern(input)).toThrow(
+                  /3\/8.*fills the measure.*required rest/i
+                );
+                continue;
+              }
+              if (
+                (track === 3 || track === 4) &&
+                focus === "combined" &&
+                meter.numerator === 2 &&
+                bars === 1
+              ) {
+                expect(() => generateRhythmPattern(input)).toThrow(
+                  /single 2\/4 measure.*required rest/i
+                );
+                if (index === 0) {
+                  for (const feasibleFocus of ["dots", "ties"] as const) {
+                    const feasibleInput = { ...input, focus: feasibleFocus };
+                    const feasiblePattern = generateRhythmPattern(feasibleInput);
+                    expect(feasiblePattern.meter).toEqual(meter);
+                    expect(() =>
+                      assertLevelConstraints(feasiblePattern, feasibleInput)
+                    ).not.toThrow();
+                  }
+                }
+                continue;
+              }
+              if (
+                track === 5 &&
+                focus === "quarter-triplets" &&
+                meter.numerator === 2
+              ) {
+                expect(() => generateRhythmPattern(input)).toThrow(
+                  /fill a 2\/4 measure exactly.*1–2 rests/i
+                );
+                continue;
+              }
               let pattern;
               try {
                 pattern = generateRhythmPattern(input);

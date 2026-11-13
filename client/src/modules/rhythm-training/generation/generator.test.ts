@@ -85,6 +85,17 @@ describe("seeded level-constrained rhythm generation", () => {
     for (const meter of cases) {
       for (const focus of ["dots", "ties", "combined"] as const) {
         for (let seed = 0; seed < 6; seed += 1) {
+          if (meter.numerator === 2 && focus === "combined") {
+            expect(() =>
+              generateRhythmPattern({
+                seed: `level3/${meter.numerator}/${focus}/${seed}`,
+                level: 3,
+                meter,
+                focus,
+              })
+            ).toThrow(/single 2\/4 measure.*required rest/i);
+            continue;
+          }
           const pattern = generateRhythmPattern({
             seed: `level3/${meter.numerator}/${focus}/${seed}`,
             level: 3,
@@ -118,6 +129,20 @@ describe("seeded level-constrained rhythm generation", () => {
     expect(patternMetrics(defaultPattern)).toMatchObject({
       hasDot: true,
       hasTie: true,
+      hasFine: false,
+    });
+    const omittedFocusAtTwoFour = generateRhythmPattern({
+      seed: "level3-default-focus-two-four",
+      level: 3,
+      meter: { numerator: 2, denominator: 4 },
+    });
+    expect(omittedFocusAtTwoFour.meter).toEqual({
+      numerator: 2,
+      denominator: 4,
+    });
+    expect(patternMetrics(omittedFocusAtTwoFour)).toMatchObject({
+      hasDot: true,
+      hasTie: false,
       hasFine: false,
     });
   });

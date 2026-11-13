@@ -13,7 +13,11 @@ import {
   evaluateMultipleChoice,
   type MultipleChoiceExercise,
 } from "./multipleChoice";
-import { evaluateTapRhythmAnswer, type TapRhythmExercise } from "./tapRhythm";
+import {
+  evaluateTapRhythmAnswer,
+  type TapRhythmAnswerEvaluation,
+  type TapRhythmExercise,
+} from "./tapRhythm";
 import { isRuntimeTapAttempt } from "./tapCompletion";
 
 // Ephemeral completion guard; no persistence or changes to shared session state.
@@ -171,11 +175,7 @@ export function submitRhythmExerciseAnswer(
     const attempt = submission.answer;
     if (
       !isRuntimeTapAttempt(attempt) ||
-      attempt.status === "technical-abort" ||
-      attempt.accuracyPercent === null ||
-      !Number.isFinite(attempt.accuracyPercent) ||
-      attempt.accuracyPercent < 0 ||
-      attempt.accuracyPercent > 100
+      attempt.status === "technical-abort"
     ) {
       return Object.freeze({
         status: "technical-abort",
@@ -200,6 +200,23 @@ export function submitRhythmExerciseAnswer(
       return Object.freeze({ status: "practice", session, scoreDelta: 0 });
     }
     if (
+      attempt.accuracyPercent === null ||
+      !Number.isFinite(attempt.accuracyPercent) ||
+      attempt.accuracyPercent < 0 ||
+      attempt.accuracyPercent > 100 ||
+      !Number.isInteger(attempt.scoreOutOfTen) ||
+      attempt.scoreOutOfTen! < 0 ||
+      attempt.scoreOutOfTen! > 10 ||
+      !Array.isArray(attempt.rounds) ||
+      attempt.rounds.length !== 2
+    ) {
+      return Object.freeze({
+        status: "technical-abort",
+        session,
+        scoreDelta: 0,
+      });
+    }
+    if (
       submittedTapAttempts.has(attempt) ||
       answeredTapQuestions.has(tapQuestionKey(session, exercise))
     ) {
@@ -221,9 +238,7 @@ export function submitRhythmExerciseAnswer(
       ? submitSessionAnswerWithAward(
           session,
           evaluation.correct,
-          Math.floor(
-            ((submission.answer.accuracyPercent ?? 0) * 10) / 100 + 0.5
-          ),
+          (evaluation as TapRhythmAnswerEvaluation).scoreOutOfTen,
           submission.responseTimeMs,
           completedAt
         )

@@ -20,11 +20,19 @@ export type WrittenDuration = Readonly<{
   dots: 0 | 1;
 }>;
 
+/** A canonical 3:2 tuplet group marker shared by exactly three adjacent notes. */
+export type RhythmTupletGroup = Readonly<{
+  groupId: string;
+  actualNotes: 3;
+  normalNotes: 2;
+}>;
+
 export type RhythmSegment = Readonly<{
   id: string;
   kind: "note" | "rest";
   duration: WrittenDuration;
   tieGroupId?: string;
+  tupletGroup?: RhythmTupletGroup;
   accent?: "normal" | "strong";
   // The model names future markings, but the V1 validator accepts ordinary only.
   articulation?: "ordinary" | "staccato" | "tenuto";
@@ -61,6 +69,7 @@ export type SegmentPosition = Readonly<{
   isOnset: boolean;
   tieRole: TieRole;
   tieGroupId?: string;
+  tupletGroup?: RhythmTupletGroup;
   accent: "normal" | "strong";
 }>;
 

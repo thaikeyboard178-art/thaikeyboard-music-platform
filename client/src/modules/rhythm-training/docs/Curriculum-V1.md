@@ -1,7 +1,7 @@
 # Rhythm Training V1 — Curriculum V1
 
 
-## Latest owner-approved curriculum and Tap-policy supersession — 2026-11-12 (APPROVED)
+## Latest owner-approved curriculum additions — 2026-11-13 (APPROVED)
 
 This is the active curriculum mapping and supersedes older conflicting approved-placement tables and dated active-policy summaries below; retain them only as history. The former simple-meter material is merged into Level 3 with dots, ties, and mixed durations. **Do not** retain the former L4 dots/ties, former L5 sixteenths, or former L6 vocabulary allocations as active mapping.
 
@@ -9,13 +9,17 @@ This is the active curriculum mapping and supersedes older conflicting approved-
 |---|---|
 | Level 1 | Basic notes and rests |
 | Level 2 | Eighth notes/rests and binary subdivision |
-| Level 3 | Merge the former simple-meter content with dotted notes, ties, and mixed durations |
-| Level 4 | Sixteenth notes and subdivision |
-| Level 5 | Controlled complex combinations of the learned rhythmic material |
+| Level 3 | Simple meters (2/4, 3/4, 4/4), dotted durations, ties, and mixed durations |
+| Level 4 | Sixteenth subdivision, snap and sandwich cells; progressively combine with inherited dots/ties; no tuplets |
+| Level 5 | Isolated quarter/eighth-note 3:2 triplets, then controlled combinations with learned vocabulary |
 | Level 6 | 3/8, 6/8, and 9/8 |
 | Optional Bonus | 2/2; unchanged and optional |
 
-No quota, count, or allocation is changed by this approval. Preserve every existing approved quota as-is; where a quota remains unapproved, retain that status rather than inventing or reclassifying one.
+**Yêu cầu bổ sung ngày 2026-11-13:** mỗi ô Tap do generator tạo có 1–2 dấu lặng, không có hai dấu lặng liên tiếp; giữ tổng trường độ và grouping. L4 thêm móc giật/đòn gánh và tổ hợp móc kép; L5 thêm liên 3 đen/đơn thật theo tỷ lệ 3:2. Không đổi thuật toán matching, clock/input, hoặc điểm hai vòng đang chạy; Results chỉ đổi presentation.
+
+**Ngân hàng Quiz:** mục tiêu mới là **50 câu mỗi Level 1–6**, tối thiểu **300 câu**, và **50 câu Bonus 2/2** khi giữ nguồn riêng (350 tổng). Mixed lấy từ bảy nguồn, không có quota/ngân hàng riêng. Owner cung cấp Blueprint/nội dung; task này audit và chuẩn bị import/capacity, không tự sinh câu. Đây không phải phân bổ bốn exercise kinds của Assessment hay thay đổi readiness thresholds; các đoạn quota chưa duyệt ngày 2026-11-12 phía dưới là lịch sử đối với target Quiz mới.
+
+**Tổ hợp bị giới hạn bởi dấu lặng:** liên 3 đen chiếm cả ô 2/4 nên chỉ mở ở 3/4,4/4; liên 3 đơn vẫn dùng được trong 2/4. Chấm dôi + nối trường độ trong một ô 2/4 không đủ chỗ cho dấu lặng; nhiều ô 2/4 có thể phân bổ hai kiến thức vào các ô khác nhau. Với vocabulary 3/8 hiện hành, đen chấm dôi lấp cả ô, nên bài Tap có dấu lặng dùng basic/ties, không mở dots focus. Generator giữ nhịp được yêu cầu, chọn default/tổ hợp hợp lệ hoặc báo lỗi rõ với yêu cầu trực tiếp không khả thi; không tạo ô thiếu/thừa để lấp quota.
 
 For 3/8, 6/8, and 9/8 each individual eighth (240 ticks) is the technical pulse for BPM/counting (3/6/9 pulses per bar). Preserve meter schema, capacities, established defaults, grouping, accent hierarchy, and eighth-beaming rules. In 6/8 each 3+3 group is exactly 720 ticks; in 9/8 each 3+3+3 group is exactly 720 ticks. No individual note, rest, or tie component can cross a group boundary. A valid tie may sustain across a boundary only by adjacent tied note components, each wholly inside its own group. Groups and bars must exact-fill. Do not change quotas or status. Other approved Phase 1–5/Phase 4A.2 matching, technical-validity, clock, collection/drain, and marker decisions are unchanged; only the Tap per-question point reward is updated by the latest policy. Other callers keep their +10/+0 scoring. This approval is not an implementation or human listening claim; browser/device/headphone listening has not been performed.
 
@@ -29,9 +33,9 @@ Tap is included at every Level 1–6 and Bonus, with fixed level vocabulary:
 |---|---|
 | Level 1 | Quarter, half, whole notes; quarter rest |
 | Level 2 | Eighth notes, eighth rest; basic subdivision |
-| Level 3 | 2/4, 3/4, 4/4 |
-| Level 4 | Dotted rhythms; ties |
-| Level 5 | Sixteenth-note rhythms; complex combinations |
+| Level 3 | 2/4, 3/4, 4/4; dots and ties |
+| Level 4 | Sixteenth notes/rests; dotted-eighth–sixteenth snap; sixteenth–eighth–sixteenth sandwich; inherit dots/ties |
+| Level 5 | Quarter-note and eighth-note triplets (3:2); controlled combinations with Level 1–4 vocabulary |
 | Level 6 | 3/8, 6/8, 9/8 |
 | Bonus | 2/2 |
 
@@ -184,90 +188,39 @@ Detailed level narratives below are historical teaching-plan material where they
 
 **Củng cố và coaching.** Nếu người học dồn hai eighth thành một beat, quay về cell một beat với beat marker và bài nhận diện/nghe quarter/eighth/rest. Chưa dùng Tap performance để đánh giá Level 2; tín hiệu ôn tập không phải hard gate.
 
-### Level 3 — Một đơn vị Nhịp đơn: 2/4, 3/4, 4/4
+### Level 3 — Nhịp đơn, dấu chấm dôi và nối trường độ
 
-**Mục tiêu.** Đây là **một unit kiến thức thống nhất về simple meter**, không phải ba khóa học riêng. Người học nhận diện time signature, đếm số phách, hiểu trọng âm cơ bản, phân biệt độ dài ô nhịp và chuyển kỹ năng eighth subdivision giữa 2/4, 3/4, 4/4.
+**Mục tiêu.** Level 3 là một unit về nhịp đơn 2/4, 3/4, 4/4, đồng thời đưa dotted quarter/dotted half, dấu nối và các tổ hợp mixed-duration vào vocabulary. Người học hiểu dot kéo dài một ký hiệu; tie nối các note segments liền kề và không tạo attack mới ở continuation.
 
-- 2/4: hai phách chính, mỗi phách là quarter.
-- 3/4: ba phách chính, mỗi phách là quarter.
-- 4/4: bốn phách chính, mỗi phách là quarter.
+**Điều kiện đầu vào.** Nắm whole/half/quarter, quarter rest, eighth/eighth rest và binary subdivision của Level 1–2.
 
-Level 3 là phần **transfer formal** của meter, không phải Level 2 mở rộng ngầm. Level 2 dạy chia đôi phách; Level 3 dạy ý nghĩa của time signature, số phách, trọng âm, độ dài bar và chuyển đổi giữa ba nhịp đơn.
+**Giới hạn ký hiệu và dấu lặng.** Dùng whole, half, quarter, eighth, dotted half, dotted quarter và các rest được policy Level 3 cho phép; tie chỉ nối note segments liền kề hợp lệ. Không dùng sixteenths, snap/sandwich, tuplets, 3/8, 6/8, 9/8 hay 2/2. Dots focus và ties focus dùng được ở cả 2/4, 3/4, 4/4; combined dots-plus-ties không dùng ở 2/4 vì bar 960 ticks không thể chứa cả hai nguồn và một rest đúng luật.
 
-**Điều kiện đầu vào.** Nắm quarter/half/whole, quarter rest, eighth/eighth rest và binary subdivision của Level 1–2.
+**Mở đầu và Lessons.** Đọc tử số/mẫu số và bar length trong 2/4, 3/4, 4/4; tính dotted durations bằng tick arithmetic; phân biệt dot với tie; sau đó ghép notes, rests, dots và ties trong một bar exact-fill.
 
-**Giới hạn ký hiệu và dấu lặng.** Dùng các giá trị đã học: whole, half, quarter, eighth cùng quarter/eighth rests. Không dùng dot, tie, sixteenth, 3/8, 6/8, 9/8 hay 2/2 trong core Level 3. Có thể dùng một ô 2/4, 3/4 hoặc 4/4 trong mỗi item; không đổi meter giữa chừng trừ khi đó là câu hỏi transfer được ghi nhãn rõ.
+**Practice và Assessment.** Mỗi item giữ một meter. Tăng dần từ nhận diện meter/duration đến dots, ties và mixed patterns; Tap Rhythm chỉ target onset đầu tie group, không target rest hoặc tied continuation. Đánh giá cần phân biệt onset mới với thời gian sustain.
 
-**Mở đầu và Lessons.**
+**Giới hạn dấu lặng.** Mỗi generated measure ở mọi level phải có 1–2 rests, không có hai rests liên tiếp; mỗi rest chiếm duration hợp lệ và cả measure phải exact-fill.
 
-- Lesson 1: đọc tử số/mẫu số như thông tin meter, không như phép chia số học; dựng 2/4 và so sánh bar length.
-- Lesson 2: dựng 3/4, cảm nhận ba quarter pulses và mô hình mạnh–nhẹ–nhẹ.
-- Lesson 3: dựng 4/4, nhận diện bốn quarter pulses và trọng âm giáo học có thể dùng mạnh–nhẹ–vừa–nhẹ.
-- Lesson 4: chuyển cùng một binary subdivision qua ba meter; xác định barline, beat position và onset/rest.
+### Level 4 — Móc kép, móc giật và đòn gánh
 
-**Practice.** Đây là Level đầu tiên giới thiệu **Tap Rhythm**: nhìn ký âm, theo metronome/reference timing được cấu hình, tap onset trong 2/4, 3/4 hoặc 4/4 và nhận Timing Accuracy (%) riêng với Exercise Points. Chính sách continuous guidance/reference và ngưỡng đánh giá vẫn cần technical approval. Mỗi bài chọn một trong ba meter, hiển thị tên meter và bar capacity, rồi tăng dần độ khó; So sánh hai pattern có cùng tổng trường độ nhưng khác onset; luyện rest mà vẫn giữ count; dùng hai-bar phrase chỉ khi bar thứ hai củng cố bar thứ nhất. Không yêu cầu người học đồng nhất 3/4 với ba nhóm móc đơn của Level 6.
+**Mục tiêu.** Level 4 kế thừa dots và ties ở Level 3, giới thiệu sixteenth subdivision, rồi tăng dần độ phức tạp: (1) nhận diện móc kép; (2) móc giật gồm dotted-eighth + sixteenth; (3) đòn gánh gồm sixteenth–eighth–sixteenth; (4) phối hợp cells với vocabulary cũ. Tổ hợp vẫn giữ exact-fill và đúng vị trí phách.
 
-**Assessment.**
+**Điều kiện đầu vào.** Hiểu nhịp đơn, dotted durations, tie/continuation, rests và eighth grid.
 
-- Multiple Choice: nhận diện 2/4, 3/4, 4/4 từ bar length, pulse count và accent.
-- Count the Beat: xác định phách đầu, phách cuối, onset, silence và vị trí `và`.
-- Listen & Identify: nghe pattern trong một meter rồi chọn notation hoặc meter phù hợp.
-- Tap Rhythm: tap onset trên eighth grid trong từng meter; bộ tổng hợp phải có chuyển giữa 2/4, 3/4, 4/4 nhưng mỗi item chỉ một meter.
+**Giới hạn ký hiệu.** Dùng 2/4, 3/4, 4/4; sixteenth notes/rests; dotted-eighth–sixteenth snap (360+120 ticks); sixteenth–eighth–sixteenth sandwich (120+240+120 ticks); dots/ties đã học. Mỗi bài phối hợp tối đa hai nguồn khó. **Không dùng tuplets ở Level 4.**
 
-**Củng cố và coaching.** Phân biệt “sai onset” với “đếm sai bar length”. Nếu người học tap tốt nhưng gọi 3/4 là 3 nhóm compound, quay lại pulse quarter và trọng âm của simple triple. Mức sẵn sàng và ngưỡng Timing Accuracy cần pilot/technical approval, không tự áp tỷ lệ phần trăm trong curriculum này và không khóa Level 4.
+**Practice và Assessment.** Bắt đầu từ từng motif riêng, rồi kết hợp với dots hoặc ties và tăng mật độ có kiểm soát. Xác minh motif thực tế trong generated patterns; không coi đổi tên focus là bằng chứng có nội dung. Rest vẫn tiêu thụ thời gian nhưng không tạo onset.
 
-### Level 4 — Dấu chấm dôi và nối trường độ
+### Level 5 — Liên ba đen, liên ba đơn và tổ hợp phức tạp
 
-**Mục tiêu.** Người học phân biệt dot với tie: dot thay đổi trường độ của một ký hiệu; tie nối các note segments và triệt tiêu attack ở segment tiếp theo. Người học đếm xuyên qua phách/vạch nhịp và hiểu rằng một duration dài không đồng nghĩa với nhiều onset.
+**Mục tiêu.** Level 5 bổ sung quarter-note triplets và eighth-note triplets với timing 3:2 thực, rồi phối hợp với vocabulary Levels 1–4 (dots, ties, sixteenths, snap, sandwich, notes/rests). Tuplet members là ba notes liền kề, không tie, và tổng duration đúng hai giá trị note thường.
 
-**Điều kiện đầu vào.** Level 3 fluency trên 2/4, 3/4, 4/4 và eighth grid; biết rest chiếm thời gian và onset không phải toàn bộ duration.
+**Mở đầu và Lessons.** Trước tiên luyện một nhóm quarter triplet riêng (3 × 320 = 960 ticks, tương đương hai quarter notes); tiếp đến một nhóm eighth triplet riêng (3 × 160 = 480 ticks, tương đương hai eighth notes); sau đó kết hợp từng nhóm với một nguồn vocabulary đã học và tăng dần độ phức tạp. Giữ tối đa hai difficulty sources.
 
-**Giới hạn ký hiệu và dấu lặng.** Introduce dotted half và dotted quarter trước; dot của eighth/dotted eighth **được hoãn đến khi có sixteenth grid ở Level 5**, theo retained-duration policy. Tie có thể trong bar và qua barline, nhưng chỉ nối các note segments hợp lệ, cùng vai trò pitch trung tính và liền kề. Không dùng sixteenth, compound meter hay tie phức tạp trong phần nhập môn.
+**Giới hạn meter và dấu lặng.** Tuplets chỉ ở simple quarter-denominator meters 2/4, 3/4, 4/4 theo canonical validator, nhưng quarter triplet chiếm trọn 960-tick bar 2/4; vì mỗi measure cũng bắt buộc có 1–2 rests, quarter-triplet focus không thể phát sinh hợp lệ trong 2/4. Không làm sai capacity hoặc bỏ rest để ép tổ hợp đó: dùng 3/4 hoặc 4/4 cho isolated quarter triplets; 2/4 vẫn hỗ trợ isolated/combined eighth triplets. Mỗi measure giữ 1–2 rests không liên tiếp và exact-fill.
 
-**Mở đầu và Lessons.**
-
-- Lesson 1: dot = giá trị gốc cộng một nửa giá trị gốc; đọc dotted quarter như ba eighth units.
-- Lesson 2: tie trong bar; nghe một attack kéo dài và không attack lại ở segment tiếp theo.
-- Lesson 3: tie qua barline; đếm qua vạch nhịp và phân biệt với hai note rời.
-- Lesson 4: so sánh cùng tổng duration giữa dotted value, note + rest/note rời và tie; nêu rõ khác biệt về onset.
-
-**Practice.** Trước hết chỉ một dot hoặc một tie trong một bar. Sau đó luyện pattern có rest và tie ở beat boundary; Tap chỉ target tie-group start. Listen & Identify phải cho nghe sustain có duration-aware gate; một tied continuation không phát lại attack. Không ghép dot + tie + sixteenth trong bài nhập môn.
-
-**Assessment.**
-
-- Multiple Choice: chọn dotted quarter tương đương, phân biệt dotted note với tied pair, chọn beat mà tie tiếp tục.
-- Count the Beat: chỉ ra các beat vẫn đang có âm dù không có onset mới.
-- Listen & Identify: phân biệt rearticulation với sustained tied sound.
-- Tap Rhythm: tap onset đầu tie group và giữ im lặng ở tied-to segment; rest cũng không có target.
-
-**Củng cố và coaching.** Feedback phải nói “attack tiếp theo bị triệt tiêu” thay vì “bạn bỏ sót một nốt” khi lỗi là tie continuation. Có thể gợi ý khoảng 75–80% dot/tie comprehension và khoảng 80% onset, nhưng không khóa Level 5. Dotted eighth chỉ được nhắc như nội dung deferred, không được tạo thành topic độc lập ở Level 4.
-
-### Level 5 — Móc kép, tổ hợp tiết tấu và tiết tấu nâng cao
-
-**Mục tiêu.** Người học chia mỗi quarter thành bốn sixteenth positions, đọc móc kép/sixteenth rest, ghép quarter–eighth–sixteenth và rest, rồi củng cố có kiểm soát các kỹ năng cũ. “Tiết tấu nâng cao” ở đây là tổ hợp trong vocabulary V1 đã duyệt, không phải mở thêm tuplets, swing, mixed meter hay khóa Level 7/8 mới.
-
-**Điều kiện đầu vào.** Level 3 simple-meter fluency, Level 4 dot/tie distinction và khả năng giữ count qua rest. Người học chưa cần tốc độ cao; cần hiểu binary four-part grid.
-
-**Giới hạn ký hiệu và dấu lặng.** Dùng sixteenth notes và sixteenth rests, cùng các note/rest và dot/tie đã được phép. Dotted eighth chỉ bắt đầu ở level này khi sixteenth grid đã được giới thiệu. Không thêm tuplets, swing, polyrhythm, mixed meter hoặc arbitrary cross-pulse ties. Các tổ hợp phải giữ exact bar fill và readable beam.
-
-**Mở đầu và Lessons.**
-
-- Lesson 1: bốn vị trí sixteenth trong một quarter; dùng hệ đếm `1 e và a` hoặc hệ được giáo viên xác nhận.
-- Lesson 2: cell một beat: eighth + hai sixteenths và hai sixteenths + eighth.
-- Lesson 3: ghép cell thành 2/4, 3/4, 4/4; đặt rest trên lưới và xác định onset.
-- Lesson 4: advanced combinations có kiểm soát: thêm dot, tie hoặc rest từ level cũ, từng nguồn khó một lần.
-- Lesson 5: consolidation của nội dung syncopation cũ thuộc old L7 và integrated reading cũ thuộc old L8, chỉ trong khung V1 đã duyệt.
-
-**Practice.** Hiển thị lưới `1 e và a`, sau đó ẩn syllable nhưng giữ beat marker. Bắt đầu một onset sixteenth đơn trong cell rỗng, đến hai-event cell, rồi full bar. Sau khi isolated skill ổn định, luyện pattern có dot/tie/rest và controlled syncopation cũ. Không tự động tạo “Level 7 syncopation” hay “Level 8 integrated” mới; các bài nâng cao chỉ là consolidation được gắn vào Level 5 hoặc Assessment Level 6 theo framework này.
-
-**Assessment.**
-
-- Multiple Choice: nhận diện vị trí sixteenth, so sánh eighth với hai sixteenths, nhận diện dot/tie trong tổ hợp.
-- Count the Beat: chọn vị trí onset/rest trong four-part cell và xác định trường độ bar.
-- Listen & Identify: phân biệt tổ hợp sixteenth và eighth có cùng tổng duration nhưng khác onset.
-- Tap Rhythm: tap trên sixteenth grid, sau đó bài tổng hợp giới hạn một hoặc hai nguồn khó; không chấm giữ duration.
-
-**Củng cố và coaching.** Nếu mất pulse, quay về eighth cells ở cùng tempo. Nếu đọc đúng nhưng tap thêm ở tied continuation, route sang tie review; nếu tap đúng nhưng sai dot arithmetic, route sang duration review. Khoảng 75–80% là coaching signal. “Advanced” không được dùng để hợp thức hóa topic, course hoặc meter mới ngoài khung đã duyệt.
+**Practice và Assessment.** Xác minh ba onset cách đều 320 ticks (quarter triplet) hoặc 160 ticks (eighth triplet), tổng duration theo 3:2, canonical validation, timeline tick positions và audio-plan offsets. Sau phần isolated, kết hợp triplet với dots/ties/sixteenths đã học, bảo đảm mỗi bài không vượt ngân sách hai nguồn khó.
 
 ### Level 6 — Một nhóm kiến thức thống nhất: Grouping in Threes
 

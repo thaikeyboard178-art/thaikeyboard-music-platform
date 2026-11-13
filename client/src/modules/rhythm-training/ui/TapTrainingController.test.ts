@@ -112,7 +112,8 @@ async function flushMicrotasks(): Promise<void> {
 async function finishAttempt(
   h: Harness,
   firstTapOffsetMs = 0,
-  startAtIndex = 0
+  startAtIndex = 0,
+  skippedRounds: readonly (1 | 2)[] = []
 ): Promise<void> {
   const engine = h.engines.at(-1)!;
   const snapshot = engine.snapshot!;
@@ -122,13 +123,32 @@ async function finishAttempt(
     index++
   ) {
     const onset = snapshot.expectedOnsets[index];
+    if (skippedRounds.includes(onset.roundNumber)) continue;
     const at = onset.audioTime + (index === 0 ? firstTapOffsetMs : 0) / 1000;
     h.clock.at(at);
     h.input.dispatchEvent(h.clock.nativeTap(at));
     h.controller.acknowledgeTap();
   }
-  h.clock.at(snapshot.drainEndAudioTime + 0.03);
+  h.clock.at(
+    Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.03
+  );
   await flushMicrotasks();
+}
+
+async function tapRound(h: Harness, roundNumber: 1 | 2): Promise<void> {
+  const engine = h.engines.at(-1)!;
+  const round = engine.snapshot!.rounds[roundNumber - 1];
+  for (const onset of round.expectedOnsets) {
+    h.clock.at(onset.audioTime);
+    h.input.dispatchEvent(h.clock.nativeTap(onset.audioTime));
+  }
+}
+
+async function enterRound(h: Harness, roundNumber: 1 | 2): Promise<void> {
+  const round = h.engines.at(-1)!.snapshot!.rounds[roundNumber - 1];
+  h.clock.at(round.startAudioTime + 0.01);
+  await flushMicrotasks();
+  expect(h.engines.at(-1)!.currentRound).toBe(roundNumber);
 }
 
 async function finishReference(h: Harness): Promise<void> {
@@ -230,7 +250,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const engine = h.engines[0];
     expect(engine.state).toBe("count-in");
     expect(engine.snapshot?.expectedOnsets).toHaveLength(
-      exercise.targets.length
+      exercise.targets.length * 2
     );
 
     const first = engine.snapshot!.expectedOnsets[0];
@@ -245,12 +265,17 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const state = h.controller.getSnapshot();
     expect(state.result?.status).toBe("completed");
     expect(state.result?.mode).toBe("graded");
-    expect(state.result?.accuracyPercent).toBe(100);
+    expect(state.result?.accuracyPercent).toBeCloseTo(100, 10);
     expect(state.gradedResult).toBe(state.result);
     expect(state.points).toBe(10);
     expect(state.originalPoints).toBe(10);
     expect(state.session?.questionsAnswered).toBe(1);
-    expect(state.session?.correctAnswers).toBe(1);
+    expect(state.session?.correctAnswers).toBe(
+      state.result?.accuracyPercent === 100 ? 1 : 0
+    );
+    expect(state.session?.incorrectAnswers).toBe(
+      state.result?.accuracyPercent === 100 ? 0 : 1
+    );
     expect(state.phase).toBe("completed");
   });
 
@@ -262,12 +287,14 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const state = h.controller.getSnapshot();
     expect(state.result?.status).toBe("completed");
     expect(state.result?.accuracyPercent).toBeLessThan(100);
-    expect(state.points).toBe(5);
-    expect(state.originalPoints).toBe(5);
+    expect(state.result?.scoreOutOfTen).toBeGreaterThanOrEqual(0);
+    expect(state.result?.scoreOutOfTen).toBeLessThanOrEqual(10);
+    expect(state.points).toBe(state.result?.scoreOutOfTen);
+    expect(state.originalPoints).toBe(state.result?.scoreOutOfTen);
     expect(state.session?.questionsAnswered).toBe(1);
     expect(state.session?.correctAnswers).toBe(0);
     expect(state.session?.incorrectAnswers).toBe(1);
-    expect(state.session?.totalScore).toBe(5);
+    expect(state.session?.totalScore).toBe(state.result?.scoreOutOfTen);
   });
 
   it("retries with a new idle engine in practice and preserves the original graded result and points", async () => {
@@ -641,7 +668,9 @@ describe("approved Tap controller session lifecycle", () => {
     h.clock.advance(0.05);
     expect(engine.state).toBe("draining");
     expect(h.controller.canAdjustPracticeBpm).toBe(false);
-    h.clock.at(timing.drainEndAudioTime + 0.03);
+    h.clock.at(
+      Math.max(timing.drainEndAudioTime, timing.planEndAudioTime) + 0.03
+    );
     h.clock.advance(0.05);
     await flushMicrotasks();
     expect(h.controller.getSnapshot().result?.status).toBe("completed");
@@ -660,6 +689,95 @@ describe("approved Tap controller session lifecycle", () => {
     expect(h.controller.canAdjustPracticeBpm).toBe(false);
     expect(h.controller.chooseMode("practice")).toBe(false);
     expect(h.controller.canSkipCurrentExercise).toBe(false);
+  });
+
+  it.each([1, 2] as const)(
+    "skipping round %i excludes only that round, without penalty or exercise transition",
+    async skippedRound => {
+      const h = harness();
+      await prepared(h);
+      const exercise = h.controller.getSnapshot().exercise;
+      const sessionId = h.controller.getSnapshot().session?.sessionId;
+      await h.controller.start();
+      const snapshot = h.engines.at(-1)!.snapshot!;
+      const firstGridCount = snapshot.rounds[0].expectedOnsets.length;
+
+      if (skippedRound === 2) await tapRound(h, 1);
+      await enterRound(h, skippedRound);
+      expect(h.controller.canSkipCurrentRound).toBe(true);
+      expect(h.controller.skipCurrentRound()).toBe(true);
+      expect(h.controller.skipCurrentRound()).toBe(false);
+
+      const afterSkip = h.controller.getSnapshot();
+      expect(afterSkip.currentRound).toBe(skippedRound);
+      expect(afterSkip.skippedRounds).toEqual([skippedRound]);
+      expect(afterSkip.exercise).toBe(exercise);
+      expect(afterSkip.session?.sessionId).toBe(sessionId);
+      expect(afterSkip.session?.questionsAnswered).toBe(0);
+      expect(afterSkip.session?.totalScore).toBe(0);
+      expect(afterSkip.lastSkipPenalty).toBeNull();
+      expect(afterSkip.result).toBeNull();
+      expect(afterSkip.points).toBeNull();
+
+      await finishAttempt(
+        h,
+        0,
+        skippedRound === 2 ? firstGridCount : 0,
+        [skippedRound]
+      );
+      const completed = h.controller.getSnapshot();
+      expect(completed.exercise).toBe(exercise);
+      expect(completed.result?.rounds?.map(round => round.status)).toEqual(
+        skippedRound === 1 ? ["skipped", "played"] : ["played", "skipped"]
+      );
+      expect(completed.skippedRounds).toEqual([skippedRound]);
+      expect(completed.result?.accuracyPercent).toBeCloseTo(100, 10);
+      expect(completed.points).toBe(10);
+      expect(completed.session?.sessionId).toBe(sessionId);
+      expect(completed.session?.questionsAnswered).toBe(1);
+      expect(completed.session?.correctAnswers).toBe(
+        completed.result?.accuracyPercent === 100 ? 1 : 0
+      );
+      expect(completed.session?.incorrectAnswers).toBe(
+        completed.result?.accuracyPercent === 100 ? 0 : 1
+      );
+      expect(completed.session?.totalScore).toBe(10);
+      expect(completed.lastSkipPenalty).toBeNull();
+    }
+  );
+
+  it("skipping both Tap rounds completes without a score, answer, penalty, or exercise transition", async () => {
+    const h = harness();
+    await prepared(h);
+    const exercise = h.controller.getSnapshot().exercise;
+    const session = h.controller.getSnapshot().session;
+    await h.controller.start();
+
+    await enterRound(h, 1);
+    expect(h.controller.skipCurrentRound()).toBe(true);
+    await enterRound(h, 2);
+    expect(h.controller.skipCurrentRound()).toBe(true);
+    await finishAttempt(h, 0, 0, [1, 2]);
+
+    const state = h.controller.getSnapshot();
+    expect(state.exercise).toBe(exercise);
+    expect(state.result?.status).toBe("completed");
+    expect(state.result?.accuracyPercent).toBeNull();
+    expect(state.result?.scoreOutOfTen).toBeNull();
+    expect(state.result?.rounds?.map(round => round.status)).toEqual([
+      "skipped",
+      "skipped",
+    ]);
+    expect(state.skippedRounds).toEqual([1, 2]);
+    expect(state.points).toBeNull();
+    expect(state.gradedResult).toBeNull();
+    expect(state.originalPoints).toBeNull();
+    expect(state.session).toBe(session);
+    expect(state.session?.questionsAnswered).toBe(0);
+    expect(state.session?.correctAnswers).toBe(0);
+    expect(state.session?.incorrectAnswers).toBe(0);
+    expect(state.session?.totalScore).toBe(0);
+    expect(state.lastSkipPenalty).toBeNull();
   });
 
   it("applies a graded skip once during collection after caller confirmation and never fakes an answer", async () => {

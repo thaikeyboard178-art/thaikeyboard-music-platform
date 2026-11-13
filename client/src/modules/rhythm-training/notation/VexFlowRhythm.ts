@@ -9,6 +9,7 @@ import {
   Stave,
   StaveNote,
   StaveTie,
+  Tuplet,
   VexFlow,
   Voice,
   type RenderContext,
@@ -20,6 +21,7 @@ import {
   type ImmutableRhythmNotationProjection,
   type NotationBeamGroup,
   type NotationSegmentProjection,
+  type NotationTupletGroup,
 } from "./projection";
 
 export type RhythmNotationRenderOptions = Readonly<{
@@ -295,6 +297,76 @@ function markBeamElements(
   });
 }
 
+/** VexFlow applies the 2/3 tick multiplier when Tuplet is attached, before Voice.addTickables. */
+function attachTuplets(
+  groups: readonly NotationTupletGroup[],
+  notesById: ReadonlyMap<string, StaveNote>
+): readonly Tuplet[] {
+  return Object.freeze(
+    groups.map(group => {
+      const notes = group.segmentIds.map(id => notesById.get(id));
+      if (notes.length !== 3 || notes.some(note => note === undefined))
+        throw new RhythmNotationRenderError(
+          `Tuplet ${group.groupId} cannot resolve three canonical notes`
+        );
+      return new Tuplet(notes as StaveNote[], {
+        numNotes: group.actualNotes,
+        notesOccupied: group.normalNotes,
+        bracketed: true,
+        ratioed: false,
+        location: Tuplet.LOCATION_TOP,
+      });
+    })
+  );
+}
+
+function markTupletElements(
+  svg: SVGSVGElement,
+  groups: readonly NotationTupletGroup[]
+): void {
+  const elements = [...svg.querySelectorAll<SVGGElement>(".vf-tuplet")];
+  if (elements.length !== groups.length)
+    throw new RhythmNotationRenderError(
+      "Drawn tuplets disagree with canonical groups"
+    );
+  elements.forEach((element, index) => {
+    if (!element.querySelector("text"))
+      throw new RhythmNotationRenderError("Tuplet has no drawn number glyph");
+    const group = groups[index];
+    element.setAttribute("data-rhythm-tuplet-id", group.groupId);
+    element.setAttribute(
+      "data-rhythm-tuplet-segments",
+      group.segmentIds.join(",")
+    );
+    element.setAttribute("data-rhythm-tuplet-ratio", "3:2");
+    element.setAttribute(
+      "data-canonical-start-ticks",
+      String(group.startTicks)
+    );
+    element.setAttribute("data-canonical-end-ticks", String(group.endTicks));
+  });
+}
+
+// AbsoluteX is the left edge, not the head center. Use the actual head glyph,
+// excluding stems, flags, dots and articulations; all timing remains untouched.
+function noteheadCenterX(
+  note: StaveNote,
+  glyph?: SVGGraphicsElement | null
+): number {
+  if (glyph && typeof glyph.getBBox === "function") {
+    const bounds = glyph.getBBox();
+    if (
+      Number.isFinite(bounds.x) &&
+      Number.isFinite(bounds.width) &&
+      bounds.width > 0
+    )
+      return bounds.x + bounds.width / 2;
+  }
+  const head = note.noteHeads[0];
+  if (!head) throw new RhythmNotationRenderError("Missing engraved notehead");
+  return head.getAbsoluteX() + head.getWidth() / 2;
+}
+
 function compareActualPositions(
   note: StaveNote,
   segment: NotationSegmentProjection,
@@ -307,7 +379,12 @@ function compareActualPositions(
     segment.canonicalDurationTicks
   );
   const actualDuration = note.getTicks();
-  const actualStart = new Fraction(note.getTickContext().getTickID(), 1);
+  // Formatter keys TickContexts by integer numerator at the voice LCM resolution.
+  // Tuplets raise that resolution to 3; the ID alone is not a duration in VexFlow ticks.
+  const actualStart = new Fraction(
+    note.getTickContext().getTickID(),
+    note.getVoice().getResolutionMultiplier()
+  );
   const tickMatches = actualDuration.equals(expectedDuration);
   const positionMatches = actualStart.equals(expectedStart);
   return Object.freeze({
@@ -476,6 +553,7 @@ export function renderRhythmNotation(
   const notesById = new Map<string, StaveNote>();
   const allNotes: StaveNote[] = [];
   const voices: Voice[] = [];
+  const tuplets: Tuplet[] = [];
   const voiceReports: RhythmVoiceParityReport[] = [];
   const stavesByMeasure = new Map<number, Stave>();
   const notesByMeasure = new Map<number, readonly StaveNote[]>();
@@ -510,6 +588,20 @@ export function renderRhythmNotation(
           stave.addTimeSignature(meterTime(projection.canonicalPattern.meter));
       }
       const notes = measureSegments.map(makeStaveNote);
+      const measureNotesById = new Map(
+        measureSegments.map((segment, index) => [
+          segment.segmentId,
+          notes[index],
+        ])
+      );
+      tuplets.push(
+        ...attachTuplets(
+          projection.tupletGroups.filter(
+            group => group.measureIndex === measureIndex
+          ),
+          measureNotesById
+        )
+      );
       const voice = makeVoice(projection.canonicalPattern.meter, notes);
       voice.setStave(stave);
       stave.setContext(context);
@@ -613,6 +705,7 @@ export function renderRhythmNotation(
     voice.draw(context, stave);
   }
   drawBeams(beams);
+  for (const tuplet of tuplets) tuplet.setContext(context).draw();
 
   const tieMarkers: TieMarker[] = [];
   for (const edge of projection.tieEdges) {
@@ -695,10 +788,24 @@ export function renderRhythmNotation(
     throw new RhythmNotationRenderError("VexFlow notation parity check failed");
   }
   if (renderOptions.exposeCanonicalMetadata) {
-    addCanonicalDataAttributes(svg, allNotes, projection.segments, rowByMeasure);
+    addCanonicalDataAttributes(
+      svg,
+      allNotes,
+      projection.segments,
+      rowByMeasure
+    );
     markTieElements(svg, tieMarkers);
     markBeamElements(svg, projection.beamGroups);
+    markTupletElements(svg, projection.tupletGroups);
   }
+  const engravedHeads = new Map(
+    projection.segments.map((segment, index) => [
+      segment.segmentId,
+      svg
+        .querySelectorAll<SVGGElement>('g[class*="stavenote"]')
+        [index]?.querySelector<SVGGraphicsElement>(".vf-notehead text"),
+    ])
+  );
   const measureTicks = projection.timeline.meter.measureTicks;
   const geometry: readonly RhythmNotationMeasureGeometry[] = Object.freeze(
     [...stavesByMeasure.entries()]
@@ -713,7 +820,10 @@ export function renderRhythmNotation(
             Object.freeze({
               segmentId: segment.segmentId,
               tick: segment.startTicks,
-              x: notes[index].getAbsoluteX(),
+              x: noteheadCenterX(
+                notes[index],
+                engravedHeads.get(segment.segmentId)
+              ),
             })
           )
         );

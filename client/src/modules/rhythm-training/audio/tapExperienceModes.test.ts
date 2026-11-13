@@ -45,12 +45,18 @@ function tapAll(
   engine: TapRhythmEngine,
   firstOffsetMs = 0
 ) {
-  for (const [index, target] of engine.snapshot!.expectedOnsets.entries()) {
-    const time = target.audioTime + (index === 0 ? firstOffsetMs : 0) / 1000;
+  const snapshot = engine.snapshot!;
+  for (const [index, target] of snapshot.expectedOnsets.entries()) {
+    const round = snapshot.rounds[target.roundNumber - 1];
+    const localOffset = target.audioTime - round.anchorAudioTime;
+    const time =
+      round.anchorAudioTime +
+      localOffset +
+      (index === 0 ? firstOffsetMs : 0) / 1000;
     clock.at(time);
     input.dispatchEvent(clock.nativeTap(time));
   }
-  clock.at(engine.snapshot!.drainEndAudioTime + 0.03);
+  clock.at(Math.max(snapshot.drainEndAudioTime, snapshot.planEndAudioTime) + 0.1);
 }
 
 async function flushMicrotasks() {
@@ -131,7 +137,7 @@ describe("explicit Tap experience modes", () => {
     await h.engine.dispose();
   });
 
-  it("keeps Formula B diagnostics identical across modes for the same captured timing", async () => {
+  it("keeps Formula B diagnostic accuracy identical across modes for the same captured timing", async () => {
     const practice = setup();
     await practice.engine.start("practice");
     tapAll(

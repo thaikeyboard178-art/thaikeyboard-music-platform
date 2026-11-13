@@ -234,7 +234,7 @@ describe("Rhythm Quiz question bank", () => {
   });
 
   it("creates exact-count, unique Mixed runs from all seven curriculum groups with reproducible level diversity", () => {
-    expect(RHYTHM_QUIZ_QUESTION_COUNTS).toEqual([5, 10, 20, 30]);
+    expect(RHYTHM_QUIZ_QUESTION_COUNTS).toEqual([5, 10, 20, 30, 50]);
     expect(DEFAULT_RHYTHM_QUIZ_QUESTION_COUNT).toBe(10);
     const first = createQuizRun("mixed", "all-levels-stable", 30);
     const repeat = createQuizRun("mixed", "all-levels-stable", 30);

@@ -1,9 +1,12 @@
 import React from "react";
 import type { TapAttemptResult } from "../exercises/tapCompletion";
-import type { TapTargetResult } from "../exercises/tapMatcher";
+import type { TapRoundResult } from "../exercises/tapRoundScoring";
+import type { TapRhythmExercise } from "../exercises/tapRhythm";
+import { RelativeTimingFeedbackPanel } from "./RelativeTimingFeedbackPanel";
 
 type TapResultPanelProps = Readonly<{
   result: TapAttemptResult;
+  exercise?: TapRhythmExercise;
   points: number | null;
   originalPoints?: number | null;
   onRetry: () => void;
@@ -15,53 +18,58 @@ type TapResultPanelProps = Readonly<{
   practiceLabel?: string;
 }>;
 
-type TapStatusCounts = Readonly<{
-  matched: number;
-  early: number;
-  late: number;
-  missing: number;
-  extra: number;
-  n: number;
-  k: number;
-  extraSequences: readonly number[];
-}>;
-
 export type TapResultSummary = Readonly<{
   accuracyPercent: number | null;
-  counts: TapStatusCounts | null;
-  notApplicable: boolean;
+  scoreOutOfTen: number | null;
+  roundAccuracies: readonly [number | null, number | null];
+  roundsPlayed: number;
+  roundsSkipped: number;
+  missedTargetCount: number;
+  playedTargetCount: number;
+  extraTapCount: number;
+  hasTwoRoundResult: boolean;
 }>;
 
-/** Summarizes only the immutable statuses emitted by the production matcher. */
+/** Reads the immutable two-round result; never reruns or replaces the matcher. */
 export function summarizeTapResult(result: TapAttemptResult): TapResultSummary {
-  const evaluation = result.evaluation;
-  if (result.status !== "completed" || evaluation === null) {
+  const rounds = result.rounds;
+  if (result.status !== "completed" || !rounds || rounds.length !== 2) {
     return Object.freeze({
       accuracyPercent: null,
-      counts: null,
-      notApplicable: false,
+      scoreOutOfTen: null,
+      roundAccuracies: Object.freeze([null, null]) as readonly [null, null],
+      roundsPlayed: 0,
+      roundsSkipped: 0,
+      missedTargetCount: 0,
+      playedTargetCount: 0,
+      extraTapCount: 0,
+      hasTwoRoundResult: false,
     });
   }
-
-  const targets = evaluation.targetResults;
-  const taps = evaluation.tapResults;
-  const counts: TapStatusCounts = Object.freeze({
-    matched: targets.filter(target => target.status === "matched").length,
-    early: targets.filter(target => target.status === "early").length,
-    late: targets.filter(target => target.status === "late").length,
-    missing: targets.filter(target => target.status === "missing").length,
-    extra: taps.filter(tap => tap.status === "extra").length,
-    n: targets.length,
-    k: taps.length,
-    extraSequences: Object.freeze(
-      taps.filter(tap => tap.status === "extra").map(tap => tap.sequence)
-    ),
-  });
-  const notApplicable = counts.n === 0 || result.accuracyPercent === null;
+  const playedRounds = rounds.filter(round => round.status === "played");
+  const roundsSkipped = rounds.filter(
+    round => round.status === "skipped"
+  ).length;
   return Object.freeze({
-    accuracyPercent: notApplicable ? null : result.accuracyPercent,
-    counts,
-    notApplicable,
+    // Keep the scorer's recorded average; do not recompute it in the view.
+    accuracyPercent: result.accuracyPercent,
+    scoreOutOfTen: result.scoreOutOfTen ?? null,
+    roundAccuracies: Object.freeze([
+      rounds[0].accuracyPercent,
+      rounds[1].accuracyPercent,
+    ]) as readonly [number | null, number | null],
+    roundsPlayed: playedRounds.length,
+    roundsSkipped,
+    missedTargetCount: playedRounds.reduce(
+      (sum, round) => sum + round.missedTargetCount,
+      0
+    ),
+    playedTargetCount: result.targetTicks.length * playedRounds.length,
+    extraTapCount: playedRounds.reduce(
+      (sum, round) => sum + round.extraTapCount,
+      0
+    ),
+    hasTwoRoundResult: true,
   });
 }
 
@@ -93,41 +101,35 @@ function friendlyReason(reason: string | null): string {
   );
 }
 
-function targetStatusText(target: TapTargetResult): string {
-  switch (target.status) {
-    case "matched":
-      return "Khớp nhịp";
-    case "early":
-      return "Chạm sớm — lệch ngoài vùng khớp";
-    case "late":
-      return "Chạm muộn — lệch ngoài vùng khớp";
-    case "missing":
-      return "Chưa có lần chạm ở đầu nốt này";
-  }
-}
-
-function signedTimingText(target: TapTargetResult): string | null {
-  if (target.errorMs === null || target.status === "missing") return null;
-  if (target.status === "early") {
-    return `Sớm ${Math.round(Math.abs(target.errorMs))} ms`;
-  }
-  if (target.status === "late") {
-    return `Muộn ${Math.round(Math.abs(target.errorMs))} ms`;
-  }
-  return null;
-}
-
-function formatAccuracy(value: number): string {
+function formatAccuracy(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "Không khả dụng";
   return `${Number.isInteger(value) ? value : value.toFixed(1)}%`;
 }
 
+function formatReferenceScore(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  return `${value}/10`;
+}
+
 function formatPoints(value: number | null | undefined): string {
-  if (value === 10 || value === 0) return `+${value} điểm`;
-  return "Chưa có điểm được ghi";
+  if (value === null || value === undefined) return "Chưa có điểm được ghi";
+  if (!Number.isInteger(value) || value < 0 || value > 10)
+    return "Chưa có điểm được ghi";
+  return `+${value} điểm`;
+}
+
+function roundScoreText(
+  round: TapRoundResult | undefined,
+  accuracyPercent: number | null
+): string {
+  if (!round) return "Không khả dụng";
+  if (round.status === "skipped") return "Đã bỏ qua";
+  return formatAccuracy(accuracyPercent);
 }
 
 export function TapResultPanel({
   result,
+  exercise,
   points,
   originalPoints,
   onRetry,
@@ -136,24 +138,38 @@ export function TapResultPanel({
   lesson = false,
   retryLabel = "Luyện lại",
   continueLabel = "Tiếp tục",
-  practiceLabel = "Chơi thử — không ghi điểm chính thức",
+  practiceLabel = "Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm.",
 }: TapResultPanelProps) {
   const summary = summarizeTapResult(result);
-  const evaluation = result.evaluation;
-  const isAnalyzable =
-    result.status === "completed" &&
-    summary.counts !== null &&
-    summary.counts.n > 0 &&
-    summary.accuracyPercent !== null;
   const isTechnical = result.status === "technical-abort";
-  const shouldExplainUngraded = isTechnical || !isAnalyzable;
-  const showStatusDetails =
-    isAnalyzable && evaluation !== null && summary.counts !== null;
+  const hasCompletedTwoRounds =
+    result.status === "completed" && summary.hasTwoRoundResult;
+  const rounds = result.status === "completed" ? result.rounds : undefined;
   const showGradedPoints =
     !lesson &&
-    result.status === "completed" &&
+    hasCompletedTwoRounds &&
     result.mode === "graded" &&
-    isAnalyzable;
+    summary.scoreOutOfTen !== null &&
+    points !== null;
+  const referenceScoreAnnouncement =
+    summary.scoreOutOfTen === null
+      ? "Điểm tham khảo không khả dụng."
+      : `Điểm tham khảo ${summary.scoreOutOfTen}/10.`;
+  const currentScoreAnnouncement =
+    result.mode === "practice"
+      ? referenceScoreAnnouncement
+      : `Điểm đã ghi: ${formatPoints(points)}.`;
+  const missingHeadsText =
+    summary.roundsPlayed === 0 || summary.playedTargetCount === 0
+      ? "—"
+      : `${summary.missedTargetCount}/${summary.playedTargetCount}`;
+  const extraTapsText =
+    summary.roundsPlayed === 0 ? "—" : String(summary.extraTapCount);
+  const liveAnnouncement = isTechnical
+    ? "Bài chưa được chấm do sự cố kỹ thuật."
+    : hasCompletedTwoRounds
+      ? `Kết quả hai vòng: ${summary.roundsPlayed}/2 vòng đã chơi; trung bình ${formatAccuracy(summary.accuracyPercent)}; thiếu ${missingHeadsText} đầu nốt; chạm thừa ${extraTapsText}. ${currentScoreAnnouncement}`
+      : "Lượt chưa có kết quả hai vòng hợp lệ.";
 
   return (
     <section
@@ -161,154 +177,121 @@ export function TapResultPanel({
       aria-labelledby="rhythm-result-title"
       data-testid="tap-result"
     >
-      <div className="rhythm-result-live" role="status" aria-live="polite">
-        <p className="rhythm-result-eyebrow">
-          {lesson
-            ? "BÀI HỌC — VÍ DỤ KHÔNG CHẤM ĐIỂM"
-            : result.mode === "practice"
-              ? "KẾT QUẢ LUYỆN TẬP"
-              : "KẾT QUẢ BÀI TẬP"}
-        </p>
-        <h2 id="rhythm-result-title">Kết quả lượt gõ nhịp</h2>
-        <div
-          className="rhythm-missing-legend"
-          aria-label="Chú giải marker Thiếu"
-          data-testid="tap-missing-legend"
-        >
-          <span
-            aria-hidden="true"
-            data-testid="tap-missing-legend-swatch"
-            style={{
-              background: "transparent",
-              border: "2.5px solid #c94b45",
-              borderRadius: "50%",
-              boxSizing: "border-box",
-              display: "inline-block",
-              height: "0.72rem",
-              width: "0.72rem",
-            }}
-          />
-          <span>Thiếu</span>
-        </div>
+      <p
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="tap-result-announcement"
+      >
+        {liveAnnouncement}
+      </p>
+      <div className="rhythm-result-live">
+        {lesson && (
+          <p className="rhythm-result-eyebrow">
+            BÀI HỌC — VÍ DỤ KHÔNG CHẤM ĐIỂM
+          </p>
+        )}
+        <h2 id="rhythm-result-title">Kết quả hai vòng gõ nhịp</h2>
 
         {lesson && (
           <p className="rhythm-practice-label">
-            Bài học — ví dụ thực hành không ghi điểm. Timing Accuracy chỉ để
-            tham khảo; không tạo shared answer.
+            Bài học — ví dụ thực hành không ghi điểm. Accuracy chỉ để tham khảo;
+            không tạo shared answer.
           </p>
         )}
         {result.mode === "practice" && !lesson && (
           <p className="rhythm-practice-label">{practiceLabel}</p>
         )}
 
-        {showStatusDetails && summary.counts && evaluation && (
-          <>
-            <div className="rhythm-metrics" aria-label="Chỉ số kết quả">
-              <div className="rhythm-metric rhythm-metric-primary">
-                <span>Độ chính xác nhịp (Timing Accuracy)</span>
-                <strong data-testid="tap-accuracy">
-                  {formatAccuracy(summary.accuracyPercent!)}
-                </strong>
-              </div>
-              <div className="rhythm-metric">
-                <span>Khớp</span>
-                <strong data-testid="tap-count-matched">
-                  {summary.counts.matched}
-                </strong>
-              </div>
-              <div className="rhythm-metric">
-                <span>Lệch</span>
-                <strong data-testid="tap-count-misaligned">
-                  {summary.counts.early + summary.counts.late}
-                </strong>
-              </div>
-              <div className="rhythm-metric">
-                <span>Thiếu lần chạm</span>
-                <strong data-testid="tap-count-missing">
-                  {summary.counts.missing}
-                </strong>
-              </div>
-              <div className="rhythm-metric">
-                <span>Chạm thừa</span>
-                <strong data-testid="tap-count-extra">
-                  {summary.counts.extra}
-                </strong>
-              </div>
+        {hasCompletedTwoRounds && (
+          <div className="rhythm-metrics" aria-label="Kết quả hai vòng">
+            <div className="rhythm-metric">
+              <span>Vòng đã chơi</span>
+              <strong data-testid="tap-rounds-played">
+                {summary.roundsPlayed}/2
+              </strong>
             </div>
-
-            <details
-              className="rhythm-result-details"
-              data-testid="tap-result-details"
-            >
-              <summary>Chi tiết lần chạm</summary>
-              <p className="rhythm-result-nk">
-                N (đầu nốt cần chạm): {summary.counts.n} · K (lần chạm):{" "}
-                {summary.counts.k}
-              </p>
-              <p className="rhythm-misaligned-details">
-                Chạm sớm:{" "}
-                <strong data-testid="tap-count-early">
-                  {summary.counts.early}
-                </strong>
-                {" · "}
-                Chạm muộn:{" "}
-                <strong data-testid="tap-count-late">
-                  {summary.counts.late}
-                </strong>
-              </p>
-              <ul
-                className="rhythm-feedback-list"
-                aria-label="Phản hồi từng đầu nốt"
+            <div className="rhythm-metric">
+              <span>Đầu nốt thiếu</span>
+              <strong
+                data-testid="tap-count-missing"
+                aria-label={
+                  summary.roundsPlayed === 0
+                    ? "Chưa có vòng nào được chơi"
+                    : summary.playedTargetCount === 0
+                      ? "Không có đầu nốt để chấm"
+                      : `${summary.missedTargetCount} trên ${summary.playedTargetCount} đầu nốt đã chơi`
+                }
               >
-                {evaluation.targetResults.map((target, index) => {
-                  const timing = signedTimingText(target);
-                  return (
-                    <li
-                      className={`rhythm-feedback-item is-${target.status}`}
-                      key={`${target.targetId}-${target.targetIndex}`}
-                    >
-                      <span className="rhythm-feedback-label">
-                        Đầu nốt {index + 1}
-                      </span>
-                      <span>{targetStatusText(target)}</span>
-                      {timing && <small>{timing}</small>}
-                    </li>
-                  );
-                })}
-              </ul>
-              {summary.counts.extra > 0 && (
-                <p className="rhythm-extra-note">
-                  Lần chạm thừa
-                  {summary.counts.extraSequences.length > 0
-                    ? `: ${summary.counts.extraSequences
-                        .map(sequence => sequence + 1)
-                        .join(", ")}`
-                    : ""}
-                  .
-                </p>
-              )}
-            </details>
-          </>
+                {missingHeadsText}
+              </strong>
+            </div>
+            <div className="rhythm-metric">
+              <span>Chạm thừa</span>
+              <strong data-testid="tap-count-extra">{extraTapsText}</strong>
+            </div>
+            <div
+              className="rhythm-metric"
+              aria-label={
+                result.mode === "practice"
+                  ? "Điểm tham khảo, không cộng vào tổng điểm"
+                  : "Điểm tham khảo; điểm đã ghi chính thức hiển thị riêng"
+              }
+            >
+              <span>Điểm tham khảo /10</span>
+              <strong data-testid="tap-reference-score">
+                {formatReferenceScore(summary.scoreOutOfTen)}
+              </strong>
+            </div>
+            <div className="rhythm-metric">
+              <span>Điểm vòng 1</span>
+              <strong data-testid="tap-round-1-accuracy">
+                {roundScoreText(rounds?.[0], summary.roundAccuracies[0])}
+              </strong>
+            </div>
+            <div className="rhythm-metric">
+              <span>Điểm vòng 2</span>
+              <strong data-testid="tap-round-2-accuracy">
+                {roundScoreText(rounds?.[1], summary.roundAccuracies[1])}
+              </strong>
+            </div>
+            <div className="rhythm-metric rhythm-metric-average">
+              <span>Trung bình các vòng đã chơi</span>
+              <strong data-testid="tap-accuracy">
+                {formatAccuracy(summary.accuracyPercent)}
+              </strong>
+            </div>
+          </div>
         )}
 
-        {shouldExplainUngraded && (
+        {hasCompletedTwoRounds && summary.accuracyPercent === null && (
           <div className="rhythm-ungraded" role="note">
-            <strong>Bài chưa được chấm — đây không phải lỗi của bạn.</strong>
+            <strong>Không có điểm khả dụng.</strong>
             <p>
-              {isTechnical
-                ? friendlyReason(result.reason)
-                : summary.counts?.n === 0
-                  ? "Bài không có nhịp onset để chấm (N = 0), nên Timing Accuracy không áp dụng."
-                  : result.evaluation === null
-                    ? friendlyReason(result.reason)
-                    : "Lượt này chưa có Timing Accuracy hợp lệ để hiển thị."}
+              {summary.roundsPlayed === 0
+                ? "Cả hai vòng đã được bỏ qua; không có vòng để tính điểm."
+                : "Không có đủ khoảng đầu nốt tham chiếu hợp lệ để tính điểm."}
             </p>
           </div>
         )}
 
+        {isTechnical && (
+          <div className="rhythm-ungraded" role="note">
+            <strong>Bài chưa được chấm — đây không phải lỗi của bạn.</strong>
+            <p>{friendlyReason(result.reason)}</p>
+          </div>
+        )}
+        {result.status === "completed" && !summary.hasTwoRoundResult && (
+          <div className="rhythm-ungraded" role="note">
+            <strong>Không có dữ liệu kết quả cho đủ hai vòng.</strong>
+            <p>Hãy bắt đầu một lượt Tap Rhythm mới để nhận kết quả.</p>
+          </div>
+        )}
+
         {result.mode === "graded" && !lesson && (
-          <div className="rhythm-points" aria-label="Điểm bài tập">
-            <span>Exercise Points</span>
+          <div className="rhythm-points" aria-label="Điểm bài tập đã ghi">
+            <span>Điểm bài tập /10</span>
             <strong data-testid="tap-points">
               {showGradedPoints ? formatPoints(points) : "Chưa ghi điểm"}
             </strong>
@@ -320,11 +303,13 @@ export function TapResultPanel({
           originalPoints !== null &&
           originalPoints !== undefined && (
             <p className="rhythm-original-points">
-              {originalPoints === 10 || originalPoints === 0
-                ? `Điểm đã ghi từ bài chấm trước: ${formatPoints(originalPoints)}. Điểm này được giữ nguyên, không tính lại ở lượt luyện.`
-                : "Điểm đã ghi từ bài chấm trước được giữ nguyên, không tính lại ở lượt luyện."}
+              {`Điểm đã ghi từ bài chấm trước: ${formatPoints(originalPoints)}. Điểm này được giữ nguyên, không tính lại ở lượt luyện.`}
             </p>
           )}
+
+        {exercise && hasCompletedTwoRounds && (
+          <RelativeTimingFeedbackPanel exercise={exercise} result={result} />
+        )}
       </div>
 
       <div className="rhythm-result-actions">

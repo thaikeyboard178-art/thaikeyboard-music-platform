@@ -26,6 +26,11 @@ export const FOCUS_LABELS: Readonly<Record<RhythmFocus, string>> = {
   compound: "Phách phức — nhóm ba",
   syncopation: "Đảo phách có kiểm soát",
   integrated: "Tổ hợp nâng cao",
+  snap: "Móc giật — móc đơn chấm dôi và móc kép",
+  sandwich: "Đòn gánh — móc kép, móc đơn, móc kép",
+  "quarter-triplets": "Liên 3 đen",
+  "eighth-triplets": "Liên 3 đơn",
+  "triplet-combined": "Liên ba kết hợp trường độ đã học",
 };
 
 export const TRACK_LABELS: Readonly<Record<RhythmTrack, string>> = {
@@ -39,11 +44,11 @@ export const TRACK_LABELS: Readonly<Record<RhythmTrack, string>> = {
 };
 
 export const LEARNER_TRACK_NOTES: Readonly<Record<RhythmTrack, string>> = {
-  1: "Nhận biết nốt đen, nốt trắng, nốt tròn và dấu lặng đen; chưa mở Tap Rhythm.",
-  2: "Chia đôi phách nốt đen thành hai móc đơn; chưa mở Tap Rhythm.",
-  3: "Kết hợp nốt chấm dôi, dấu nối và trường độ đã học trong nhịp 2/4, 3/4 và 4/4.",
-  4: "Đọc bốn vị trí móc kép trong mỗi phách, cùng các dấu lặng và trường độ đã học; không chạm lại ở tie continuation.",
-  5: "Kết hợp có kiểm soát nhiều trường độ, gồm chấm dôi, nối, móc kép và đảo phách.",
+  1: "Luyện nốt đen, nốt trắng, nốt tròn và dấu lặng đen trong khung 4/4.",
+  2: "Chia đôi phách nốt đen thành hai móc đơn, giữ nhịp qua dấu lặng.",
+  3: "Luyện chấm dôi, dấu nối và trường độ trong nhịp đơn 2/4, 3/4 và 4/4. Với 2/4, chọn từng nội dung riêng để còn chỗ cho dấu lặng; kết hợp dùng 3/4 hoặc 4/4.",
+  4: "Từ lưới móc kép đến móc giật, đòn gánh và các tổ hợp đảo phách; không chạm lại ở nốt nối tiếp.",
+  5: "Luyện liên 3 đen, liên 3 đơn rồi kết hợp trường độ và đảo phách đã học. Trong 2/4, chọn liên 3 đơn để còn chỗ cho dấu lặng; liên 3 đen dùng 3/4 hoặc 4/4.",
   6: "3/8 có ba phách móc đơn độc lập; 6/8 và 9/8 có phách phức là nốt đen chấm dôi.",
   bonus:
     "Giữ hai phách nốt trắng mỗi ô nhịp, khác bốn phách nốt đen của 4/4. Đây là bài bổ sung tùy chọn.",
@@ -85,10 +90,24 @@ export function getTapFocuses(
   meter: RhythmMeter
 ): readonly RhythmFocus[] {
   const focuses = policyForLevel(track).supportedFocus;
+  if (
+    (track === 3 || track === 4) &&
+    meter.numerator === 2 &&
+    meter.denominator === 4
+  )
+    return focuses.filter(focus => focus !== "combined");
+  // A quarter-triplet group occupies both beats of 2/4, leaving no space for
+  // the mandated rest. Offer the feasible eighth-triplet vocabulary instead.
+  if (track === 5 && meter.numerator === 2 && meter.denominator === 4)
+    return focuses.filter(focus => focus !== "quarter-triplets");
   // These configurations already fail the generator's existing 3/8 gate:
-  // compound focus is not simple triple, and dot+tie cannot fit this bar.
+  // Compound focus is not simple triple. A dotted quarter fills 3/8, so
+  // dots cannot leave the mandatory rest; dot+tie cannot fit either.
   return meter.numerator === 3 && meter.denominator === 8
-    ? focuses.filter(focus => focus !== "compound" && focus !== "combined")
+    ? focuses.filter(
+        focus =>
+          focus !== "compound" && focus !== "combined" && focus !== "dots"
+      )
     : focuses;
 }
 
