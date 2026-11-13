@@ -374,27 +374,12 @@ export function evaluateTapRhythmAnswer(
         exercise.pattern.meter,
         exercise.pattern.tempo.pulseBpm
       ) * 1000;
-    if (
-      answer.firstTapSequence !== undefined &&
-      (!Number.isSafeInteger(answer.firstTapSequence) ||
-        answer.firstTapSequence < 0 ||
-        answer.rounds[0].firstTapSequence !== answer.firstTapSequence ||
-        !answer.rounds[0].taps.some(
-          tap => tap.sequence === answer.firstTapSequence
-        ))
-    ) {
-      return null;
-    }
     const score = calculateTapTwoRoundScore(
       canonicalTargets,
       answer.rounds.map(round => ({
         roundNumber: round.roundNumber,
         skipped: round.status === "skipped",
         taps: round.taps,
-        ...(round.firstTapSequence === undefined ||
-        round.firstTapSequence === null
-          ? {}
-          : { firstTapSequence: round.firstTapSequence }),
       })),
       canonicalPulseMs
     );

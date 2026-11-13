@@ -6,35 +6,75 @@ import {
 import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
 
-/** A single canonical measure of technical-pulse metronome for free listening. */
-export function createTapMetronomeLoopPlan(
-  exercise: TapRhythmExercise
-): RhythmAudioPlan {
-  const firstMeasure = exercise.pattern.measures[0];
-  if (!firstMeasure) throw new RangeError("Tap exercises must contain a measure.");
-  return createRhythmAudioPlan(
-    Object.freeze({
-      ...exercise.pattern,
-      id: `${exercise.pattern.id}-free-metronome`,
-      measures: Object.freeze([firstMeasure]),
-    }),
-    "metronome"
-  );
+export const TAP_COUNT_IN_BARS = [1, 2, 4, 6, 8] as const;
+export type TapCountInBars = (typeof TAP_COUNT_IN_BARS)[number];
+export const DEFAULT_TAP_COUNT_IN_BARS: TapCountInBars = 2;
+
+export function requireTapCountInBars(value: unknown): TapCountInBars {
+  if (
+    typeof value === "number" &&
+    TAP_COUNT_IN_BARS.some(candidate => candidate === value)
+  )
+    return value as TapCountInBars;
+  throw new RangeError("Tap count-in bars must be 1, 2, 4, 6, or 8.");
 }
 
-/** Two canonical exercise rounds, starting on the supplied downbeat. */
+/** A finite technical-pulse count-in followed by two canonical exercise rounds. */
 export function createTapAttemptPlan(
-  exercise: TapRhythmExercise
+  exercise: TapRhythmExercise,
+  countInBars: TapCountInBars = DEFAULT_TAP_COUNT_IN_BARS
 ): RhythmAudioPlan {
+  const bars = requireTapCountInBars(countInBars);
   const base = createRhythmAudioPlan(exercise.pattern, "metronome");
+  const meter = deriveMeter(exercise.pattern.meter);
   const patternBars = exercise.pattern.measures.length;
+  const countInTicks = bars * meter.measureTicks;
+  const countInSeconds = ticksToSeconds(
+    countInTicks,
+    exercise.pattern.meter,
+    exercise.pattern.tempo.pulseBpm
+  );
+  const firstBarPulses = base.pulseEvents.filter(
+    event => event.measureIndex === 0
+  );
+  const firstBarCounts = base.visualCounting.filter(
+    position => position.measureIndex === 0
+  );
+  const countInPulses = Object.freeze(
+    Array.from({ length: bars }, (_, barIndex) =>
+      firstBarPulses.map(event =>
+        Object.freeze({
+          ...event,
+          id: `count-in:${barIndex + 1}:${event.id}`,
+          tick: event.tick + barIndex * meter.measureTicks,
+          endTick: event.endTick + barIndex * meter.measureTicks,
+          offsetSeconds:
+            event.offsetSeconds +
+            ticksToSeconds(
+              barIndex * meter.measureTicks,
+              exercise.pattern.meter,
+              exercise.pattern.tempo.pulseBpm
+            ),
+          endOffsetSeconds:
+            event.endOffsetSeconds +
+            ticksToSeconds(
+              barIndex * meter.measureTicks,
+              exercise.pattern.meter,
+              exercise.pattern.tempo.pulseBpm
+            ),
+          measureIndex: barIndex,
+        })
+      )
+    ).flat()
+  );
   const shiftPulse = (
     event: RhythmAudioEvent,
     roundNumber: 1 | 2
   ): RhythmAudioEvent => {
-    const tickShift = (roundNumber - 1) * base.totalTicks;
-    const timeShift = (roundNumber - 1) * base.durationSeconds;
-    const measureShift = (roundNumber - 1) * patternBars;
+    const roundTickShift = (roundNumber - 1) * base.totalTicks;
+    const roundTimeShift = (roundNumber - 1) * base.durationSeconds;
+    const tickShift = countInTicks + roundTickShift;
+    const timeShift = countInSeconds + roundTimeShift;
     return Object.freeze({
       ...event,
       id: `round-${roundNumber}:${event.id}`,
@@ -42,15 +82,15 @@ export function createTapAttemptPlan(
       endTick: event.endTick + tickShift,
       offsetSeconds: event.offsetSeconds + timeShift,
       endOffsetSeconds: event.endOffsetSeconds + timeShift,
-      measureIndex: event.measureIndex + measureShift,
+      measureIndex: event.measureIndex + bars + (roundNumber - 1) * patternBars,
     });
   };
   const shiftOnset = (
     onset: RhythmAudioPlan["onsetReferences"][number],
     roundNumber: 1 | 2
   ): RhythmAudioPlan["onsetReferences"][number] => {
-    const tickShift = (roundNumber - 1) * base.totalTicks;
-    const timeShift = (roundNumber - 1) * base.durationSeconds;
+    const tickShift = countInTicks + (roundNumber - 1) * base.totalTicks;
+    const timeShift = countInSeconds + (roundNumber - 1) * base.durationSeconds;
     return Object.freeze({
       ...onset,
       id: `round-${roundNumber}:${onset.id}`,
@@ -62,25 +102,43 @@ export function createTapAttemptPlan(
     position: RhythmAudioPlan["visualCounting"][number],
     roundNumber: 1 | 2
   ): RhythmAudioPlan["visualCounting"][number] => {
-    const tickShift = (roundNumber - 1) * base.totalTicks;
-    const timeShift = (roundNumber - 1) * base.durationSeconds;
-    const measureShift = (roundNumber - 1) * patternBars;
+    const tickShift = countInTicks + (roundNumber - 1) * base.totalTicks;
+    const timeShift = countInSeconds + (roundNumber - 1) * base.durationSeconds;
     return Object.freeze({
       ...position,
       tick: position.tick + tickShift,
       offsetSeconds: position.offsetSeconds + timeShift,
-      measureIndex: position.measureIndex + measureShift,
+      measureIndex:
+        position.measureIndex + bars + (roundNumber - 1) * patternBars,
     });
   };
-  const pulseEvents = Object.freeze(
-    ([1, 2] as const).flatMap(roundNumber =>
-      base.pulseEvents.map(event => shiftPulse(event, roundNumber))
-    )
+  const countInVisualCounting = Object.freeze(
+    Array.from({ length: bars }, (_, barIndex) =>
+      firstBarCounts.map(position => {
+        const tickShift = barIndex * meter.measureTicks;
+        return Object.freeze({
+          ...position,
+          tick: position.tick + tickShift,
+          offsetSeconds:
+            position.offsetSeconds +
+            ticksToSeconds(
+              tickShift,
+              exercise.pattern.meter,
+              exercise.pattern.tempo.pulseBpm
+            ),
+          measureIndex: barIndex,
+        });
+      })
+    ).flat()
   );
+  const exercisePulses = ([1, 2] as const).flatMap(roundNumber =>
+    base.pulseEvents.map(event => shiftPulse(event, roundNumber))
+  );
+  const pulseEvents = Object.freeze([...countInPulses, ...exercisePulses]);
   return Object.freeze({
     ...base,
-    durationSeconds: 2 * base.durationSeconds,
-    totalTicks: 2 * base.totalTicks,
+    durationSeconds: countInSeconds + 2 * base.durationSeconds,
+    totalTicks: countInTicks + 2 * base.totalTicks,
     events: pulseEvents,
     pulseEvents,
     toneEvents: Object.freeze([]),
@@ -89,11 +147,12 @@ export function createTapAttemptPlan(
         base.onsetReferences.map(onset => shiftOnset(onset, roundNumber))
       )
     ),
-    visualCounting: Object.freeze(
-      ([1, 2] as const).flatMap(roundNumber =>
+    visualCounting: Object.freeze([
+      ...countInVisualCounting,
+      ...([1, 2] as const).flatMap(roundNumber =>
         base.visualCounting.map(position => shiftCount(position, roundNumber))
-      )
-    ),
+      ),
+    ]),
   });
 }
 

@@ -1,15 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TapRhythmEngine } from "./tapEngine";
 import { createTapReferencePlan } from "./tapPlan";
-import {
-  dispatchFirstTapAtNextDownbeat,
-  TapFakeClock,
-  TEST_TAP_VOICES,
-} from "./tapTestHelpers";
-import type { RhythmScheduledEvent } from "./transport";
-import {
-  type TapRhythmExercise,
-} from "../exercises/tapRhythm";
+import { TapFakeClock, TEST_TAP_VOICES } from "./tapTestHelpers";
 import { createCanonicalTapStressExercise } from "./tapTestHelpers";
 import { isRuntimeTapAttempt } from "../exercises/tapCompletion";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
@@ -21,7 +13,6 @@ function setup() {
   });
   const clock = new TapFakeClock();
   const input = new EventTarget();
-  const scheduledEvents: RhythmScheduledEvent[] = [];
   const results: NonNullable<
     ConstructorParameters<typeof TapRhythmEngine>[0]["onResult"]
   > extends (result: infer T) => void
@@ -39,29 +30,20 @@ function setup() {
       timers: clock.timers,
       contextFactory: () => clock.context as unknown as AudioContext,
       visibilitySource: null,
-      onScheduled: event => scheduledEvents.push(event),
     },
   });
-  return { exercise, clock, input, engine, results, scheduledEvents };
+  return { exercise, clock, input, engine, results };
 }
 
 function tapAll(
-  exercise: TapRhythmExercise,
   clock: TapFakeClock,
   input: EventTarget,
   engine: TapRhythmEngine,
-  firstOffsetMs = 0,
-  scheduledEvents: readonly RhythmScheduledEvent[] = []
+  firstOffsetMs = 0
 ) {
-  if (!engine.snapshot)
-    dispatchFirstTapAtNextDownbeat(clock, input, exercise, scheduledEvents);
   const snapshot = engine.snapshot!;
-  let appliedOffset = false;
-  for (const target of snapshot.expectedOnsets) {
-    if (target.roundNumber === 1 && target.targetIndex === 0) continue;
-    const time =
-      target.audioTime + (!appliedOffset ? firstOffsetMs / 1000 : 0);
-    appliedOffset = true;
+  for (const [index, target] of snapshot.expectedOnsets.entries()) {
+    const time = target.audioTime + (index === 0 ? firstOffsetMs / 1000 : 0);
     clock.at(time);
     input.dispatchEvent(clock.nativeTap(time));
   }
@@ -94,7 +76,7 @@ describe("explicit Tap experience modes", () => {
     expect(h.engine.canStartGraded).toBe(true);
 
     await h.engine.start("practice");
-    tapAll(h.exercise, h.clock, h.input, h.engine, 0, h.scheduledEvents);
+    tapAll(h.clock, h.input, h.engine);
     const practiceReceipt = h.engine.result!;
     expect(practiceReceipt.mode).toBe("practice");
     expect(practiceReceipt.status).toBe("completed");
@@ -105,7 +87,7 @@ describe("explicit Tap experience modes", () => {
     expect(h.engine.canStartGraded).toBe(true);
 
     await h.engine.start("graded");
-    tapAll(h.exercise, h.clock, h.input, h.engine, 0, h.scheduledEvents);
+    tapAll(h.clock, h.input, h.engine);
     expect(h.engine.result?.mode).toBe("graded");
     expect(h.engine.result?.status).toBe("completed");
     expect(h.engine.result?.evaluation?.correct).toBe(true);
@@ -139,7 +121,7 @@ describe("explicit Tap experience modes", () => {
     );
     expect(h.engine.canStartGraded).toBe(true);
     await h.engine.start("graded");
-    expect(h.engine.state).toBe("listening");
+    expect(h.engine.state).toBe("count-in");
     h.engine.stop();
     expect(h.engine.result?.status).toBe("technical-abort");
     expect(h.engine.result?.accuracyPercent).toBeNull();
@@ -149,20 +131,13 @@ describe("explicit Tap experience modes", () => {
   it("keeps Formula B diagnostic accuracy identical across modes for the same captured timing", async () => {
     const practice = setup();
     await practice.engine.start("practice");
-    tapAll(
-      practice.exercise,
-      practice.clock,
-      practice.input,
-      practice.engine,
-      65,
-      practice.scheduledEvents
-    );
+    tapAll(practice.clock, practice.input, practice.engine, 65);
     const practiceEvaluation = practice.engine.result!.evaluation;
     const practiceAccuracy = practice.engine.result!.accuracyPercent;
 
     const graded = setup();
     await graded.engine.start("graded");
-    tapAll(graded.exercise, graded.clock, graded.input, graded.engine, 65, graded.scheduledEvents);
+    tapAll(graded.clock, graded.input, graded.engine, 65);
     expect(graded.engine.result!.evaluation).toEqual(practiceEvaluation);
     expect(graded.engine.result!.accuracyPercent).toBe(practiceAccuracy);
     expect(graded.engine.result!.mode).toBe("graded");

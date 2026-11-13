@@ -1561,3 +1561,25 @@
   .rhythm-page .tap-result-notation { padding: 10px; }
   .rhythm-page .tap-result-notation-heading h3 { font-size: 15px; }
 }
+
+/* Tap-owned count-in setting beside the existing metronome controls. */
+.rhythm-page .rhythm-count-in-control {
+  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  color: #45575c;
+  font-size: 13px;
+  font-weight: 700;
+}
+.rhythm-page .rhythm-count-in-control select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px 11px;
+  border: 1px solid #c9ceca;
+  border-radius: 8px;
+  background: #fffefa;
+  color: #29393f;
+  font: inherit;
+}

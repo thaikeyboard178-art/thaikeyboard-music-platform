@@ -11,8 +11,6 @@ export type TapRoundInput = Readonly<{
   roundNumber: TapRoundNumber;
   skipped: boolean;
   taps: readonly TapMatchInput[];
-  /** The first free-loop Tap; retained so re-grade applies its narrow exception. */
-  firstTapSequence?: number;
 }>;
 
 export type TapRoundNoteResult = Readonly<{
@@ -33,8 +31,6 @@ export type TapRoundResult = Readonly<{
   roundNumber: TapRoundNumber;
   status: "played" | "skipped";
   taps: readonly TapMatchInput[];
-  /** Round-one trigger metadata; null on skipped/non-trigger rounds. */
-  firstTapSequence?: number | null;
   evaluation: TapEvaluation | null;
   noteResults: readonly TapRoundNoteResult[];
   accuracyPercent: number | null;
@@ -222,81 +218,6 @@ function mean(values: readonly number[]): number | null {
 }
 
 /**
- * The first free-loop event is the response to beat one, even when very early.
- * Pin only that early/on-time pair using its original timestamp. Evaluate all
- * remaining events with the unchanged production matcher; late first events
- * also retain the existing full matcher behavior. No window is enlarged.
- */
-function matchRound(
-  targets: readonly TapTarget[],
-  taps: readonly TapMatchInput[],
-  firstTapSequence?: number
-): TapEvaluation {
-  if (firstTapSequence === undefined) return matchTapRhythm(targets, taps);
-  const firstTarget = targets[0];
-  const firstTap = taps.find(tap => tap.sequence === firstTapSequence);
-  if (!firstTarget || !firstTap)
-    fail("The first Tap metadata does not identify a round-one capture.");
-  // Validate the complete input before partitioning it (including duplicate
-  // sequences and chronological ordering). Later first events have no override.
-  const ordinary = matchTapRhythm(targets, taps);
-  if (firstTap.offsetMs > firstTarget.offsetMs) return ordinary;
-  const first = matchTapRhythm([firstTarget], [firstTap]);
-
-  const remainingTargets = targets.slice(1);
-  const remainingTaps = taps.filter(tap => tap.sequence !== firstTapSequence);
-  const remainder = matchTapRhythm(remainingTargets, remainingTaps);
-  const targetResults = Object.freeze([
-    first.targetResults[0],
-    ...remainder.targetResults.map(result =>
-      Object.freeze({ ...result, targetIndex: result.targetIndex + 1 })
-    ),
-  ]);
-  const remainderBySequence = new Map(
-    remainder.tapResults.map(result => [
-      result.sequence,
-      Object.freeze({
-        ...result,
-        targetIndex:
-          result.targetIndex === null ? null : result.targetIndex + 1,
-      }),
-    ])
-  );
-  const tapResults = Object.freeze(
-    taps.map(tap => {
-      if (tap.sequence === firstTapSequence) return first.tapResults[0];
-      return (
-        remainderBySequence.get(tap.sequence) ??
-        Object.freeze({
-          sequence: tap.sequence,
-          status: "extra" as const,
-          targetIndex: null,
-          errorMs: null,
-        })
-      );
-    })
-  );
-  const n = targets.length;
-  const k = taps.length;
-  const tp = remainder.tp + first.tp;
-  const missing = remainder.missing;
-  const extra = remainder.extra;
-  return Object.freeze({
-    correct: n > 0 && tp === n && extra === 0,
-    accuracyPercent: n === 0 ? null : (100 * 2 * tp) / (n + k),
-    tp,
-    n,
-    k,
-    missing,
-    extra,
-    nearMiss: remainder.nearMiss + first.nearMiss,
-    farAssociation: remainder.farAssociation + first.farAssociation,
-    targetResults,
-    tapResults,
-  });
-}
-
-/**
  * Finalizes one round using the same production matcher and note-accuracy rules
  * as the complete two-round score, with the other slot explicitly excluded.
  */
@@ -318,9 +239,8 @@ export function calculateTapRoundResult(
 }
 
 /**
- * Uses the production ordered matcher independently for each real round. It
- * applies only the approved first-Tap pairing exception; note scores consume
- * the sealed target-to-sequence pairing and original signed timing error.
+ * Uses the production ordered matcher independently for each real round; note
+ * scores consume its target-to-sequence pairing and original signed timing error.
  */
 export function calculateTapTwoRoundScore(
   targets: readonly TapTarget[],
@@ -357,10 +277,7 @@ export function calculateTapTwoRoundScore(
     const taps = Object.freeze(
       input.taps.map(tap => Object.freeze({ ...tap }))
     );
-    if (input.roundNumber === 2 && input.firstTapSequence !== undefined)
-      fail("The first Tap metadata can only belong to round one.");
-    const firstTapSequence = input.firstTapSequence;
-    const evaluation = matchRound(targets, taps, firstTapSequence);
+    const evaluation = matchTapRhythm(targets, taps);
     const noteResults = targetNotes(
       targets,
       evaluation,
@@ -377,7 +294,6 @@ export function calculateTapTwoRoundScore(
       roundNumber: input.roundNumber,
       status: "played" as const,
       taps,
-      ...(firstTapSequence === undefined ? {} : { firstTapSequence }),
       evaluation,
       noteResults,
       accuracyPercent,

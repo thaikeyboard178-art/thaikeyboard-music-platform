@@ -3,16 +3,15 @@ import { TapRhythmEngine } from "../audio/tapEngine";
 import { createTapAttemptPlan } from "../audio/tapPlan";
 import {
   createCanonicalTapStressExercise,
-  dispatchFirstTapAtNextDownbeat,
   TapFakeClock,
   TEST_TAP_VOICES,
+  dispatchTapAtFirstTarget,
 } from "../audio/tapTestHelpers";
 import {
   generateTapRhythmExercise,
   type TapRhythmExercise,
 } from "../exercises/tapRhythm";
 import type { TapEngineOptions } from "../audio/tapEngine";
-import type { RhythmScheduledEvent } from "../audio/transport";
 import type { RhythmTrack } from "../types";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import {
@@ -40,7 +39,6 @@ type Harness = {
   input: EventTarget;
   engines: TapRhythmEngine[];
   engineOptions: TapEngineOptions[];
-  scheduledEvents: RhythmScheduledEvent[];
   contextFactoryCalls: () => number;
   inputTargetCalls: () => number;
 };
@@ -59,7 +57,6 @@ function harness(
   const input = new EventTarget();
   const engines: TapRhythmEngine[] = [];
   const engineOptions: TapEngineOptions[] = [];
-  const scheduledEvents: RhythmScheduledEvent[] = [];
   let contextFactories = 0;
   let inputTargetLookups = 0;
   const controller = new TapTrainingController({
@@ -76,7 +73,6 @@ function harness(
         return clock.context as unknown as AudioContext;
       },
       visibilitySource: null,
-      onScheduled: event => scheduledEvents.push(event),
     },
     seedPrefix: overrides.seedPrefix ?? "controller-test",
     ...(overrides.createExercise === undefined
@@ -101,7 +97,6 @@ function harness(
     input,
     engines,
     engineOptions,
-    scheduledEvents,
     contextFactoryCalls: () => contextFactories,
     inputTargetCalls: () => inputTargetLookups,
   };
@@ -117,17 +112,10 @@ async function flushMicrotasks(): Promise<void> {
   for (let index = 0; index < 10; index++) await Promise.resolve();
 }
 
-function ensureFirstTap(h: Harness, offsetMs = 0): void {
-  const engine = h.engines.at(-1)!;
-  if (engine.snapshot) return;
-  dispatchFirstTapAtNextDownbeat(
-    h.clock,
-    h.input,
-    h.controller.getSnapshot().exercise!,
-    h.scheduledEvents,
-    offsetMs
-  );
-  h.controller.acknowledgeTap();
+function tapFirstTarget(h: Harness, offsetMs = 0): number {
+  const snapshot = h.engines.at(-1)!.snapshot;
+  if (!snapshot) throw new Error("Start did not publish its Tap snapshot.");
+  return dispatchTapAtFirstTarget(h.clock, h.input, snapshot, offsetMs);
 }
 
 async function finishAttempt(
@@ -137,15 +125,20 @@ async function finishAttempt(
   skippedRounds: readonly (1 | 2)[] = []
 ): Promise<void> {
   const engine = h.engines.at(-1)!;
-  ensureFirstTap(h, firstTapOffsetMs);
   const snapshot = engine.snapshot!;
+  const firstTargetAlreadyHandled =
+    startAtIndex > 0 || skippedRounds.includes(1);
+  let firstUntappedIndex = startAtIndex;
+  if (!firstTargetAlreadyHandled) {
+    tapFirstTarget(h, firstTapOffsetMs);
+    firstUntappedIndex = 1;
+  }
   for (
-    let index = startAtIndex;
+    let index = firstUntappedIndex;
     index < snapshot.expectedOnsets.length;
     index++
   ) {
     const onset = snapshot.expectedOnsets[index];
-    if (onset.roundNumber === 1 && onset.targetIndex === 0) continue;
     if (skippedRounds.includes(onset.roundNumber)) continue;
     const at = onset.audioTime;
     h.clock.at(at);
@@ -159,18 +152,16 @@ async function finishAttempt(
 }
 
 async function tapRound(h: Harness, roundNumber: 1 | 2): Promise<void> {
-  ensureFirstTap(h);
   const engine = h.engines.at(-1)!;
   const round = engine.snapshot!.rounds[roundNumber - 1];
   for (const onset of round.expectedOnsets) {
-    if (roundNumber === 1 && onset.targetIndex === 0) continue;
     h.clock.at(onset.audioTime);
     h.input.dispatchEvent(h.clock.nativeTap(onset.audioTime));
+    h.controller.acknowledgeTap();
   }
 }
 
 async function enterRound(h: Harness, roundNumber: 1 | 2): Promise<void> {
-  ensureFirstTap(h);
   const round = h.engines.at(-1)!.snapshot!.rounds[roundNumber - 1];
   h.clock.at(round.startAudioTime + 0.01);
   await flushMicrotasks();
@@ -226,7 +217,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const duplicateStart = h.controller.start();
     await Promise.all([firstStart, duplicateStart]);
     expect(h.engines).toHaveLength(1);
-    expect(h.controller.getSnapshot().phase).toMatch(/^(listening|aligning|collecting)$/);
+    expect(h.controller.getSnapshot().phase).toBe("count-in");
   });
 
   it("allows one reference before Start, consumes the reference slot, and blocks overlapping controls", async () => {
@@ -274,16 +265,13 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     const start = h.controller.start();
     await start;
     const engine = h.engines[0];
-    expect(engine.state).toBe("listening");
-    expect(engine.snapshot).toBeNull();
+    expect(engine.state).toBe("count-in");
+    expect(engine.snapshot).not.toBeNull();
     expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(0);
 
-    dispatchFirstTapAtNextDownbeat(
-      h.clock,
-      h.input,
-      exercise,
-      h.scheduledEvents
-    );
+    const firstTapAt = tapFirstTarget(h);
+    h.clock.at(firstTapAt + 0.05);
+    await new Promise(resolve => globalThis.setTimeout(resolve, 60));
     h.controller.acknowledgeTap();
     expect(engine.snapshot?.expectedOnsets).toHaveLength(
       exercise.targets.length * 2
@@ -352,7 +340,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(h.controller.getSnapshot().originalPoints).toBe(10);
     expect(h.engines).toHaveLength(2);
     await h.controller.start();
-    expect(retryEngine.state).toMatch(/^(listening|aligning|collecting)$/);
+    expect(retryEngine.state).toBe("count-in");
     expect(h.controller.getSnapshot().trialNumber).toBe(2);
     expect(h.controller.getSnapshot().exercise).toBe(exercise);
     await finishAttempt(h);
@@ -386,7 +374,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     await h.controller.start();
     await h.controller.continue();
     expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(0);
-    expect(h.controller.getSnapshot().phase).toBe("listening");
+    expect(h.controller.getSnapshot().phase).toBe("count-in");
     expect(count).toBe(1);
 
     // An active attempt cannot be skipped. Complete the real engine first.
@@ -535,7 +523,7 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     await h.controller.continue();
     expect(h.engines).toHaveLength(1);
     expect(h.controller.getSnapshot().trialNumber).toBe(1);
-    expect(h.controller.getSnapshot().phase).toMatch(/^(listening|aligning|collecting)$/);
+    expect(h.controller.getSnapshot().phase).toBe("count-in");
   });
 });
 
@@ -692,6 +680,58 @@ describe("approved Tap controller session lifecycle", () => {
     expect(h.controller.getSnapshot().session?.totalScore).toBe(0);
   });
 
+  it("defaults to two count-in bars, locks during playback, and preserves/retimes the selection through replay", async () => {
+    const h = harness();
+    await prepared(h);
+    expect(h.controller.getSnapshot().configuration?.countInBars).toBe(2);
+    expect(h.controller.canAdjustCountIn).toBe(true);
+    expect(h.controller.setCountInBars(6)).toBe(true);
+    expect(h.controller.getSnapshot().configuration?.countInBars).toBe(6);
+
+    await h.controller.start();
+    const firstEngine = h.engines.at(-1)!;
+    const firstSnapshot = firstEngine.snapshot!;
+    expect(firstEngine.state).toBe("count-in");
+    expect(firstSnapshot.countInBars).toBe(6);
+    expect(h.controller.canAdjustCountIn).toBe(false);
+    expect(h.controller.setCountInBars(8)).toBe(false);
+    h.clock.at(firstSnapshot.exerciseStartAudioTime + 0.05);
+    expect(firstEngine.state).toBe("collecting");
+    expect(h.controller.canAdjustCountIn).toBe(false);
+    await finishAttempt(h);
+    expect(h.controller.getSnapshot().result?.status).toBe("completed");
+
+    await h.controller.retry();
+    const idleReplayEngine = h.engines.at(-1)!;
+    expect(idleReplayEngine.state).toBe("idle");
+    expect(idleReplayEngine.snapshot).toBeNull();
+    expect(h.controller.canAdjustCountIn).toBe(true);
+    expect(h.controller.getSnapshot().configuration?.countInBars).toBe(6);
+    expect(await h.controller.setPracticeBpm(120)).toBe(true);
+    expect(h.controller.getSnapshot().configuration?.countInBars).toBe(6);
+    expect(h.controller.setCountInBars(8)).toBe(true);
+    expect(h.controller.getSnapshot().configuration?.countInBars).toBe(8);
+    expect(idleReplayEngine.snapshot).toBeNull();
+
+    await h.controller.start();
+    const replayEngine = h.engines.at(-1)!;
+    const replaySnapshot = replayEngine.snapshot!;
+    expect(replayEngine).not.toBe(firstEngine);
+    expect(replaySnapshot).not.toBe(firstSnapshot);
+    expect(replayEngine.state).toBe("count-in");
+    expect(replaySnapshot.countInBars).toBe(8);
+    const firstExercisePulse = createTapAttemptPlan(
+      h.controller.getSnapshot().exercise!,
+      8
+    ).pulseEvents.find(event => event.id.startsWith("round-1:"))!;
+    expect(
+      replaySnapshot.exerciseStartAudioTime -
+        replaySnapshot.countInStartAudioTime
+    ).toBeCloseTo(firstExercisePulse.offsetSeconds, 10);
+    expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
+    expect(h.controller.canAdjustCountIn).toBe(false);
+  });
+
   it("locks tempo after Play but permits idle practice-only replay BPM edits without autoplay or another award", async () => {
     const h = harness();
     await prepared(h);
@@ -701,10 +741,9 @@ describe("approved Tap controller session lifecycle", () => {
     expect(h.controller.chooseMode("practice")).toBe(false);
     expect(await h.controller.setPracticeBpm(120)).toBe(false);
 
-    ensureFirstTap(h);
     const engine = h.engines.at(-1)!;
     const timing = engine.snapshot!;
-    h.clock.at(timing.collectionStartAudioTime + 0.01);
+    h.clock.at(timing.exerciseStartAudioTime + 0.05);
     expect(engine.state).toBe("collecting");
     expect(h.controller.canAdjustPracticeBpm).toBe(false);
     h.clock.at(timing.collectionEndAudioTime + 0.01);
@@ -776,7 +815,6 @@ describe("approved Tap controller session lifecycle", () => {
       const exercise = h.controller.getSnapshot().exercise;
       const sessionId = h.controller.getSnapshot().session?.sessionId;
       await h.controller.start();
-      ensureFirstTap(h);
       const snapshot = h.engines.at(-1)!.snapshot!;
       const firstGridCount = snapshot.rounds[0].expectedOnsets.length;
 
@@ -885,10 +923,9 @@ describe("approved Tap controller session lifecycle", () => {
     const beforeQuestions = beforeSkip.session?.questionsAnswered;
 
     await h.controller.start();
-    ensureFirstTap(h);
     const engine = h.engines.at(-1)!;
     const staleCallback = h.engineOptions.at(-1)!.onResult!;
-    h.clock.at(engine.snapshot!.collectionStartAudioTime + 0.01);
+    h.clock.at(engine.snapshot!.exerciseStartAudioTime + 0.05);
     expect(engine.state).toBe("collecting");
     expect(h.controller.canSkipCurrentExercise).toBe(true);
 

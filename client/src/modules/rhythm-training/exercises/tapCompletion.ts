@@ -16,8 +16,6 @@ export type TapAttemptResult = Readonly<{
   accuracyPercent: number | null;
   /** Nearest-integer Tap-specific integer award, null when no round is scoreable. */
   scoreOutOfTen?: number | null;
-  /** First free-loop tap identity, retained for deterministic re-grading. */
-  firstTapSequence?: number;
   /** Exactly two entries for completed runtime attempts; absent on legacy/technical receipts. */
   rounds?: readonly [TapRoundResult, TapRoundResult];
   rawCaptures: readonly Readonly<{

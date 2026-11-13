@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TapTrainingController } from "./TapTrainingController";
 import { TapRhythmEngine } from "../audio/tapEngine";
-import { dispatchFirstTapAtNextDownbeat, TapFakeClock } from "../audio/tapTestHelpers";
-import type { RhythmScheduledEvent } from "../audio/transport";
+import { TapFakeClock } from "../audio/tapTestHelpers";
 
 describe("Phase5 approved Lessons are ungraded worked examples", () => {
   it.each([3, 4, 5, 6] as const)(
@@ -10,7 +9,6 @@ describe("Phase5 approved Lessons are ungraded worked examples", () => {
     async track => {
       const clock = new TapFakeClock();
       const input = new EventTarget();
-      const scheduledEvents: RhythmScheduledEvent[] = [];
       let engine: TapRhythmEngine;
       const controller = new TapTrainingController({
         seedPrefix: `lesson-${track}`,
@@ -19,7 +17,6 @@ describe("Phase5 approved Lessons are ungraded worked examples", () => {
           contextFactory: () => clock.context as unknown as AudioContext,
           timers: clock.timers,
           visibilitySource: null,
-          onScheduled: event => scheduledEvents.push(event),
         },
         engineFactory: options => {
           engine = new TapRhythmEngine({
@@ -42,10 +39,8 @@ describe("Phase5 approved Lessons are ungraded worked examples", () => {
       });
       expect(controller.getSnapshot().exercise?.section).toBe("lessons");
       await controller.start();
-      dispatchFirstTapAtNextDownbeat(clock, input, controller.getSnapshot().exercise!, scheduledEvents);
       const snapshot = engine!.snapshot!;
       for (const onset of snapshot.expectedOnsets) {
-        if (onset.roundNumber === 1 && onset.targetIndex === 0) continue;
         clock.at(onset.audioTime);
         engine!.handleEvent(clock.nativeTap(onset.audioTime));
       }

@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RhythmScheduledEvent } from "../audio/transport";
 import type { RhythmMeter } from "../types";
 import { VisualMetronome, type RhythmAudioPlayback } from "./VisualMetronome";
+import { createTapAttemptPlan, TAP_COUNT_IN_BARS } from "../audio/tapPlan";
+import { createCanonicalTapStressExercise } from "../audio/tapTestHelpers";
+import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 
 const meters: readonly RhythmMeter[] = [
   { numerator: 2, denominator: 4 },
@@ -119,6 +122,7 @@ describe("VisualMetronome", () => {
       <VisualMetronome
         meter={meters[2]}
         pulseBpm={60}
+        countInBars={1}
         readPlayback={() => playback}
       />
     );
@@ -182,6 +186,94 @@ describe("VisualMetronome", () => {
       ).toHaveLength(0);
     }
   );
+
+  it.each(TAP_COUNT_IN_BARS)(
+    "starts the visual exercise at measure one after %i count-in bars even when count-in history expires",
+    countInBars => {
+      const exercise = createCanonicalTapStressExercise({
+        track: 3,
+        pattern: SEVEN_METER_RUNTIME_FIXTURES[2].pattern,
+      });
+      const plan = createTapAttemptPlan(exercise, countInBars);
+      const scheduledEvents = plan.pulseEvents.map(event => ({
+        generation: 1,
+        event,
+        startTime: 10 + event.offsetSeconds,
+        endTime: 10 + event.offsetSeconds + 0.025,
+        resumedSustain: false,
+      }));
+      const first = scheduledEvents.find(event =>
+        event.event.id.startsWith("round-1:")
+      )!;
+      const second = scheduledEvents.find(event =>
+        event.event.id.startsWith("round-2:")
+      )!;
+      const lastCountIn = scheduledEvents
+        .filter(event => event.event.id.startsWith("count-in:"))
+        .at(-1)!;
+      let playback: RhythmAudioPlayback = {
+        audioTime: lastCountIn.startTime + 0.01,
+        scheduledEvents,
+        state: "playing",
+      };
+      render(
+        <VisualMetronome
+          meter={exercise.pattern.meter}
+          pulseBpm={exercise.pattern.tempo.pulseBpm}
+          countInBars={countInBars}
+          readPlayback={() => playback}
+        />
+      );
+      paintFrame();
+      expect(screen.getByRole("status").textContent).toMatch(/^Đếm vào/);
+      playback = { ...playback, audioTime: first.startTime + 0.01 };
+      paintFrame();
+      expect(screen.getByRole("status").textContent).toBe("Ô nhịp 1, phách 1");
+      playback = {
+        ...playback,
+        scheduledEvents: scheduledEvents.filter(
+          event => !event.event.id.startsWith("count-in:")
+        ),
+      };
+      paintFrame();
+      expect(screen.getByRole("status").textContent).toBe("Ô nhịp 1, phách 1");
+      playback = { ...playback, audioTime: second.startTime + 0.01 };
+      paintFrame();
+      expect(screen.getByRole("status").textContent).toBe("Ô nhịp 2, phách 1");
+    }
+  );
+
+  it("uses the new visual measure offset on a later replay instead of stale count-in metadata", () => {
+    let playback: RhythmAudioPlayback = {
+      audioTime: 20.01,
+      scheduledEvents: [pulseEvent(20, 6, 0, 1, 0, "strong")],
+      state: "playing",
+    };
+    const view = render(
+      <VisualMetronome
+        meter={meters[2]}
+        pulseBpm={120}
+        countInBars={6}
+        readPlayback={() => playback}
+      />
+    );
+    paintFrame();
+    expect(screen.getByRole("status").textContent).toBe("Ô nhịp 1, phách 1");
+    playback = {
+      ...playback,
+      scheduledEvents: [pulseEvent(20, 8, 0, 1, 0, "strong", 2)],
+    };
+    view.rerender(
+      <VisualMetronome
+        meter={meters[2]}
+        pulseBpm={120}
+        countInBars={8}
+        readPlayback={() => playback}
+      />
+    );
+    paintFrame();
+    expect(screen.getByRole("status").textContent).toBe("Ô nhịp 1, phách 1");
+  });
 
   it("does not light a scheduled future beat and lights it only when audioTime reaches its start", () => {
     let playback: RhythmAudioPlayback = {

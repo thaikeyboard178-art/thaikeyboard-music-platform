@@ -1,6 +1,5 @@
 import type { RhythmVoiceSettings } from "./voices";
-import type { RhythmScheduledEvent } from "./transport";
-import { createTapMetronomeLoopPlan } from "./tapPlan";
+import type { TapCollectionSnapshot } from "./tapEngine";
 import type { TapRhythmExercise } from "../exercises/tapRhythm";
 import { createTapTargets } from "../exercises/tapRhythm";
 import { requireValidRhythmPattern } from "../rhythm/validate";
@@ -138,36 +137,23 @@ export class TapFakeClock {
 }
 
 /**
- * Injects one native Tap exactly at the next barline derived from a real
- * scheduled loop pulse, exercising the Owner-approved current-downbeat branch.
+ * Dispatches a simulated answer at the first expected target. This helper is
+ * for answer input only: starting an attempt/count-in must never synthesize a
+ * tap or align the exercise timeline.
  */
-export function dispatchFirstTapAtNextDownbeat(
+export function dispatchTapAtFirstTarget(
   clock: TapFakeClock,
   input: EventTarget,
-  exercise: TapRhythmExercise,
-  scheduledEvents: readonly RhythmScheduledEvent[],
+  snapshotOrAudioTime: TapCollectionSnapshot | number,
   offsetMs = 0
 ): number {
-  const generation = scheduledEvents.at(-1)?.generation;
-  const firstLoopPulse = scheduledEvents
-    .filter(
-      scheduled =>
-        scheduled.generation === generation &&
-        scheduled.event.lane === "metronome" &&
-        scheduled.event.tick === 0 &&
-        !scheduled.event.id.startsWith("count-in:") &&
-        !scheduled.event.id.startsWith("round-")
-    )
-    .sort((left, right) => left.startTime - right.startTime)
-    .at(-1);
-  if (!firstLoopPulse)
-    throw new Error(
-      "The free metronome loop has not scheduled its first pulse."
-    );
-  const time =
-    firstLoopPulse.startTime +
-    createTapMetronomeLoopPlan(exercise).durationSeconds +
-    offsetMs / 1000;
+  const targetAudioTime =
+    typeof snapshotOrAudioTime === "number"
+      ? snapshotOrAudioTime
+      : snapshotOrAudioTime.expectedOnsets[0]?.audioTime;
+  if (targetAudioTime === undefined)
+    throw new Error("The Tap snapshot has no first expected target.");
+  const time = targetAudioTime + offsetMs / 1000;
   clock.at(time);
   input.dispatchEvent(clock.nativeTap(time));
   return time;

@@ -18,6 +18,11 @@ import {
 } from "../audio/transport";
 import { createRhythmAudioPlan } from "../audio/plan";
 import {
+  DEFAULT_TAP_COUNT_IN_BARS,
+  requireTapCountInBars,
+  type TapCountInBars,
+} from "../audio/tapPlan";
+import {
   TapRhythmEngine,
   type TapEngineOptions,
   type TapEngineState,
@@ -44,6 +49,7 @@ export type TapUiConfiguration = Readonly<{
   section: CurriculumSection;
   meter?: RhythmMeter;
   bars?: 1 | 2 | 4;
+  countInBars?: TapCountInBars;
   pulseBpm?: number;
   focus?: RhythmFocus;
 }>;
@@ -102,8 +108,7 @@ export type TapTrainingControllerOptions = Readonly<{
 const ACTIVE_ENGINE_STATES: readonly TapEngineState[] = [
   "starting",
   "reference",
-  "listening",
-  "aligning",
+  "count-in",
   "collecting",
   "draining",
 ];
@@ -197,6 +202,9 @@ function copyConfiguration(
 ): TapUiConfiguration {
   return Object.freeze({
     ...configuration,
+    countInBars: requireTapCountInBars(
+      configuration.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS
+    ),
     ...(configuration.meter
       ? { meter: Object.freeze({ ...configuration.meter }) }
       : {}),
@@ -352,13 +360,43 @@ export class TapTrainingController {
     );
   }
 
+  /** Count-in is a playback setting, never part of the generated exercise. */
+  get canAdjustCountIn(): boolean {
+    const idleReplay = this.snapshot.replayOnly && !this.practiceAttemptStarted;
+    return (
+      !this.disposed &&
+      !this.snapshot.busy &&
+      !this.previewBusy &&
+      !this.isEngineActive() &&
+      (!this.hasStartedAttempt || idleReplay) &&
+      ["ready", "idle"].includes(this.snapshot.phase) &&
+      this.configuration !== null
+    );
+  }
+
+  setCountInBars(value: unknown): boolean {
+    if (!this.canAdjustCountIn || !this.configuration) return false;
+    let countInBars: TapCountInBars;
+    try {
+      countInBars = requireTapCountInBars(value);
+    } catch {
+      return false;
+    }
+    this.configuration = copyConfiguration({
+      ...this.configuration,
+      countInBars,
+    });
+    this.publish({ configuration: this.configuration });
+    return true;
+  }
+
   /** Skip is an explicit unanswered-item transition, including active collection. */
   get canSkipCurrentExercise(): boolean {
     const { exercise, session, phase } = this.snapshot;
     const activeAttemptState =
       this.engine !== null &&
-      ["listening", "aligning", "collecting", "draining"].includes(this.engine.state) &&
-      ["listening", "aligning", "collecting", "draining"].includes(phase);
+      ["count-in", "collecting", "draining"].includes(this.engine.state) &&
+      ["count-in", "collecting", "draining"].includes(phase);
     const stablePhase = ["ready", "idle", "aborted", "completed"].includes(
       phase
     );
@@ -771,7 +809,9 @@ export class TapTrainingController {
       nextExercise = createTapRhythmExercise({
         track: exercise.track,
         section: exercise.section,
-        id: idleReplay ? exercise.id : `${exercise.id}-bpm-${pulseBpm}-${sequence}`,
+        id: idleReplay
+          ? exercise.id
+          : `${exercise.id}-bpm-${pulseBpm}-${sequence}`,
         pattern: retimedPattern(exercise, pulseBpm, sequence),
       });
     } catch {
@@ -1078,7 +1118,8 @@ export class TapTrainingController {
       engine = this.ensureEngine(inputTarget);
       // Preserve legacy inference for old callers; explicit modes are passed through.
       startup = engine.start(
-        this.snapshot.replayOnly ? "practice" : selectedMode
+        this.snapshot.replayOnly ? "practice" : selectedMode,
+        this.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS
       );
       this.observeEngine(engine);
       this.syncEngineState(engine);
@@ -1275,7 +1316,14 @@ export class TapTrainingController {
     this.engineEpoch += 1;
     this.engine = null;
     this.stopObservation();
-    this.publish({ phase: "preparing", busy: true, error: null, currentRound: null, skippedRounds: Object.freeze([]), roundResults: EMPTY_ROUND_RESULTS });
+    this.publish({
+      phase: "preparing",
+      busy: true,
+      error: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
+    });
 
     try {
       if (oldEngine) await oldEngine.dispose();
@@ -1352,7 +1400,14 @@ export class TapTrainingController {
     const oldEngine = this.engine;
     this.engine = null;
     this.stopObservation();
-    this.publish({ phase: "preparing", busy: true, error: null, currentRound: null, skippedRounds: Object.freeze([]), roundResults: EMPTY_ROUND_RESULTS });
+    this.publish({
+      phase: "preparing",
+      busy: true,
+      error: null,
+      currentRound: null,
+      skippedRounds: Object.freeze([]),
+      roundResults: EMPTY_ROUND_RESULTS,
+    });
 
     try {
       if (oldEngine) await oldEngine.dispose();
@@ -1436,7 +1491,7 @@ export class TapTrainingController {
   acknowledgeTap(): void {
     if (
       this.disposed ||
-      !["listening", "aligning", "collecting", "draining"].includes(this.snapshot.phase)
+      !["collecting", "draining"].includes(this.snapshot.phase)
     )
       return;
     this.publish({ tapVisualSequence: this.snapshot.tapVisualSequence + 1 });

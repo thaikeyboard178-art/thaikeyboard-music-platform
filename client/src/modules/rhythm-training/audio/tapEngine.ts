@@ -2,14 +2,15 @@ import {
   RhythmAudioTransport,
   type RhythmTransportOptions,
   type RhythmReferenceTiming,
-  type RhythmLoopTiming,
   type RhythmScheduledEvent,
 } from "./transport";
 import { createListenPlaybackPlan } from "./plan";
 import {
-  createTapMetronomeLoopPlan,
   createTapReferencePlan,
   createTapAttemptPlan,
+  DEFAULT_TAP_COUNT_IN_BARS,
+  requireTapCountInBars,
+  type TapCountInBars,
 } from "./tapPlan";
 import { OutputClockBridge } from "./tapClock";
 import { NativeTapCapture, type CapturedTap } from "./tapInput";
@@ -32,8 +33,7 @@ export type TapEngineState =
   | "idle"
   | "reference"
   | "starting"
-  | "listening"
-  | "aligning"
+  | "count-in"
   | "collecting"
   | "draining"
   | "completed"
@@ -68,6 +68,9 @@ export type TapRoundSnapshot = Readonly<{
 export type TapCollectionSnapshot = Readonly<{
   generation: number;
   transportGeneration: number;
+  countInBars: TapCountInBars;
+  countInStartAudioTime: number;
+  exerciseStartAudioTime: number;
   anchorAudioTime: number;
   collectionStartAudioTime: number;
   collectionEndAudioTime: number;
@@ -97,10 +100,9 @@ export class TapRhythmEngine {
   private gradedAttemptStarted = false;
   private gradedReferenceUsed = false;
   private mode: "graded" | "practice" = "graded";
+  private countInBars: TapCountInBars = DEFAULT_TAP_COUNT_IN_BARS;
   private playbackEvents: RhythmScheduledEvent[] = [];
   private playbackGeneration: number | null = null;
-  private loopTiming: RhythmLoopTiming | null = null;
-  private firstTapSequence: number | null = null;
   private stateValue: TapEngineState = "idle";
   private resultValue: TapAttemptResult | null = null;
   private snapshotValue: TapCollectionSnapshot | null = null;
@@ -285,11 +287,7 @@ export class TapRhythmEngine {
 
   /** Native handlers call this method; captured timestamps, not handler time, grade. */
   handleEvent(event: Event, generation = this.token): void {
-    if (
-      ["listening", "aligning", "collecting", "draining"].includes(
-        this.stateValue
-      )
-    )
+    if (["count-in", "collecting", "draining"].includes(this.stateValue))
       this.capture.handle(event, generation);
   }
 
@@ -307,13 +305,9 @@ export class TapRhythmEngine {
       : globalThis.setTimeout(callback, 25);
   }
   private active(): boolean {
-    return [
-      "starting",
-      "listening",
-      "aligning",
-      "collecting",
-      "draining",
-    ].includes(this.stateValue);
+    return ["starting", "count-in", "collecting", "draining"].includes(
+      this.stateValue
+    );
   }
   private errorReason(error: unknown): string {
     return typeof error === "object" && error !== null && "reason" in error
@@ -355,7 +349,10 @@ export class TapRhythmEngine {
     });
   }
 
-  async start(mode?: "practice" | "graded"): Promise<void> {
+  async start(
+    mode?: "practice" | "graded",
+    countInBars: TapCountInBars = DEFAULT_TAP_COUNT_IN_BARS
+  ): Promise<void> {
     if (this.stateValue === "disposed")
       throw new Error("Tap engine is disposed.");
     if (this.active() || this.stateValue === "reference")
@@ -363,6 +360,7 @@ export class TapRhythmEngine {
     const selectedMode = mode ?? (this.startedOnce ? "practice" : "graded");
     if (selectedMode === "graded" && this.gradedAttemptStarted)
       throw new Error("The graded attempt has already been used.");
+    this.countInBars = requireTapCountInBars(countInBars);
     this.mode = selectedMode;
     if (selectedMode === "graded") this.gradedAttemptStarted = true;
     this.startedOnce = true;
@@ -370,8 +368,6 @@ export class TapRhythmEngine {
     this.stateValue = "starting";
     this.resultValue = null;
     this.snapshotValue = null;
-    this.loopTiming = null;
-    this.firstTapSequence = null;
     this.roundTaps = [[], []];
     this.roundRaw = [[], []];
     this.roundResultsValue = Object.freeze([null, null]);
@@ -381,16 +377,21 @@ export class TapRhythmEngine {
     const token = ++this.token;
     this.capture.reset(token);
     try {
-      const loopTiming = await this.transport.startLoop(
-        createTapMetronomeLoopPlan(this.options.exercise)
+      await this.transport.start(
+        createTapAttemptPlan(this.options.exercise, this.countInBars)
       );
       if (token !== this.token || this.stateValue !== "starting") return;
       if (!this.context) {
         this.abort("generation-mismatch");
         return;
       }
-      this.loopTiming = loopTiming;
-      this.stateValue = "listening";
+      const reference = this.transport.getReferenceTiming();
+      if (!reference) {
+        this.abort("reference-timing-unavailable");
+        return;
+      }
+      this.snapshotValue = this.createSnapshot(reference, token);
+      this.stateValue = "count-in";
       this.wake(token);
     } catch (error) {
       if (token === this.token)
@@ -443,6 +444,15 @@ export class TapRhythmEngine {
     const targets = this.options.exercise.targets;
     const onsets = reference.expectedOnsets;
     const targetCount = targets.length;
+    const meter = deriveMeter(this.options.exercise.pattern.meter);
+    const countInStartAudioTime = reference.anchorTime;
+    const exerciseStartAudioTime =
+      reference.anchorTime +
+      ticksToSeconds(
+        this.countInBars * meter.measureTicks,
+        this.options.exercise.pattern.meter,
+        this.options.exercise.pattern.tempo.pulseBpm
+      );
     if (targetCount === 0) {
       const makeEmptyRound = (roundNumber: TapRoundNumber): TapRoundSnapshot =>
         Object.freeze({
@@ -462,6 +472,9 @@ export class TapRhythmEngine {
       return Object.freeze({
         generation: token,
         transportGeneration: reference.generation,
+        countInBars: this.countInBars,
+        countInStartAudioTime,
+        exerciseStartAudioTime,
         anchorAudioTime: reference.anchorTime,
         collectionStartAudioTime: reference.anchorTime,
         collectionEndAudioTime: reference.anchorTime,
@@ -482,7 +495,9 @@ export class TapRhythmEngine {
         throw new RangeError("A Tap round has no first target onset.");
       const anchor = firstOnset.audioTime - firstTarget.offsetMs / 1000;
       if (!Number.isFinite(anchor))
-        throw new RangeError(`Tap round ${roundIndex + 1} has an invalid anchor.`);
+        throw new RangeError(
+          `Tap round ${roundIndex + 1} has an invalid anchor.`
+        );
       return anchor;
     });
     const roundDuration = roundAnchors[1] - roundAnchors[0];
@@ -532,7 +547,9 @@ export class TapRhythmEngine {
         endAudioTime: roundStart + roundDuration,
         anchorAudioTime: roundStart,
         collectionStartAudioTime:
-          roundIndex === 1 ? Math.max(collectionStart, midpoint) : collectionStart,
+          roundIndex === 1
+            ? Math.max(collectionStart, midpoint)
+            : collectionStart,
         collectionEndAudioTime: collectionEnd,
         drainEndAudioTime: collectionEnd + 0.1,
         expectedOnsets: Object.freeze(
@@ -556,6 +573,9 @@ export class TapRhythmEngine {
     return Object.freeze({
       generation: token,
       transportGeneration: reference.generation,
+      countInBars: this.countInBars,
+      countInStartAudioTime,
+      exerciseStartAudioTime,
       anchorAudioTime: rounds[0].anchorAudioTime,
       collectionStartAudioTime: open,
       collectionEndAudioTime: close,
@@ -629,16 +649,6 @@ export class TapRhythmEngine {
       return;
     }
     const nowAudio = this.context.currentTime;
-    if (this.stateValue === "listening") {
-      try {
-        this.sampleClock();
-      } catch (error) {
-        this.abort(this.errorReason(error));
-        return;
-      }
-      this.scheduleWake(token);
-      return;
-    }
     const snapshot = this.snapshotValue;
     if (!snapshot) return;
     try {
@@ -659,6 +669,8 @@ export class TapRhythmEngine {
         this.abort(this.errorReason(error));
         return;
       }
+    }
+    if (nowAudio >= snapshot.exerciseStartAudioTime) {
       this.stateValue =
         nowAudio > snapshot.collectionEndAudioTime ? "draining" : "collecting";
     }
@@ -689,9 +701,6 @@ export class TapRhythmEngine {
             roundNumber: round.roundNumber,
             skipped: this.skippedRoundNumbers.has(round.roundNumber),
             taps: this.roundTaps[index],
-            ...(round.roundNumber === 1 && this.firstTapSequence !== null
-              ? { firstTapSequence: this.firstTapSequence }
-              : {}),
           },
           this.canonicalPulseDurationMs()
         )
@@ -699,76 +708,9 @@ export class TapRhythmEngine {
     }
   }
 
-  private alignFromFirstTap(tap: CapturedTap): void {
-    const timing = this.loopTiming;
-    if (!timing || !this.context || this.stateValue !== "listening") return;
-    try {
-      this.sampleClock();
-      const sample = this.bridge.sampleForEvent(tap.performanceMs);
-      const tapAudio = this.bridge.performanceToAudioSeconds(
-        tap.performanceMs,
-        sample
-      );
-      const cycle = timing.cycleSeconds;
-      const cyclePosition = (tapAudio - timing.anchorTime) / cycle;
-      const nearestCycle = Math.round(cyclePosition);
-      const nearestDownbeat = timing.anchorTime + nearestCycle * cycle;
-      const representationTolerance =
-        Number.EPSILON * Math.max(1, Math.abs(tapAudio), Math.abs(nearestDownbeat)) * 8;
-      const isExactDownbeat =
-        nearestCycle >= 0 &&
-        Math.abs(tapAudio - nearestDownbeat) <= representationTolerance;
-      let startAudioTime = isExactDownbeat
-        ? nearestDownbeat
-        : timing.anchorTime + (Math.floor(cyclePosition) + 1) * cycle;
-      if (!isExactDownbeat && !(startAudioTime > tapAudio))
-        startAudioTime += cycle;
-      if (
-        !Number.isFinite(startAudioTime) ||
-        (isExactDownbeat
-          ? startAudioTime < tapAudio - representationTolerance
-          : !(startAudioTime > tapAudio))
-      )
-        throw new Error("clock-invalid");
-      const reference = this.transport.appendPlanAtLoopBoundary(
-        createTapAttemptPlan(this.options.exercise),
-        startAudioTime
-      );
-      if (reference.generation !== timing.generation)
-        throw new Error("generation-mismatch");
-      this.snapshotValue = this.createSnapshot(reference, this.token);
-      const firstRound = this.snapshotValue.rounds[0];
-      if (!firstRound || this.options.exercise.targets[0]?.tick === undefined)
-        throw new Error("target-snapshot-mismatch");
-      this.firstTapSequence = tap.sequence;
-      this.roundTaps[0].push(
-        Object.freeze({
-          sequence: tap.sequence,
-          offsetMs: (tapAudio - firstRound.anchorAudioTime) * 1000,
-        })
-      );
-      this.roundRaw[0].push(
-        Object.freeze({
-          ...tap,
-          sampleContextTime: sample.contextTime,
-          samplePerformanceTime: sample.performanceTime,
-        })
-      );
-      this.stateValue = "aligning";
-      this.clearWake();
-      this.wake(this.token);
-    } catch (error) {
-      this.abort(this.errorReason(error));
-    }
-  }
-
   private accept(tap: CapturedTap): void {
     if (!this.active() || tap.generation !== this.token || !this.context)
       return;
-    if (this.stateValue === "listening") {
-      this.alignFromFirstTap(tap);
-      return;
-    }
     const snapshot = this.snapshotValue;
     if (!snapshot) return;
     if (this.context.currentTime > snapshot.drainEndAudioTime) return;
@@ -845,9 +787,6 @@ export class TapRhythmEngine {
           roundNumber: round.roundNumber,
           skipped: this.skippedRoundNumbers.has(round.roundNumber),
           taps: this.roundTaps[index],
-          ...(round.roundNumber === 1 && this.firstTapSequence !== null
-            ? { firstTapSequence: this.firstTapSequence }
-            : {}),
         })
       );
       score = calculateTapTwoRoundScore(
@@ -872,9 +811,6 @@ export class TapRhythmEngine {
       evaluation: firstPlayed?.evaluation ?? null,
       accuracyPercent: score.overallAccuracyPercent,
       scoreOutOfTen: score.scoreOutOfTen,
-      ...(score.rounds[0].status !== "played" || this.firstTapSequence === null
-        ? {}
-        : { firstTapSequence: this.firstTapSequence }),
       rounds: score.rounds,
       rawCaptures: this.roundRaw.flat(),
     });
@@ -889,7 +825,6 @@ export class TapRhythmEngine {
     const generation = this.token++;
     this.capture.reset(this.token);
     this.stateValue = "aborted";
-    this.loopTiming = null;
     if (this.transport.state !== "disposed") this.transport.stop();
     const reject = this.referenceReject;
     this.referenceResolve = null;

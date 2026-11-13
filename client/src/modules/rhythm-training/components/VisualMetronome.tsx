@@ -26,6 +26,8 @@ export type RhythmAudioPlayback = Readonly<{
 type VisualMetronomeProps = Readonly<{
   meter: RhythmMeter;
   pulseBpm?: number;
+  /** Playback-only measure offset; zero for preview and one for reference. */
+  countInBars?: number;
   readPlayback: () => RhythmAudioPlayback | null;
 }>;
 
@@ -47,7 +49,8 @@ const LIVE_STATES = new Set([
 
 function activePulseFor(
   playback: RhythmAudioPlayback | null,
-  pulseSeconds?: number
+  pulseSeconds?: number,
+  countInBars = 0
 ): ActivePulse | null {
   if (
     playback === null ||
@@ -89,12 +92,9 @@ function activePulseFor(
   if (playback.audioTime >= audibleUntil) return null;
 
   const countIn = current.event.id.startsWith("count-in:");
-  const hasCountIn = generationPulses.some(item =>
-    item.event.id.startsWith("count-in:")
-  );
   return Object.freeze({
     generation: current.generation,
-    measureIndex: current.event.measureIndex - (hasCountIn && !countIn ? 1 : 0),
+    measureIndex: current.event.measureIndex - (countIn ? 0 : countInBars),
     pulseIndex: current.event.pulseIndex,
     countIn,
   });
@@ -107,13 +107,16 @@ function activePulseFor(
 export function VisualMetronome({
   meter,
   pulseBpm,
+  countInBars = 0,
   readPlayback,
 }: VisualMetronomeProps) {
   const structure = useMemo(() => deriveMeterStructure(meter, 240), [meter]);
   const playbackReader = useRef(readPlayback);
   const pulsePeriod = useRef<number | undefined>(undefined);
+  const measureOffset = useRef(countInBars);
   const [activePulse, setActivePulse] = useState<ActivePulse | null>(null);
   playbackReader.current = readPlayback;
+  measureOffset.current = countInBars;
   pulsePeriod.current =
     pulseBpm !== undefined && Number.isFinite(pulseBpm) && pulseBpm > 0
       ? 60 / pulseBpm
@@ -130,7 +133,11 @@ export function VisualMetronome({
       } catch {
         playback = null;
       }
-      const nextPulse = activePulseFor(playback, pulsePeriod.current);
+      const nextPulse = activePulseFor(
+        playback,
+        pulsePeriod.current,
+        measureOffset.current
+      );
       setActivePulse(previous =>
         previous?.generation === nextPulse?.generation &&
         previous?.measureIndex === nextPulse?.measureIndex &&

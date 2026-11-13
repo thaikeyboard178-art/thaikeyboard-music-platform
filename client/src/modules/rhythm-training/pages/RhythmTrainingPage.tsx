@@ -49,6 +49,7 @@ import { TapResultPanel } from "../components/TapResultPanel";
 import { TapResultNotation } from "../components/TapResultNotation";
 import { VisualMetronome } from "../components/VisualMetronome";
 import { deriveMeter, getDefaultPulseBpm } from "../rhythm/meters";
+import { TAP_COUNT_IN_BARS, DEFAULT_TAP_COUNT_IN_BARS, type TapCountInBars } from "../audio/tapPlan";
 import RhythmQuizScreen, {
   type RhythmQuizScreenState,
 } from "./RhythmQuizScreen";
@@ -58,11 +59,42 @@ type PageScreen = "chooser" | "setup" | "practice" | "result" | "quiz";
 type ReceiptChoice = "latest" | "graded";
 type TapMode = "practice" | "graded";
 
+function CountInControl({
+  value,
+  disabled,
+  onChange,
+  label,
+}: {
+  value: TapCountInBars;
+  disabled: boolean;
+  onChange: (value: TapCountInBars) => void;
+  label: string;
+}) {
+  return (
+    <label className="rhythm-count-in-control">
+      <span>Count-in · Đếm trước</span>
+      <select
+        aria-label={label}
+        value={value}
+        disabled={disabled}
+        onChange={event =>
+          onChange(Number(event.target.value) as TapCountInBars)
+        }
+      >
+        {TAP_COUNT_IN_BARS.map(count => (
+          <option key={count} value={count}>
+            {count} ô nhịp
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 const ACTIVE_PHASES = new Set([
   "preparing",
   "starting",
-  "listening",
-  "aligning",
+  "count-in",
   "collecting",
   "draining",
   "reference",
@@ -75,8 +107,7 @@ const PHASE_COPY: Record<string, string> = {
   idle: "Sẵn sàng — có thể nghe mẫu hoặc bắt đầu.",
   reference: "Đang phát mẫu — bài chưa được chấm.",
   starting: "Đang mở âm thanh…",
-  listening: "Metronome đang phát liên tục. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp.",
-  aligning: "Đã ghi nhận Tap đầu tiên; đang nối bài vào downbeat kế tiếp.",
+  "count-in": "Đang đếm trước — bài tự bắt đầu tại phách 1 sau Count-in.",
   collecting: "Đang thực hiện — chạm ở đầu mỗi nốt, giữ nhịp qua dấu lặng.",
   draining: "Đang hoàn tất bài — vui lòng chờ kết quả.",
   completed: "Đã hoàn thành — đang mở kết quả.",
@@ -129,6 +160,7 @@ export default function RhythmTrainingPage() {
     meterKey(defaultTapMeter(3))
   );
   const [bars, setBars] = useState<1 | 2 | 4>(2);
+  const [countInBars, setCountInBars] = useState<TapCountInBars>(DEFAULT_TAP_COUNT_IN_BARS);
   const [focus, setFocus] = useState<RhythmFocus>(
     policyForLevel(3).defaultFocus
   );
@@ -222,6 +254,7 @@ export default function RhythmTrainingPage() {
     section: "practice",
     meter,
     bars,
+    countInBars,
     focus,
     pulseBpm: tempo,
   };
@@ -944,6 +977,8 @@ export default function RhythmTrainingPage() {
                 />
               </label>
             </div>
+            <CountInControl value={countInBars} disabled={locked || previewing}
+              onChange={setCountInBars} label="Count-in trong Thiết lập" />
             <p className="rhythm-tempo-hint">
               Tempo dùng cùng một giá trị cho ký âm, reference, metronome và bài
               tập.
@@ -1088,6 +1123,7 @@ export default function RhythmTrainingPage() {
               data-track={view.exercise.track}
               data-section={view.exercise.section}
               data-testid="rhythm-workspace"
+              data-count-in-bars={view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS}
             >
               <section
                 className="rhythm-practice-zone rhythm-info-zone"
@@ -1202,12 +1238,30 @@ export default function RhythmTrainingPage() {
                     </p>
                   )}
                 </section>
-                <p className="tap-first-tap-guidance" data-testid="tap-first-tap-guidance">
-                  Metronome chạy tự do đến Tap đầu tiên. Tap đầu tiên được chấm cho phách 1 ở downbeat kế tiếp; nếu sớm ngoài Wassoc, kết quả vẫn là Sớm, không phải Chạm thừa hoặc Thiếu phách 1. Không cần chạm lại phách 1.
+                <CountInControl
+                  value={view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS}
+                  disabled={!controller.canAdjustCountIn || locked || bpmRetiming}
+                  label="Count-in trong Practice"
+                  onChange={value => {
+                    if (controller.setCountInBars(value)) setCountInBars(value);
+                  }}
+                />
+                <p className="rhythm-tempo-hint" data-testid="tap-count-in-guidance">
+                  Metronome đếm trước {view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS} ô nhịp.
+                  Bài tự bắt đầu tại phách 1 sau Count-in, không cần chạm để kích hoạt.
+                  Cú chạm ngay trước phách 1 được chấm theo cửa sổ dung sai chuẩn;
+                  các cú chạm trước cửa sổ này trong Count-in không được ghi nhận.
                 </p>
                 <VisualMetronome
                   meter={view.exercise.pattern.meter}
                   pulseBpm={view.exercise.pattern.tempo.pulseBpm}
+                  countInBars={
+                    view.phase === "reference"
+                      ? 1
+                      : active
+                        ? view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS
+                        : 0
+                  }
                   readPlayback={() => controller.getAudioPlayback()}
                 />
                 <div
@@ -1229,10 +1283,8 @@ export default function RhythmTrainingPage() {
                   >
                     {view.currentRound !== null
                       ? `Đang ở vòng ${view.currentRound}/2.`
-                      : view.phase === "listening"
-                        ? "Metronome chạy tự do; Tap đầu tiên được chấm theo phách 1."
-                        : view.phase === "aligning" || view.phase === "starting"
-                        ? "Đang nối bài vào downbeat kế tiếp trước 2 vòng liên tiếp."
+                      : view.phase === "count-in" || view.phase === "starting"
+                        ? `Đang đếm trước ${view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS} ô nhịp; chưa tính vòng.`
                         : "Đang hoàn tất đối chiếu sau vòng 2."}
                     {view.skippedRounds.length > 0 &&
                       ` Đã bỏ qua vòng ${view.skippedRounds.join(", ")} theo lựa chọn; không trừ điểm.`}
@@ -1285,10 +1337,10 @@ export default function RhythmTrainingPage() {
                   tabIndex={0}
                   aria-label="Vùng chạm tiết tấu — chạm hoặc ấn Space"
                   aria-disabled={
-                    !["listening", "aligning", "collecting", "draining"].includes(view.phase)
+                    !["count-in", "collecting", "draining"].includes(view.phase)
                   }
                   aria-describedby="rhythm-tap-help"
-                  className={`rhythm-tap-surface ${["listening", "aligning", "collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
+                  className={`rhythm-tap-surface ${["collecting", "draining"].includes(view.phase) ? "is-active" : ""} ${tapFlash ? "is-tapped" : ""}`}
                   data-testid="rhythm-tap-surface"
                   onPointerDown={event => {
                     if (event.isPrimary) controller.acknowledgeTap();
@@ -1310,9 +1362,9 @@ export default function RhythmTrainingPage() {
                   </small>
                 </div>
                 <p id="rhythm-tap-help" className="rhythm-tap-help">
-                  Tap đầu tiên được chấm cho phách 1 tại downbeat kế tiếp. Kết quả
-                  và điểm hiển thị sau khi lượt tập hoàn tất; không cộng điểm theo
-                  từng tap.
+                  Sau Count-in, chạm ở đầu mỗi nốt trong cả hai vòng. Mọi cú chạm
+                  được đối chiếu với onset chuẩn, không kích hoạt hoặc dịch timeline.
+                  Kết quả và điểm hiển thị sau khi lượt tập hoàn tất; không cộng điểm theo từng tap.
                 </p>
               </section>
               <section

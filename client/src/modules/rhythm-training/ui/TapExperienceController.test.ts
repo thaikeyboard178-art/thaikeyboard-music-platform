@@ -2,11 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { TapRhythmEngine, type TapEngineOptions } from "../audio/tapEngine";
 import {
   createCanonicalTapStressExercise,
-  dispatchFirstTapAtNextDownbeat,
   TapFakeClock,
   TEST_TAP_VOICES,
 } from "../audio/tapTestHelpers";
-import type { RhythmScheduledEvent } from "../audio/transport";
 import { createTapReferencePlan } from "../audio/tapPlan";
 import {
   type TapRhythmExercise,
@@ -43,7 +41,6 @@ type Harness = {
   input: EventTarget;
   engines: TapRhythmEngine[];
   options: TapEngineOptions[];
-  scheduledEvents: RhythmScheduledEvent[];
   engineFactories: number;
 };
 
@@ -52,7 +49,6 @@ function injectedHarness(): Harness {
   const input = new EventTarget();
   const engines: TapRhythmEngine[] = [];
   const options: TapEngineOptions[] = [];
-  const scheduledEvents: RhythmScheduledEvent[] = [];
   const controller = new TapTrainingController({
     getInputTarget: () => input,
     transport: {
@@ -60,7 +56,6 @@ function injectedHarness(): Harness {
       timers: clock.timers,
       contextFactory: () => clock.context as unknown as AudioContext,
       visibilitySource: null,
-      onScheduled: event => scheduledEvents.push(event),
     },
     createExercise: () => exercise,
     engineFactory: engineOptions => {
@@ -82,7 +77,6 @@ function injectedHarness(): Harness {
     input,
     engines,
     options,
-    scheduledEvents,
     get engineFactories() {
       return engines.length;
     },
@@ -101,16 +95,8 @@ async function flushMicrotasks() {
 
 async function finishAttempt(h: Harness) {
   const engine = h.engines.at(-1)!;
-  if (!engine.snapshot)
-    dispatchFirstTapAtNextDownbeat(
-      h.clock,
-      h.input,
-      h.controller.getSnapshot().exercise!,
-      h.scheduledEvents
-    );
   const snapshot = engine.snapshot!;
   for (const target of snapshot.expectedOnsets) {
-    if (target.roundNumber === 1 && target.targetIndex === 0) continue;
     const round = snapshot.rounds[target.roundNumber - 1];
     const time = round.anchorAudioTime + (target.audioTime - round.anchorAudioTime);
     h.clock.at(time);
@@ -373,7 +359,7 @@ describe("Tap practice and graded controller experience", () => {
     expect(h.controller.getSnapshot().originalPoints).toBe(10);
     expect(h.controller.getSnapshot().session?.questionsAnswered).toBe(1);
     await h.controller.start();
-    expect(retryEngine.state).toBe("listening");
+    expect(retryEngine.state).toBe("count-in");
     await finishAttempt(h);
     const retryState = h.controller.getSnapshot();
     expect(retryState.result?.mode).toBe("practice");
