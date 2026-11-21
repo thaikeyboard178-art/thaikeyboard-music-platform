@@ -1,0 +1,11 @@
+import React from "react";
+import type { ChordResult } from "../types";
+export function ChordResults({ result, onReplay, onNew, onSetup, saved }: { result: ChordResult; onReplay: () => void; onNew: () => void; onSetup: () => void; saved: boolean }) {
+  return <section className="chord-panel chord-results" aria-label="Kết quả hợp âm">
+    <span className="module-kicker">{result.method === "visual" ? "VISUAL RECOGNITION" : "EAR TRAINING"} · LEVEL {result.level}</span><h2>Kết quả phiên luyện</h2><p className="chord-muted">{result.status === "completed" ? "Đã hoàn thành" : "Đã dừng phiên"}{saved ? " · Đã lưu trên trình duyệt này" : " · Kết quả hiện tại chưa được lưu trên trình duyệt"}</p>
+    <div className="chord-scoreboard"><div className="chord-accuracy"><strong>{result.accuracy === null ? "—" : `${result.accuracy}%`}</strong><span>{result.accuracy === null ? "Chưa có câu trả lời" : "Tỉ lệ chính xác"}</span></div><dl><div><dt>Đã đưa ra</dt><dd>{result.presented}</dd></div><div><dt>Đã trả lời</dt><dd>{result.answered}</dd></div><div><dt>Đúng</dt><dd className="chord-positive">{result.correct}</dd></div><div><dt>Sai</dt><dd>{result.incorrect}</dd></div><div><dt>Bỏ qua</dt><dd>{result.skipped}</dd></div><div><dt>Chưa trả lời</dt><dd>{result.presented - result.answered - result.skipped}</dd></div></dl></div>
+    <p className="chord-muted">Tỉ lệ chính xác chỉ tính các câu đã trả lời; không tính câu bỏ qua hoặc chưa trả lời.</p>
+    <details className="chord-result-details"><summary>Chi tiết {result.presented} câu</summary>{result.details.map((r, index) => <div key={r.question.id} className="chord-detail-row"><span>Câu {index + 1}</span><strong>{r.question.chord.symbol}</strong><span>{({ correct: "Đúng", incorrect: "Sai", skipped: "Bỏ qua", unanswered: "Chưa trả lời" })[r.status]}</span><small>{r.answerId ? `Bạn chọn: ${r.question.choices.find(a => a.id === r.answerId)?.label ?? "—"}` : "—"}</small></div>)}</details>
+    <div className="chord-actions"><button className="chord-primary" onClick={onReplay}>Làm lại bộ câu hỏi</button><button className="chord-secondary" onClick={onNew}>Tạo phiên mới</button><button className="chord-secondary" onClick={onSetup}>Cấu hình lại</button></div>
+  </section>;
+}

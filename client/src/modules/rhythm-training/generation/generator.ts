@@ -1353,6 +1353,11 @@ function patternFlags(pattern: RhythmPattern) {
   const hasDot = pattern.measures.some(measure =>
     measure.segments.some(segment => isDotted(segment.duration))
   );
+  const hasDottedNote = pattern.measures.some(measure =>
+    measure.segments.some(
+      segment => segment.kind === "note" && isDotted(segment.duration)
+    )
+  );
   const hasDotConcept = pattern.measures.some(measure =>
     measure.segments.some(
       segment =>
@@ -1425,6 +1430,7 @@ function patternFlags(pattern: RhythmPattern) {
     offbeatOnsetsPerBar,
     finePulsesPerBar,
     hasDot,
+    hasDottedNote,
     hasDotConcept,
     hasFine,
     hasTie,
@@ -1480,13 +1486,21 @@ function assertFeatures(
 
   const tapLevelFourFineCompanion =
     resolved.purpose === "tap" && policy.level === 4;
+  const missingTapLevelThreeDottedNote =
+    resolved.purpose === "tap" &&
+    policy.level === 3 &&
+    focus === "dots" &&
+    !flags.hasDottedNote;
   if (
     focus === "dots" &&
     (!flags.hasDot ||
+      missingTapLevelThreeDottedNote ||
       flags.hasTie ||
       (flags.hasFine && !tapLevelFourFineCompanion))
   ) {
-    fail("Dots focus requires dots only.");
+    fail(
+      "Dots focus requires dots only; Tap Level 3 also requires at least one dotted note."
+    );
   }
   if (
     focus === "ties" &&

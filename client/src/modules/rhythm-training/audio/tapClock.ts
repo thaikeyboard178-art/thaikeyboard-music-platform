@@ -4,7 +4,11 @@ export type OutputClockSample = Readonly<{
 }>;
 
 const MAX_HISTORY = 512;
-const MAX_SAMPLE_AGE_MS = 100;
+// 300ms accommodates Bluetooth output latency (aptX/LDAC ≈ 150–300ms).
+// Drift between audio and performance clocks at this scale is <1ms, so a
+// 300ms-old sample still reconstructs audio time accurately. Wired audio
+// (~5–20ms latency) remains far inside this limit.
+const MAX_SAMPLE_AGE_MS = 300;
 const EPOCH_MILLISECONDS_THRESHOLD = 100_000_000_000;
 
 /** Fail-closed clock or timestamp error. The reason is suitable for technical-abort diagnostics. */

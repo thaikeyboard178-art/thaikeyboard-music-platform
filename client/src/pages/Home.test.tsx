@@ -15,7 +15,7 @@ it("places the labeled Mi4 landing illustration on the treble bottom staff line"
   expect(document.querySelector(".hero-note-name")?.textContent).toBe("Mi₄");
 });
 
-it("shows real Note Reading and Tap Rhythm actions while Chord remains Coming Soon", () => {
+it("shows real Note Reading, Tap Rhythm and Chord actions", () => {
   render(<Home />);
   const notes = screen.getByRole("article", { name: "Đọc nốt nhạc" });
   expect(within(notes).getByRole("link", { name: /Mở bài học/ }).getAttribute("href")).toBe("/note-reading");
@@ -25,8 +25,8 @@ it("shows real Note Reading and Tap Rhythm actions while Chord remains Coming So
   expect(within(rhythm).getByText("Tap Rhythm")).not.toBeNull();
   for (const name of ["Nhận diện hợp âm"]) {
     const card = screen.getByRole("article", { name });
-    expect(within(card).getByText("Coming Soon")).not.toBeNull();
-    expect(within(card).queryByRole("link")).toBeNull();
+    expect(within(card).queryByText("Coming Soon")).toBeNull();
+    expect(within(card).getByRole("link", { name: /Mở bài học/ }).getAttribute("href")).toBe("/chord-recognition");
     expect(within(card).queryByRole("button")).toBeNull();
   }
 });

@@ -6,9 +6,9 @@ import { noteReadingModule } from "../modules/note-reading/module";
 
 const active = getActiveTrainingModules()[0];
 describe("explicit module catalog", () => {
-  it("has two real active modules and one metadata-only Coming Soon entry", () => {
-    expect(getTrainingModules().map(({ id, status }) => [id, status])).toEqual([["note-reading", "active"], ["rhythm-training", "active"], ["chord-recognition", "coming-soon"]]);
-    expect(getActiveTrainingModules().map(({ path }) => path)).toEqual(["/note-reading", "/rhythm-training"]);
+  it("has three real active modules", () => {
+    expect(getTrainingModules().map(({ id, status }) => [id, status])).toEqual([["note-reading", "active"], ["rhythm-training", "active"], ["chord-recognition", "active"]]);
+    expect(getActiveTrainingModules().map(({ path }) => path)).toEqual(["/note-reading", "/rhythm-training", "/chord-recognition"]);
     expect(active.id).toBe(noteReadingModule.id);
     for (const module of getTrainingModules().filter((m) => m.status === "coming-soon")) {
       expect("Page" in module).toBe(false);
@@ -29,9 +29,10 @@ describe("explicit module catalog", () => {
     expect(() => defineModuleCatalog([{ ...active, path: "https://example.test" }])).toThrow(/active module route/);
   });
   it("rejects forged Coming Soon page/route bindings at runtime", () => {
-    const future = getTrainingModule("chord-recognition")!;
-    expect(() => defineModuleCatalog([{ ...future, path: "/fake" } as ModuleRegistration])).toThrow(/cannot register/);
-    expect(() => defineModuleCatalog([{ ...future, Page: active.Page } as ModuleRegistration])).toThrow(/cannot register/);
+    const { Page: _Page, path: _path, ...metadata } = active;
+    const future = { ...metadata, id: "future-fixture", status: "coming-soon" as const };
+    expect(() => defineModuleCatalog([{ ...future, path: "/fake" } as unknown as ModuleRegistration])).toThrow(/cannot register/);
+    expect(() => defineModuleCatalog([{ ...future, Page: active.Page } as unknown as ModuleRegistration])).toThrow(/cannot register/);
   });
   it("supports an additional active registration without changing the router", () => {
     const example = { ...active, id: "test-fixture", path: "/test-fixture", name: "Test fixture" };

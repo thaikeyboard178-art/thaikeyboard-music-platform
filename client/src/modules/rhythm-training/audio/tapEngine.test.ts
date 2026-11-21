@@ -460,11 +460,11 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.engine.transport.state).toBe("completed");
     expect(h.engine.result?.rounds?.map(round => round.status)).toEqual([
       "played",
-      "played",
+      "unplayed",
     ]);
-    expect(h.engine.result?.rounds?.[1].missedTargetCount).toBe(1);
-    expect(h.engine.result?.accuracyPercent).toBeCloseTo(50, 6);
-    expect(h.engine.result?.scoreOutOfTen).toBe(5);
+    expect(h.engine.result?.rounds?.[1].missedTargetCount).toBe(0);
+    expect(h.engine.result?.accuracyPercent).toBeCloseTo(100, 6);
+    expect(h.engine.result?.scoreOutOfTen).toBe(10);
     expect(plan.pulseEvents.at(-1)?.tick).toBeLessThan(plan.totalTicks);
     await h.engine.dispose();
   });
@@ -500,7 +500,7 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     expect(h.engine.result?.rounds?.[0].missedTargetCount).toBe(0);
     await h.engine.dispose();
   });
-  it("two explicit skips yield no score or answer, while unskipped silence is two played rounds of misses", async () => {
+  it("two explicit skips yield no score or answer, while zero-tap rounds remain unplayed", async () => {
     const skipped = setup();
     await startAttempt(skipped);
     for (const [index, round] of skipped.engine.snapshot!.rounds.entries()) {
@@ -524,19 +524,17 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
     finish(silent);
     const result = silent.engine.result!;
     expect(result.rounds?.map(round => round.status)).toEqual([
-      "played",
-      "played",
+      "unplayed",
+      "unplayed",
     ]);
     expect(result.rounds?.map(round => round.missedTargetCount)).toEqual([
-      silent.exercise.targets.length,
-      silent.exercise.targets.length,
+      0,
+      0,
     ]);
-    expect(
-      result.rounds?.every(round => round.evaluation?.correct === false)
-    ).toBe(true);
-    expect(result.evaluation?.missing).toBe(silent.exercise.targets.length);
-    expect(result.accuracyPercent).toBe(0);
-    expect(result.scoreOutOfTen).toBe(0);
+    expect(result.rounds?.every(round => round.evaluation === null)).toBe(true);
+    expect(result.evaluation).toBeNull();
+    expect(result.accuracyPercent).toBeNull();
+    expect(result.scoreOutOfTen).toBeNull();
     await silent.engine.dispose();
   });
   it.each(TAP_COUNT_IN_BARS)(
@@ -811,11 +809,15 @@ describe("production Tap Engine with real canonical scheduler and deterministic 
               ? { contextTime: -1, performanceTime: -1 }
               : kind === "backwards"
                 ? {
-                    contextTime: old.contextTime - 1,
-                    performanceTime: old.performanceTime - 1000,
-                  }
-                : old;
-      h.clock.advance(kind === "stale" ? 0.15 : 0.03);
+                  contextTime: old.contextTime - 1,
+                  performanceTime: old.performanceTime - 1000,
+                }
+              : old;
+      h.clock.advance(kind === "stale" ? 0.35 : 0.03);
+      if (kind === "stale") {
+        const tapTime = h.clock.context.currentTime;
+        h.input.dispatchEvent(h.clock.nativeTap(tapTime));
+      }
       expect(h.engine.state).toBe("aborted");
       expect(h.engine.result!.accuracyPercent).toBeNull();
       await h.engine.dispose();

@@ -20,6 +20,7 @@ function rowForTarget(round: TapRoundResult, targetIndex: number) {
 
 function resultText(round: TapRoundResult, targetIndex: number): string {
   if (round.status === "skipped") return "Đã bỏ qua";
+  if (round.status === "unplayed") return "Chưa chơi";
   const row = rowForTarget(round, targetIndex);
   if (!row) return "Không có dữ liệu";
   if (row.matchStatus === "missing") return "Thiếu";
@@ -39,13 +40,16 @@ function resultText(round: TapRoundResult, targetIndex: number): string {
 
 function noteScoreText(round: TapRoundResult, targetIndex: number): string {
   if (round.status === "skipped") return "Đã bỏ qua";
+  if (round.status === "unplayed") return "Chưa chơi";
   const row = rowForTarget(round, targetIndex);
   if (!row) return "Không có dữ liệu";
   return percentage(row.noteAccuracyPercent);
 }
 
 function extraTapText(round: TapRoundResult): string {
-  return round.status === "skipped" ? "Đã bỏ qua" : String(round.extraTapCount);
+  if (round.status === "skipped") return "Đã bỏ qua";
+  if (round.status === "unplayed") return "Chưa chơi";
+  return String(round.extraTapCount);
 }
 
 export function RelativeTimingFeedbackPanel({

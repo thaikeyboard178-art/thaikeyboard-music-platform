@@ -9,6 +9,7 @@ import {
 import type { RhythmFocus } from "../generation/levels";
 import { deriveRhythmTimeline } from "../rhythm/deriveTimeline";
 import { deriveMeter, ticksToSeconds } from "../rhythm/meters";
+import { notationSignature } from "../rhythm/signatures";
 import { requireValidRhythmPattern } from "../rhythm/validate";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
 import { isRuntimeTapAttempt } from "./tapCompletion";
@@ -47,12 +48,15 @@ export type GenerateTapRhythmExerciseInput = Readonly<{
   bars?: 1 | 2 | 4;
   focus?: RhythmFocus;
   pulseBpm?: number;
+  /** Optional canonical pattern identity to avoid for an immediately new exercise. */
+  avoidCanonicalSignature?: string;
 }>;
 
 const PASS_ALPHA = 0.3;
 const ASSOCIATION_BETA = 0.4;
 const PASS_CAP_MS = 50;
 const ASSOCIATION_CAP_MS = 80;
+const MAX_REPEAT_AVOIDANCE_ATTEMPTS = 24;
 
 function fail(message: string): never {
   throw new RangeError(message);
@@ -289,6 +293,8 @@ export function generateTapRhythmExercise(
     ...(input.pulseBpm === undefined ? {} : { pulseBpm: input.pulseBpm }),
     ...(input.focus === undefined ? {} : { focus: input.focus }),
   } as const;
+  let repeatedCandidate: RhythmPattern | null = null;
+  let repeatedCandidateCount = 0;
 
   // Tap begins on the next independently timed beat-one downbeat. Keep the
   // curriculum generator unchanged; derive a deterministic candidate stream
@@ -301,7 +307,23 @@ export function generateTapRhythmExercise(
     const pattern = generateRhythmPattern(config);
     assertLevelConstraints(pattern, config);
     if (pattern.measures[0]?.segments[0]?.kind !== "note") continue;
+    if (
+      input.avoidCanonicalSignature !== undefined &&
+      notationSignature(pattern) === input.avoidCanonicalSignature
+    ) {
+      repeatedCandidate = pattern;
+      repeatedCandidateCount += 1;
+      if (repeatedCandidateCount < MAX_REPEAT_AVOIDANCE_ATTEMPTS) continue;
+      break;
+    }
     return createTapRhythmExercise({ track: input.track, section, pattern });
+  }
+  if (repeatedCandidate) {
+    return createTapRhythmExercise({
+      track: input.track,
+      section,
+      pattern: repeatedCandidate,
+    });
   }
   fail("Could not generate a Tap exercise with a sounded beat-one onset.");
 }

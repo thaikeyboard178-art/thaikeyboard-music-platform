@@ -14,9 +14,9 @@ describe("shared application shell", () => {
     expect(within(nav).getByRole("link", { name: "Đọc nốt" }).getAttribute("aria-current")).toBe("page");
     expect(within(nav).getByRole("link", { name: "Tiết tấu" }).getAttribute("href")).toBe("/rhythm-training");
     expect(within(nav).getByRole("link", { name: "Tiết tấu" }).hasAttribute("aria-current")).toBe(false);
-    expect(within(nav).queryByRole("link", { name: /Hợp âm/ })).toBeNull();
+    expect(within(nav).getByRole("link", { name: "Hợp âm" }).getAttribute("href")).toBe("/chord-recognition");
     expect(within(nav).queryByRole("button")).toBeNull();
-    expect(within(nav).getAllByText("Coming Soon")).toHaveLength(1);
+    expect(within(nav).queryAllByText("Coming Soon")).toHaveLength(0);
   });
   it("accepts an unknown module identity without a Note Reading-specific branch", () => {
     render(<TrainingHeader currentModuleId="some-future-module" />);

@@ -179,13 +179,65 @@ describe("Rhythm learner page: three screens and real controller integration", (
     expect(practiceCount.value).toBe("6");
     expect(practiceCount.closest(".rhythm-metronome-zone")).not.toBeNull();
     expect(practiceCount.disabled).toBe(false);
-    await user.selectOptions(practiceCount, "8");
-    expect(practiceCount.value).toBe("8");
-    expect(screen.getByTestId("rhythm-workspace").getAttribute("data-count-in-bars")).toBe("8");
-    expect(screen.getByTestId("tap-count-in-guidance").textContent).toMatch(/Metronome đếm trước\s*8 ô nhịp/);
+    expect(screen.getByTestId("rhythm-metronome-layout")).not.toBeNull();
+    expect(screen.getByTestId("rhythm-metronome-tempo-column")).not.toBeNull();
+    expect(screen.getByTestId("rhythm-metronome-center-column")).not.toBeNull();
+    expect(screen.getByTestId("rhythm-metronome-volume-column")).not.toBeNull();
+    expect(
+      (screen.getByLabelText("Tempo Practice (BPM)") as HTMLInputElement).getAttribute("aria-orientation")
+    ).toBe("vertical");
+    expect(
+      (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).getAttribute("aria-orientation")
+    ).toBe("vertical");
+    expect(screen.getByTestId("practice-metronome-preview")).not.toBeNull();
+    for (const bars of ["1", "2", "4", "6", "8"] as const) {
+      await user.selectOptions(practiceCount, bars);
+      expect(practiceCount.value).toBe(bars);
+      expect(
+        screen.getByTestId("rhythm-workspace").getAttribute("data-count-in-bars")
+      ).toBe(bars);
+    }
     await user.click(screen.getByRole("button", { name: "Thiết lập lại" }));
     expect(screen.getByRole("combobox", { name: "Count-in trong Thiết lập" }).getAttribute("aria-label")).toBe("Count-in trong Thiết lập");
     expect(setupCount.value).toBe("8");
+  });
+
+  it("opens, closes, reopens, and updates the learner guide for every Count-in choice", async () => {
+    const user = userEvent.setup();
+    showPage();
+    const trigger = screen.getByRole("button", {
+      name: "Hướng dẫn Rhythm Training",
+    });
+    const guide = screen.getByTestId("rhythm-user-guide") as HTMLElement;
+    expect(guide.hidden).toBe(true);
+
+    await user.click(trigger);
+    expect(guide.hidden).toBe(false);
+    expect(guide.textContent).toContain(
+      "Nghe metronome và quan sát bản nhạc để nắm nhịp."
+    );
+    expect(guide.textContent).toContain(
+      "Sau 2 ô nhịp đếm trước, bài tập sẽ tự động bắt đầu."
+    );
+    expect(guide.textContent).toContain(
+      "Chạm vào vùng Tap theo đúng thời điểm của từng nốt nhạc."
+    );
+
+    await user.click(screen.getByRole("button", { name: "Đóng hướng dẫn" }));
+    expect(guide.hidden).toBe(true);
+    await user.click(trigger);
+    expect(guide.hidden).toBe(false);
+
+    await openTapSetup();
+    const setupCount = screen.getByRole("combobox", {
+      name: "Count-in trong Thiết lập",
+    }) as HTMLSelectElement;
+    for (const bars of ["1", "2", "4", "6", "8"] as const) {
+      await user.selectOptions(setupCount, bars);
+      expect(guide.textContent).toContain(
+        `Sau ${bars} ô nhịp đếm trước, bài tập sẽ tự động bắt đầu.`
+      );
+    }
   });
 
   it("starts at a dedicated chooser and projects setup, practice, and results for both selected flows", async () => {
@@ -579,19 +631,17 @@ describe("Rhythm learner page: three screens and real controller integration", (
     ).toContain("4 ô nhịp");
     expect(within(workspace).getByText(/4 phách mỗi ô/)).not.toBeNull();
     expect(
-      within(workspace).getByText(
+      within(workspace).queryByText(
         /Sau Count-in, chạm ở đầu mỗi nốt trong cả hai vòng/
       )
-    ).not.toBeNull();
+    ).toBeNull();
+    expect(screen.getByTestId("rhythm-user-guide").textContent).toContain(
+      "Chạm vào vùng Tap theo đúng thời điểm của từng nốt nhạc."
+    );
     expect(
       within(workspace).queryByText(/Tín hiệu chạm chỉ xác nhận thao tác/)
     ).toBeNull();
-    expect(screen.getByTestId("tap-count-in-guidance").textContent).toContain(
-      "không cần chạm để kích hoạt"
-    );
-    expect(screen.getByTestId("tap-count-in-guidance").textContent).toContain(
-      "cửa sổ dung sai chuẩn"
-    );
+    expect(screen.queryByTestId("tap-count-in-guidance")).toBeNull();
     expect(screen.queryByTestId("tap-first-tap-guidance")).toBeNull();
     expect(
       (screen.getByLabelText("Âm lượng metronome") as HTMLInputElement).value

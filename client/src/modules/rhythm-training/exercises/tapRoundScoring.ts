@@ -29,7 +29,7 @@ export type TapRoundNoteResult = Readonly<{
 
 export type TapRoundResult = Readonly<{
   roundNumber: TapRoundNumber;
-  status: "played" | "skipped";
+  status: "played" | "skipped" | "unplayed";
   taps: readonly TapMatchInput[];
   evaluation: TapEvaluation | null;
   noteResults: readonly TapRoundNoteResult[];
@@ -274,6 +274,18 @@ export function calculateTapTwoRoundScore(
         extraTapCount: 0,
       });
     }
+    if (input.taps.length === 0) {
+      return Object.freeze({
+        roundNumber: input.roundNumber,
+        status: "unplayed" as const,
+        taps: Object.freeze([]) as readonly TapMatchInput[],
+        evaluation: null,
+        noteResults: Object.freeze([]) as readonly TapRoundNoteResult[],
+        accuracyPercent: null,
+        missedTargetCount: 0,
+        extraTapCount: 0,
+      });
+    }
     const taps = Object.freeze(
       input.taps.map(tap => Object.freeze({ ...tap }))
     );
@@ -316,6 +328,7 @@ export function calculateTapTwoRoundScore(
     allNoteAccuracies.some(value => value === null)
       ? null
       : mean(allNoteAccuracies as number[]);
+  const roundsSkipped = tuple.filter(round => round.status === "skipped").length;
   const scoreOutOfTen =
     overallAccuracyPercent === null
       ? null
@@ -326,7 +339,7 @@ export function calculateTapTwoRoundScore(
     overallAccuracyPercent,
     scoreOutOfTen,
     roundsPlayed: played.length,
-    roundsSkipped: tuple.length - played.length,
+    roundsSkipped,
     missedTargetCount: tuple.reduce(
       (total, round) => total + round.missedTargetCount,
       0

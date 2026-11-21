@@ -64,15 +64,17 @@ function CountInControl({
   disabled,
   onChange,
   label,
+  title = "Count-in · Đếm trước",
 }: {
   value: TapCountInBars;
   disabled: boolean;
   onChange: (value: TapCountInBars) => void;
   label: string;
+  title?: string;
 }) {
   return (
     <label className="rhythm-count-in-control">
-      <span>Count-in · Đếm trước</span>
+      <span>{title}</span>
       <select
         aria-label={label}
         value={value}
@@ -169,6 +171,7 @@ export default function RhythmTrainingPage() {
     String(defaultTempo(3, defaultTapMeter(3)))
   );
   const [screen, setScreen] = useState<PageScreen>("chooser");
+  const [guideOpen, setGuideOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<
     "tap" | "quiz" | null
   >(null);
@@ -190,6 +193,7 @@ export default function RhythmTrainingPage() {
   const [skipDialogOpen, setSkipDialogOpen] = useState(false);
   const [receiptChoice, setReceiptChoice] = useState<ReceiptChoice>("latest");
   const screenRef = useRef<PageScreen>(screen);
+  const guideTriggerRef = useRef<HTMLButtonElement>(null);
   const selectedActivityRef = useRef<"tap" | "quiz" | null>(selectedActivity);
   const quizScreenRef = useRef<RhythmQuizScreenState>(quizScreen);
   const phaseRef = useRef(view.phase);
@@ -226,6 +230,7 @@ export default function RhythmTrainingPage() {
     tempo >= band.min &&
     tempo <= band.max;
   const active = ACTIVE_PHASES.has(view.phase);
+  const activeCountInBars = view.configuration?.countInBars ?? countInBars;
   const locked = active || view.busy;
   const hasExercise = view.exercise !== null;
   const practiceTempoInput =
@@ -756,14 +761,107 @@ export default function RhythmTrainingPage() {
                   : "Nhìn ký âm. Nghe nhịp. Chạm đúng lúc bắt đầu mỗi nốt."}
             </p>
           </div>
-        <div className="rhythm-heading-actions" data-testid="rhythm-heading-actions">
-          <span className="free-pill">
-            <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
-          </span>
-        </div>
+          <div className="rhythm-heading-actions" data-testid="rhythm-heading-actions">
+            {screen !== "quiz" && (
+              <button
+                ref={guideTriggerRef}
+                type="button"
+                className="rhythm-help-trigger"
+                aria-label="Hướng dẫn Rhythm Training"
+                aria-controls="rhythm-user-guide"
+                aria-expanded={guideOpen}
+                title="Hướng dẫn Rhythm Training"
+                onClick={() => setGuideOpen(open => !open)}
+              >
+                ?
+              </button>
+            )}
+            <span className="free-pill">
+              <Waves size={13} /> Không cần tài khoản · Không lưu tiến trình
+            </span>
+          </div>
         </div>
 
         {progressStep !== null && <RhythmStepProgress current={progressStep} />}
+
+        <section
+          id="rhythm-user-guide"
+          className="rhythm-user-guide"
+          aria-label="Hướng dẫn sử dụng Rhythm Training"
+          data-testid="rhythm-user-guide"
+          hidden={!guideOpen || screen === "quiz"}
+        >
+          <div className="rhythm-guide-heading">
+            <div>
+              <span className="module-kicker">HƯỚNG DẪN</span>
+              <h2>Hướng dẫn cách chơi</h2>
+            </div>
+            <button
+              type="button"
+              className="rhythm-tertiary rhythm-guide-close"
+              aria-label="Đóng hướng dẫn"
+              onClick={() => {
+                setGuideOpen(false);
+                guideTriggerRef.current?.focus();
+              }}
+            >
+              Đóng
+            </button>
+          </div>
+          <div className="rhythm-guide-grid">
+            <section className="rhythm-guide-card" aria-labelledby="guide-play-title">
+              <h3 id="guide-play-title">Bài tập và cách chơi</h3>
+              <p>
+                Ở màn thiết lập, chọn cấp độ, nhịp, nội dung luyện, số ô nhịp và tempo; sau đó chọn Chơi thử hoặc Chấm điểm.
+              </p>
+              <p>
+                Quan sát bản nhạc và gõ theo nhịp, tập trung vào thời điểm các nốt bắt đầu.
+              </p>
+              <ol>
+                <li>Nghe metronome và quan sát bản nhạc để nắm nhịp.</li>
+                <li>
+                  Sau {activeCountInBars} ô nhịp đếm trước, bài tập sẽ tự động bắt đầu.
+                </li>
+                <li>Chạm vào vùng Tap theo đúng thời điểm của từng nốt nhạc.</li>
+                <li>Bài tập gồm 2 vòng liên tiếp. Hãy cố gắng hoàn thành cả hai vòng.</li>
+                <li>Nếu không muốn chơi vòng hiện tại, chọn “Bỏ qua vòng”.</li>
+                <li>Khi kết thúc, xem độ chính xác và kết quả của từng vòng.</li>
+              </ol>
+              <p>
+                “Bỏ qua vòng” bỏ qua vòng đang chơi, không trừ điểm. “Bỏ qua bài” chuyển sang bài mới; ở Chấm điểm trừ 5 điểm (tối thiểu 0), còn Chơi thử không trừ.
+              </p>
+              <p>
+                Gặp dấu lặng thì không gõ. Nốt dài không cần gõ liên tục; hãy giữ đúng khoảng cách giữa các lần chạm.
+              </p>
+            </section>
+            <section className="rhythm-guide-card" aria-labelledby="guide-controls-title">
+              <h3 id="guide-controls-title">Điều khiển và Count-in</h3>
+              <ul>
+                <li><strong>Tempo/BPM:</strong> điều chỉnh tốc độ bài tập trước khi bắt đầu; giá trị sẽ khóa trong lượt đang chạy.</li>
+                <li><strong>Metronome:</strong> ở Thiết lập chọn “Nghe thử metronome”; khi luyện chọn “Nghe metronome”. Nhấn lại để dừng.</li>
+                <li><strong>Âm lượng:</strong> điều chỉnh mức âm thanh; 0% sẽ tắt tiếng tick.</li>
+                <li><strong>Count-in:</strong> chọn 1, 2, 4, 6 hoặc 8 ô nhịp đếm trước; có thể đổi trước khi bắt đầu.</li>
+                <li><strong>Nghe mẫu:</strong> nghe mẫu một lần trước lượt; không phát lại giữa lượt đang chấm điểm.</li>
+              </ul>
+              <p>
+                Count-in không được tính vào kết quả. Ví dụ chọn 2 ô nhịp: ứng dụng đếm đủ 2 ô rồi mới bắt đầu Vòng 1.
+              </p>
+            </section>
+            <section className="rhythm-guide-card" aria-labelledby="guide-results-title">
+              <h3 id="guide-results-title">Hiểu kết quả</h3>
+              <ul>
+                <li><strong>Khớp:</strong> chạm đúng thời điểm mục tiêu.</li>
+                <li><strong>Sớm:</strong> chạm trước thời điểm mục tiêu.</li>
+                <li><strong>Trễ:</strong> chạm sau thời điểm mục tiêu.</li>
+                <li><strong>Thừa:</strong> chạm thêm ngoài các thời điểm cần gõ.</li>
+                <li><strong>Thiếu:</strong> bỏ lỡ một thời điểm cần gõ.</li>
+              </ul>
+              <p>
+                Độ chính xác Vòng 1 và Vòng 2 được hiển thị riêng. Điểm trung bình chỉ tính các vòng đã chơi; vòng chưa có lượt chạm được ghi là “Chưa chơi”. Điểm tham khảo được quy đổi theo thang 10.
+              </p>
+            </section>
+          </div>
+        </section>
 
         <section
           className="rhythm-screen rhythm-chooser-screen"
@@ -1137,6 +1235,35 @@ export default function RhythmTrainingPage() {
                   Chế độ:{" "}
                   {view.selectedMode === "practice" ? "Chơi thử" : "Chấm điểm"}
                 </span>
+                {view.previousCompletedResult && (
+                  <details
+                    className="rhythm-previous-result"
+                    data-testid="rhythm-previous-result"
+                  >
+                    <summary>
+                      Bài vừa hoàn thành · Accuracy Vòng 1{" "}
+                      {view.previousCompletedResult.result.rounds?.[0]?.status === "played"
+                        ? `${view.previousCompletedResult.result.rounds[0].accuracyPercent ?? "Không khả dụng"}%`
+                        : view.previousCompletedResult.result.rounds?.[0]?.status === "skipped"
+                          ? "Đã bỏ qua"
+                          : "Chưa chơi"}
+                      {" · Accuracy Vòng 2 "}
+                      {view.previousCompletedResult.result.rounds?.[1]?.status === "played"
+                        ? `${view.previousCompletedResult.result.rounds[1].accuracyPercent ?? "Không khả dụng"}%`
+                        : view.previousCompletedResult.result.rounds?.[1]?.status === "skipped"
+                          ? "Đã bỏ qua"
+                          : "Chưa chơi"}
+                      {" · Điểm tham khảo "}
+                      {view.previousCompletedResult.result.scoreOutOfTen == null
+                        ? "Chưa có"
+                        : `${view.previousCompletedResult.result.scoreOutOfTen}/10`}
+                    </summary>
+                    <p>
+                      Điểm trung bình chỉ tính các vòng đã chơi; vòng chưa có lượt
+                      chạm được ghi là “Chưa chơi”.
+                    </p>
+                  </details>
+                )}
               </section>
 
               <section
@@ -1146,20 +1273,14 @@ export default function RhythmTrainingPage() {
                 <h3 id="rhythm-metronome-zone-title" className="rhythm-zone-title">
                   2 · METRONOME
                 </h3>
-                <section
-                  className="rhythm-tempo-control rhythm-practice-tempo"
-                  aria-labelledby="practice-tempo-heading"
-                >
+                <div className="rhythm-metronome-layout" data-testid="rhythm-metronome-layout">
+                  <section
+                    className="rhythm-tempo-control rhythm-practice-tempo rhythm-metronome-tempo"
+                    aria-labelledby="practice-tempo-heading"
+                    data-testid="rhythm-metronome-tempo-column"
+                  >
                   <div className="rhythm-tempo-heading">
-                    <div>
-                      <span className="module-kicker">TEMPO · 30–300 BPM</span>
-                      <h4 id="practice-tempo-heading">Điều chỉnh tempo khi luyện</h4>
-                      <p>
-                        Nhịp {meterKey(view.exercise.pattern.meter)} và số phách
-                        giữ nguyên; thay đổi chỉ áp dụng tempo cho metronome và
-                        playback của bài.
-                      </p>
-                    </div>
+                    <h4 id="practice-tempo-heading">Tempo</h4>
                     <output
                       className="rhythm-tempo-value"
                       aria-label="Tempo hiện tại"
@@ -1193,6 +1314,7 @@ export default function RhythmTrainingPage() {
                       step="1"
                       value={view.exercise.pattern.tempo.pulseBpm}
                       disabled={!canEditPracticeBpm}
+                      aria-orientation="vertical"
                       onChange={event =>
                         void applyPracticeBpm(Number(event.target.value))
                       }
@@ -1214,7 +1336,7 @@ export default function RhythmTrainingPage() {
                       +
                     </button>
                     <label className="rhythm-bpm-input-label">
-                      BPM
+                      Nhập BPM
                       <input
                         aria-label="BPM trong Practice"
                         type="number"
@@ -1238,31 +1360,15 @@ export default function RhythmTrainingPage() {
                     </p>
                   )}
                 </section>
+                <div className="rhythm-metronome-center" data-testid="rhythm-metronome-center-column">
                 <CountInControl
                   value={view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS}
                   disabled={!controller.canAdjustCountIn || locked || bpmRetiming}
                   label="Count-in trong Practice"
+                  title="Count-in"
                   onChange={value => {
                     if (controller.setCountInBars(value)) setCountInBars(value);
                   }}
-                />
-                <p className="rhythm-tempo-hint" data-testid="tap-count-in-guidance">
-                  Metronome đếm trước {view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS} ô nhịp.
-                  Bài tự bắt đầu tại phách 1 sau Count-in, không cần chạm để kích hoạt.
-                  Cú chạm ngay trước phách 1 được chấm theo cửa sổ dung sai chuẩn;
-                  các cú chạm trước cửa sổ này trong Count-in không được ghi nhận.
-                </p>
-                <VisualMetronome
-                  meter={view.exercise.pattern.meter}
-                  pulseBpm={view.exercise.pattern.tempo.pulseBpm}
-                  countInBars={
-                    view.phase === "reference"
-                      ? 1
-                      : active
-                        ? view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS
-                        : 0
-                  }
-                  readPlayback={() => controller.getAudioPlayback()}
                 />
                 <div
                   className={`rhythm-status phase-${view.phase}`}
@@ -1285,29 +1391,74 @@ export default function RhythmTrainingPage() {
                       ? `Đang ở vòng ${view.currentRound}/2.`
                       : view.phase === "count-in" || view.phase === "starting"
                         ? `Đang đếm trước ${view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS} ô nhịp; chưa tính vòng.`
-                        : "Đang hoàn tất đối chiếu sau vòng 2."}
+                        : "Đang tổng kết kết quả."}
                     {view.skippedRounds.length > 0 &&
                       ` Đã bỏ qua vòng ${view.skippedRounds.join(", ")} theo lựa chọn; không trừ điểm.`}
                   </p>
                 )}
-                <label className="rhythm-volume-control">
-                  <Volume2 size={16} />
-                  <span>Âm lượng metronome</span>
-                  <input
-                    type="range"
-                    aria-label="Âm lượng metronome"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={metronomeVolume}
-                    onChange={event => {
-                      const next = Number(event.target.value);
-                      setMetronomeVolume(next);
-                      controller.setMetronomeVolume(next);
-                    }}
-                  />
-                  <output>{Math.round(metronomeVolume * 100)}%</output>
-                </label>
+                <VisualMetronome
+                  meter={view.exercise.pattern.meter}
+                  pulseBpm={view.exercise.pattern.tempo.pulseBpm}
+                  countInBars={
+                    view.phase === "reference"
+                      ? 1
+                      : active
+                        ? view.configuration?.countInBars ?? DEFAULT_TAP_COUNT_IN_BARS
+                        : 0
+                  }
+                  readPlayback={() => controller.getAudioPlayback()}
+                />
+                <button
+                  type="button"
+                  className="rhythm-primary rhythm-metronome-preview-button"
+                  data-testid="practice-metronome-preview"
+                  aria-pressed={previewing}
+                  disabled={
+                    (locked && !previewing) ||
+                    (!previewing && !practiceTempoInputValid)
+                  }
+                  onClick={() => void playPreview()}
+                >
+                  <Headphones size={18} />
+                  {previewing ? "Dừng metronome" : "Nghe metronome"}
+                </button>
+                {previewError && (
+                  <p className="rhythm-error rhythm-preview-error" role="alert">
+                    {previewError}
+                  </p>
+                )}
+                </div>
+                <section
+                  className="rhythm-metronome-volume"
+                  aria-labelledby="practice-volume-heading"
+                  data-testid="rhythm-metronome-volume-column"
+                >
+                  <h4 id="practice-volume-heading">Âm lượng</h4>
+                  <label className="rhythm-volume-control rhythm-volume-vertical">
+                    <div className="rhythm-volume-summary">
+                      <Volume2 size={22} aria-hidden="true" />
+                      <output aria-label="Âm lượng hiện tại">
+                        <strong>{Math.round(metronomeVolume * 100)}</strong>
+                        <span>%</span>
+                      </output>
+                    </div>
+                    <input
+                      type="range"
+                      aria-label="Âm lượng metronome"
+                      aria-orientation="vertical"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={metronomeVolume}
+                      onChange={event => {
+                        const next = Number(event.target.value);
+                        setMetronomeVolume(next);
+                        controller.setMetronomeVolume(next);
+                      }}
+                    />
+                  </label>
+                </section>
+                </div>
               </section>
 
               <section
@@ -1362,9 +1513,7 @@ export default function RhythmTrainingPage() {
                   </small>
                 </div>
                 <p id="rhythm-tap-help" className="rhythm-tap-help">
-                  Sau Count-in, chạm ở đầu mỗi nốt trong cả hai vòng. Mọi cú chạm
-                  được đối chiếu với onset chuẩn, không kích hoạt hoặc dịch timeline.
-                  Kết quả và điểm hiển thị sau khi lượt tập hoàn tất; không cộng điểm theo từng tap.
+                  Chạm vào vùng Tap đúng thời điểm bắt đầu của mỗi nốt nhạc.
                 </p>
               </section>
               <section
@@ -1376,17 +1525,6 @@ export default function RhythmTrainingPage() {
                 </h3>
                 {showOfficialSessionScore && cumulativeTotalScore !== null && (
                   <SessionScore score={cumulativeTotalScore} />
-                )}
-                {view.replayOnly && view.selectedMode === "graded" && (
-                  <div
-                    className="rhythm-replay-note"
-                    role="note"
-                    data-testid="rhythm-replay-practice-only"
-                  >
-                    Lựa chọn hiển thị vẫn là Chấm điểm, nhưng Chơi lại chỉ tạo một
-                    lượt luyện tập tham khảo: không gửi câu trả lời chung và không
-                    ghi thêm điểm. Hãy bấm Bắt đầu để chủ động phát lượt này.
-                  </div>
                 )}
                 <div className="rhythm-controls">
                   <button
@@ -1463,11 +1601,6 @@ export default function RhythmTrainingPage() {
                 )}
                 {practiceReturnReceipt && (
                   <div className="rhythm-receipt-return" role="note">
-                    <span>
-                      {view.replayOnly && view.gradedResult
-                        ? "Kết quả chấm ban đầu và điểm gốc vẫn được giữ nguyên."
-                        : "Kết quả gần nhất vẫn được giữ nguyên."}
-                    </span>
                     <button
                       type="button"
                       className="rhythm-tertiary"
@@ -1597,11 +1730,7 @@ export default function RhythmTrainingPage() {
                 busy={locked || !notationReady}
                 retryLabel="Chơi lại"
                 continueLabel="Bài tiếp theo"
-                practiceLabel={
-                  view.replayOnly && view.selectedMode === "graded"
-                    ? "Chơi lại — kết quả và điểm /10 chỉ để tham khảo; không tạo câu trả lời chung hoặc cộng điểm tổng."
-                    : "Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
-                }
+                practiceLabel="Đây là kết quả luyện tập tham khảo, không được tính vào tổng điểm chính thức."
               />
               {view.gradedResult && selectedReceipt !== view.gradedResult && (
                 <button
