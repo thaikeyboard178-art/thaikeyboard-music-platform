@@ -135,7 +135,7 @@ describe("TapResultPanel", () => {
         onContinue={() => undefined}
         retryLabel="Chơi lại"
         continueLabel="Bài tiếp theo"
-        practiceLabel="Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
+        practiceLabel="Đây là kết quả luyện tập tham khảo, không được tính vào tổng điểm chính thức."
       />
     );
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
@@ -151,7 +151,7 @@ describe("TapResultPanel", () => {
     expect(screen.queryByText(/Điểm đã ghi từ bài chấm trước/)).toBeNull();
     expect(
       screen.getByText(
-        "Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
+        "Đây là kết quả luyện tập tham khảo, không được tính vào tổng điểm chính thức."
       )
     ).toBeTruthy();
     expect(screen.queryByText(/Chơi thử không tạo câu trả lời/)).toBeNull();
@@ -162,27 +162,66 @@ describe("TapResultPanel", () => {
     expect(screen.getByRole("button", { name: "Bài tiếp theo" })).toBeTruthy();
   });
 
-  it("shows a zero reference score for a played no-tap Practice attempt without awarding points", () => {
+  it("shows zero-tap Practice rounds as unplayed without inventing accuracy or a reference score", () => {
+    const result = completedAttempt({
+      mode: "practice",
+      round1Taps: [],
+      round2Taps: [],
+    });
     render(
       <TapResultPanel
-        result={completedAttempt({
-          mode: "practice",
-          round1Taps: [],
-          round2Taps: [],
-        })}
+        result={result}
         points={null}
         onRetry={() => undefined}
         onContinue={() => undefined}
       />
     );
-    expect(screen.getByTestId("tap-reference-score").textContent).toBe("0/10");
+    expect(result.rounds?.map(round => round.status)).toEqual([
+      "unplayed",
+      "unplayed",
+    ]);
+    expect(result.accuracyPercent).toBeNull();
+    expect(result.scoreOutOfTen).toBeNull();
+    expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe("Chưa chơi");
+    expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe("Chưa chơi");
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe("Chưa có");
+    expect(screen.getByTestId("tap-reference-score").textContent).toBe("Chưa có");
     expect(screen.queryByTestId("tap-points")).toBeNull();
     expect(screen.getByTestId("tap-result-announcement").textContent).toContain(
-      "Điểm tham khảo 0/10"
+      "Chưa có vòng nào được chơi"
     );
   });
 
-  it("keeps scorer semantics and presents six metrics plus a collapsed five-column detail table", () => {
+  it("averages accuracy only across rounds that were played", () => {
+    const result = completedAttempt({
+      round1Taps: [],
+      round2Taps: slightlyLateTaps,
+    });
+    expect(result.rounds?.map(round => round.status)).toEqual([
+      "unplayed",
+      "played",
+    ]);
+    expect(summarizeTapResult(result)).toMatchObject({
+      roundAccuracies: [null, 90],
+      averageAccuracyPercent: 90,
+      roundsPlayed: 1,
+      roundsSkipped: 0,
+    });
+    render(
+      <TapResultPanel
+        result={result}
+        points={9}
+        onRetry={() => undefined}
+        onContinue={() => undefined}
+      />
+    );
+    expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe("Chưa chơi");
+    expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe("90%");
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe("90%");
+    expect(screen.getByTestId("tap-reference-score").textContent).toBe("9/10");
+  });
+
+  it("keeps scorer semantics and presents the four-card hierarchy plus collapsed detail", () => {
     const result = completedAttempt();
     const firstRound = result.rounds?.[0];
     expect(result.rounds).toHaveLength(2);
@@ -212,10 +251,14 @@ describe("TapResultPanel", () => {
     expect(summarizeTapResult(result)).toEqual({
       scoreOutOfTen: 7,
       roundAccuracies: [57.5, 90],
+      averageAccuracyPercent: 73.75,
       roundsPlayed: 2,
       roundsSkipped: 0,
       missedTargetCount: 1,
       playedTargetCount: 8,
+      matchedTapCount: 5,
+      earlyTapCount: 1,
+      lateTapCount: 1,
       extraTapCount: 1,
       hasTwoRoundResult: true,
     });
@@ -231,14 +274,18 @@ describe("TapResultPanel", () => {
     );
     expect(screen.getByTestId("tap-result")).toBeTruthy();
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
+    expect(screen.getByText("Accuracy Vòng 1 (%)")).toBeTruthy();
+    expect(screen.getByText("Accuracy Vòng 2 (%)")).toBeTruthy();
     expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe(
       "57.5%"
     );
     expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe("90%");
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe("73.8%");
     expect(screen.getByTestId("tap-rounds-played").textContent).toBe("2/2");
     expect(screen.getByTestId("tap-count-missing").textContent).toBe("1/8");
     expect(screen.getByTestId("tap-count-extra").textContent).toBe("1");
     expect(screen.getByTestId("tap-reference-score").textContent).toBe("7/10");
+    expect(screen.getByText("Điểm quy đổi (thang 10)")).toBeTruthy();
     expect(screen.getByTestId("tap-points").textContent).toBe("+7 điểm");
     expect(screen.getByText("Chạm thừa")).toBeTruthy();
 
@@ -354,6 +401,52 @@ describe("TapResultPanel", () => {
     expect(summarizeTapResult(withoutExtra).extraTapCount).toBe(0);
   });
 
+  it("counts an Extra-only tap as played while keeping N = 0 unavailable", () => {
+    const result = completedAttempt({
+      targets: [],
+      round1Taps: [{ sequence: 0, offsetMs: 500 }],
+      round2Taps: [],
+    });
+    expect(result.rounds?.map(round => round.status)).toEqual([
+      "played",
+      "unplayed",
+    ]);
+    expect(result.rounds?.[0].evaluation?.extra).toBe(1);
+    expect(result.rounds?.[0].extraTapCount).toBe(1);
+    expect(result.rounds?.[0].accuracyPercent).toBeNull();
+    expect(result.rounds?.[1].accuracyPercent).toBeNull();
+    expect(result.accuracyPercent).toBeNull();
+    expect(result.scoreOutOfTen).toBeNull();
+    expect(summarizeTapResult(result)).toMatchObject({
+      roundAccuracies: [null, null],
+      averageAccuracyPercent: null,
+      roundsPlayed: 1,
+      extraTapCount: 1,
+      missedTargetCount: 0,
+      playedTargetCount: 0,
+    });
+
+    render(
+      <TapResultPanel
+        result={result}
+        points={null}
+        onRetry={() => undefined}
+        onContinue={() => undefined}
+      />
+    );
+    expect(screen.getByTestId("tap-round-1-accuracy").textContent).toBe(
+      "Không khả dụng"
+    );
+    expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe(
+      "Chưa chơi"
+    );
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe(
+      "Không khả dụng"
+    );
+    expect(screen.getByTestId("tap-reference-score").textContent).toBe("—");
+    expect(screen.getByTestId("tap-count-extra").textContent).toBe("1");
+  });
+
   it("excludes skipped rounds from accuracy, missing-head denominators, and their round score", () => {
     const result = completedAttempt({ skippedRounds: [false, true] });
     expect(result.rounds).toHaveLength(2);
@@ -392,6 +485,7 @@ describe("TapResultPanel", () => {
     expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe(
       "Đã bỏ qua"
     );
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe("57.5%");
     const details = screen.getByTestId(
       "tap-detail-table-details"
     ) as HTMLDetailsElement;
@@ -447,7 +541,8 @@ describe("TapResultPanel", () => {
     expect(screen.getByTestId("tap-round-2-accuracy").textContent).toBe(
       "Đã bỏ qua"
     );
-    expect(screen.getByTestId("tap-reference-score").textContent).toBe("—");
+    expect(screen.getByTestId("tap-reference-score").textContent).toBe("Chưa có");
+    expect(screen.getByTestId("tap-average-accuracy").textContent).toBe("Chưa có");
     expect(screen.getByTestId("tap-points").textContent).toBe("Chưa ghi điểm");
     expect(screen.queryByText("0%")).toBeNull();
   });
@@ -513,7 +608,7 @@ describe("TapResultPanel", () => {
     );
     expect(screen.getByText("Không có điểm khả dụng.")).toBeTruthy();
     expect(
-      screen.getByText(/Không có đủ khoảng đầu nốt tham chiếu hợp lệ/)
+      screen.getByText(/Chưa có vòng nào được chơi; chưa có điểm trung bình/)
     ).toBeTruthy();
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-count-missing").textContent).toBe("—");
@@ -521,7 +616,7 @@ describe("TapResultPanel", () => {
     expect(screen.queryByText("0%")).toBeNull();
   });
 
-  it("keeps a practice result separate from original graded points", () => {
+  it("keeps a practice result separate without duplicating the original award", () => {
     render(
       <TapResultPanel
         result={completedAttempt({ mode: "practice" })}
@@ -533,12 +628,10 @@ describe("TapResultPanel", () => {
     );
     expect(
       screen.getByText(
-        "Chơi thử — kết quả và điểm /10 chỉ để tham khảo; không cộng vào tổng điểm."
+        "Đây là kết quả luyện tập tham khảo, không được tính vào tổng điểm chính thức."
       )
     ).toBeTruthy();
-    expect(
-      screen.getByText(/Điểm đã ghi từ bài chấm trước: \+10 điểm/)
-    ).toBeTruthy();
+    expect(screen.queryByText(/Điểm đã ghi từ bài chấm trước/)).toBeNull();
     expect(screen.queryByTestId("tap-accuracy")).toBeNull();
     expect(screen.getByTestId("tap-reference-score").textContent).toBe("7/10");
     expect(screen.queryByTestId("tap-points")).toBeNull();

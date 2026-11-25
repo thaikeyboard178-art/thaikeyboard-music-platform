@@ -194,33 +194,50 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
   });
 
   it("counts missed notes as zero but excludes extras from the accuracy mean", () => {
+    const targets: readonly TapTarget[] = [
+      { id: "first", tick: 0, offsetMs: 0, passMs: 20, associationMs: 80 },
+      { id: "second", tick: 240, offsetMs: 500, passMs: 20, associationMs: 80 },
+    ];
     const score = calculateTapTwoRoundScore(
-      singleTarget(),
+      targets,
       [
-        { roundNumber: 1, skipped: false, taps: [] },
+        {
+          roundNumber: 1,
+          skipped: false,
+          taps: [{ sequence: 1, offsetMs: 500 }],
+        },
         {
           roundNumber: 2,
           skipped: false,
           taps: [
             { sequence: 2, offsetMs: 0 },
-            { sequence: 3, offsetMs: 2_500 },
+            { sequence: 3, offsetMs: 500 },
+            { sequence: 4, offsetMs: 1_000 },
           ],
         },
       ],
-      2_000
+      500
     );
+    expect(score.rounds.map(round => round.status)).toEqual([
+      "played",
+      "played",
+    ]);
     expect(score.rounds[0].noteResults[0]).toMatchObject({
       matchStatus: "missing",
       noteAccuracyPercent: 0,
     });
+    expect(score.rounds[0].noteResults[1]).toMatchObject({
+      matchStatus: "matched",
+      noteAccuracyPercent: 100,
+    });
     expect(score.rounds[1].accuracyPercent).toBe(100);
-    expect(score.overallAccuracyPercent).toBe(50);
-    expect(score.scoreOutOfTen).toBe(5);
+    expect(score.overallAccuracyPercent).toBe(75);
+    expect(score.scoreOutOfTen).toBe(8);
     expect(score.missedTargetCount).toBe(1);
     expect(score.extraTapCount).toBe(1);
   });
 
-  it("excludes explicitly skipped rounds but treats silence as a played round", () => {
+  it("excludes skipped rounds and marks zero-tap rounds unplayed", () => {
     const skippedFirst = calculateTapTwoRoundScore(
       singleTarget(),
       [
@@ -240,6 +257,27 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
     expect(skippedFirst.roundsPlayed).toBe(1);
     expect(skippedFirst.roundsSkipped).toBe(1);
 
+    const silentRound = calculateTapTwoRoundScore(
+      singleTarget(),
+      [
+        { roundNumber: 1, skipped: false, taps: [] },
+        { roundNumber: 2, skipped: false, taps: [{ sequence: 2, offsetMs: 0 }] },
+      ],
+      2_000
+    );
+    expect(silentRound.rounds.map(round => round.status)).toEqual([
+      "unplayed",
+      "played",
+    ]);
+    expect(silentRound.rounds[0].evaluation).toBeNull();
+    expect(silentRound.rounds[0].accuracyPercent).toBeNull();
+    expect(silentRound.rounds[1].accuracyPercent).toBe(100);
+    expect(silentRound.overallAccuracyPercent).toBe(100);
+    expect(silentRound.scoreOutOfTen).toBe(10);
+    expect(silentRound.roundsPlayed).toBe(1);
+    expect(silentRound.roundsSkipped).toBe(0);
+    expect(silentRound.missedTargetCount).toBe(0);
+
     const bothSkipped = calculateTapTwoRoundScore(
       singleTarget(),
       [
@@ -253,5 +291,23 @@ describe("percentage scoring from the existing Tap matcher assignment", () => {
     expect(bothSkipped.roundsPlayed).toBe(0);
     expect(bothSkipped.roundsSkipped).toBe(2);
     expect(bothSkipped.missedTargetCount).toBe(0);
+
+    const bothUnplayed = calculateTapTwoRoundScore(
+      singleTarget(),
+      [
+        { roundNumber: 1, skipped: false, taps: [] },
+        { roundNumber: 2, skipped: false, taps: [] },
+      ],
+      2_000
+    );
+    expect(bothUnplayed.rounds.map(round => round.status)).toEqual([
+      "unplayed",
+      "unplayed",
+    ]);
+    expect(bothUnplayed.overallAccuracyPercent).toBeNull();
+    expect(bothUnplayed.scoreOutOfTen).toBeNull();
+    expect(bothUnplayed.roundsPlayed).toBe(0);
+    expect(bothUnplayed.roundsSkipped).toBe(0);
+    expect(bothUnplayed.missedTargetCount).toBe(0);
   });
 });

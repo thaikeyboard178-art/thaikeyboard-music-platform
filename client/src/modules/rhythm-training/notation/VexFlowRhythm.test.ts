@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { beforeAll, describe, expect, it } from "vitest";
 import { FOUR_FOUR } from "../rhythm/fixtures";
+import { notationSignature } from "../rhythm/signatures";
+import { generateTapRhythmExercise } from "../exercises/tapRhythm";
 import { RHYTHM_NOTATION_EXAMPLES } from "./examples";
 import {
   renderRhythmNotation,
@@ -163,4 +165,79 @@ describe("renderRhythmNotation", () => {
       renderRhythmNotation(container, FOUR_FOUR, { measuresPerRow: 1.5 })
     ).toThrow(RhythmNotationRenderError);
   });
+
+  it("renders 20 real Level 3 dotted-note exercises per supported quarter meter", () => {
+    const meters = [
+      { numerator: 2, denominator: 4 },
+      { numerator: 3, denominator: 4 },
+      { numerator: 4, denominator: 4 },
+    ] as const;
+    let renderedCount = 0;
+
+    for (const meter of meters) {
+      let previousSignature: string | undefined;
+      const signatures = new Set<string>();
+
+      for (let index = 0; index < 20; index += 1) {
+        const exercise = generateTapRhythmExercise({
+          track: 3,
+          meter,
+          bars: 2,
+          focus: "dots",
+          seed: `task30-vexflow-level3-dots-${meter.numerator}-${index}`,
+          avoidCanonicalSignature: previousSignature,
+        });
+        const signature = notationSignature(exercise.pattern);
+        previousSignature = signature;
+        signatures.add(signature);
+
+        const dottedNote = exercise.pattern.measures
+          .flatMap(measure => measure.segments)
+          .find(
+            segment =>
+              segment.kind === "note" && segment.duration.dots === 1
+          );
+        expect(dottedNote).toBeDefined();
+
+        const container = document.createElement("div");
+        const rendered = renderRhythmNotation(container, exercise.pattern, {
+          width: 1040,
+          measuresPerRow: 2,
+        });
+        expect(rendered.svg).toBeInstanceOf(SVGSVGElement);
+        expect(rendered.parity.ok).toBe(true);
+        expect(
+          rendered.parity.voiceReports.every(
+            report => report.strictComplete && report.tickMatches
+          )
+        ).toBe(true);
+        expect(
+          rendered.parity.segmentReports.every(
+            report => report.tickMatches && report.positionMatches
+          )
+        ).toBe(true);
+        expect(
+          rendered.projection.segments.some(
+            segment =>
+              segment.segmentId === dottedNote?.id &&
+              segment.kind === "note" &&
+              segment.dotCount === 1
+          )
+        ).toBe(true);
+        expect(
+          [...rendered.svg.querySelectorAll("text")].some(
+            glyph => glyph.textContent === "\ue1e7"
+          )
+        ).toBe(true);
+        expect(
+          container.querySelectorAll("[data-rhythm-segment-id]").length
+        ).toBe(rendered.projection.segments.length);
+        renderedCount += 1;
+      }
+
+      expect(signatures.size).toBeGreaterThan(1);
+    }
+
+    expect(renderedCount).toBe(60);
+  }, 90_000);
 });

@@ -56,11 +56,11 @@ describe("tap output clock bridge", () => {
     expect(bridge.performanceToAudioSeconds(1_040, selected)).toBeCloseTo(2.04);
   });
 
-  it("accepts exactly 100 ms freshness and rejects older or future-only samples", () => {
+  it("accepts exactly 300 ms freshness and rejects older or future-only samples", () => {
     const bridge = new OutputClockBridge();
     bridge.record({ contextTime: 1, performanceTime: 100 });
-    expect(bridge.sampleForEvent(200).performanceTime).toBe(100);
-    expect(errorReason(() => bridge.sampleForEvent(200.001))).toBe(
+    expect(bridge.sampleForEvent(400).performanceTime).toBe(100);
+    expect(errorReason(() => bridge.sampleForEvent(400.001))).toBe(
       "stale-output-timestamp"
     );
     expect(errorReason(() => bridge.sampleForEvent(99))).toBe(
@@ -73,9 +73,38 @@ describe("tap output clock bridge", () => {
     bridge.record({ contextTime: 1, performanceTime: 100 });
     bridge.record({ contextTime: 1, performanceTime: 100 });
     expect(bridge.latest?.performanceTime).toBe(100);
-    expect(errorReason(() => bridge.sampleForEvent(200.001))).toBe(
+    expect(errorReason(() => bridge.sampleForEvent(400.001))).toBe(
       "stale-output-timestamp"
     );
+  });
+
+  it("accepts a sample that is 250 ms old at event time", () => {
+    const bridge = new OutputClockBridge();
+    const sample = { contextTime: 1, performanceTime: 1_000 };
+    bridge.record(sample);
+
+    expect(bridge.sampleForEvent(1_250)).toEqual(sample);
+  });
+
+  it("rejects a sample that is 350 ms old at event time", () => {
+    const bridge = new OutputClockBridge();
+    bridge.record({ contextTime: 1, performanceTime: 1_000 });
+
+    expect(errorReason(() => bridge.sampleForEvent(1_350))).toBe(
+      "stale-output-timestamp"
+    );
+  });
+
+  it("selects the newest historical sample not later than event time", () => {
+    const bridge = new OutputClockBridge();
+    bridge.record({ contextTime: 1, performanceTime: 1_000 });
+    bridge.record({ contextTime: 1.1, performanceTime: 1_100 });
+    bridge.record({ contextTime: 1.2, performanceTime: 1_200 });
+
+    expect(bridge.sampleForEvent(1_150)).toEqual({
+      contextTime: 1.1,
+      performanceTime: 1_100,
+    });
   });
 
   it("rejects invalid, nonmonotonic, missing and latched mappings until reset", () => {

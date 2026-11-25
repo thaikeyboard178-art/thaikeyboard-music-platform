@@ -103,10 +103,12 @@ const modules = defineModuleCatalog([
     englishName: "Chord Recognition",
     navLabel: "Hợp âm",
     description:
-      "Bài luyện nhận diện hợp âm chưa được triển khai. Hãy bắt đầu với đọc nốt.",
-    tags: ["Sắp ra mắt"],
+      "Nhận diện hợp âm bằng thị giác và thính giác; tra cứu cấu tạo và cách chơi gợi ý trên Piano.",
+    tags: ["Visual Recognition", "Ear Training", "Level 1–6", "Chord Reference"],
     Icon: Layers3,
-    status: "coming-soon",
+    status: "active",
+    path: "/chord-recognition",
+    Page: lazy(() => import("@/modules/chord-recognition/pages/ChordRecognitionPage")),
   },
 ]);
 

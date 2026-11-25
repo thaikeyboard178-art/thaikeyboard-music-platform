@@ -22,6 +22,10 @@ import {
   type TapRoundResult,
 } from "./tapRoundScoring";
 import { deriveMeter } from "../rhythm/meters";
+import { getCurriculumUnit } from "../curriculum/curriculum";
+import { getTapFocuses, getTapSections } from "../ui/learnerConfiguration";
+import { notationSignature } from "../rhythm/signatures";
+import { projectRhythmNotation } from "../notation/projection";
 
 const meterCases = [
   {
@@ -733,4 +737,145 @@ describe("Tap Rhythm canonical exercise and target projection", () => {
     expect(bothSkipped.scoreOutOfTen).toBeNull();
     expect(evaluateTapRhythmAnswer(exercise, bothSkipped)).toBeNull();
   });
+
+  it("generates 20 valid, notation-aligned exercises per UI-supported configuration", () => {
+    const tracks = [1, 2, 3, 4, 5, 6, "bonus"] as const;
+    const barChoices = [1, 2, 4] as const;
+    let configurationsChecked = 0;
+    let exercisesChecked = 0;
+    const singletonConfigurations: string[] = [];
+
+    for (const track of tracks) {
+      const availableSections = getTapSections(track);
+      const section = availableSections.includes("practice")
+        ? "practice"
+        : availableSections[0];
+      if (!section) throw new Error(`Track ${track} has no Tap section.`);
+
+      for (const meter of getCurriculumUnit(track).allowedMeters) {
+        const focuses = getTapFocuses(track, meter);
+        expect(focuses.length).toBeGreaterThan(0);
+
+        for (const focus of focuses) {
+          for (const bars of barChoices) {
+            configurationsChecked += 1;
+            const key = `${track}-${meter.numerator}-${meter.denominator}-${focus}-${bars}`;
+            const signatures: string[] = [];
+            let previousSignature: string | undefined;
+
+            for (let index = 0; index < 20; index += 1) {
+              const exercise = generateTapRhythmExercise({
+                track,
+                section,
+                meter,
+                bars,
+                focus,
+                seed: `task30-ui-matrix-${key}-${index}`,
+                avoidCanonicalSignature: previousSignature,
+              });
+              exercisesChecked += 1;
+
+              expect(exercise.pattern.measures).toHaveLength(bars);
+              expect(exercise.pattern.measures[0]?.segments[0]?.kind).toBe(
+                "note"
+              );
+              const signature = notationSignature(exercise.pattern);
+              signatures.push(signature);
+              previousSignature = signature;
+
+              const restCounts = exercise.pattern.measures.map(measure =>
+                measure.segments.filter(segment => segment.kind === "rest")
+                  .length
+              );
+              const exactOneRest =
+                meter.denominator === 4 ||
+                (track === "bonus" &&
+                  meter.numerator === 2 &&
+                  meter.denominator === 2);
+              if (exactOneRest) {
+                expect(restCounts).toEqual(Array.from({ length: bars }, () => 1));
+              } else {
+                expect(restCounts.every(count => count >= 1 && count <= 2)).toBe(
+                  true
+                );
+              }
+
+              const projection = projectRhythmNotation(exercise.pattern);
+              const timeline = deriveRhythmTimeline(exercise.pattern);
+              const canonicalSegments = patternSegments(exercise.pattern);
+              expect(projection.segments.map(segment => segment.segmentId)).toEqual(
+                canonicalSegments.map(segment => segment.id)
+              );
+              expect(projection.segments.map(segment => segment.kind)).toEqual(
+                canonicalSegments.map(segment => segment.kind)
+              );
+              expect(projection.segments.map(segment => segment.dotCount)).toEqual(
+                canonicalSegments.map(segment => segment.duration.dots)
+              );
+              expect(projection.segments.map(segment => segment.startTicks)).toEqual(
+                timeline.segments.map(segment => segment.absoluteStartTicks)
+              );
+              expect(projection.segments.map(segment => segment.endTicks)).toEqual(
+                timeline.segments.map(segment => segment.absoluteEndTicks)
+              );
+              expect(
+                projection.segments.every(
+                  segment =>
+                    Number.isInteger(segment.pulseIndex) &&
+                    Number.isInteger(segment.subdivisionIndex) &&
+                    segment.structuralAccent !== undefined
+                )
+              ).toBe(true);
+              expect(timeline.totalTicks).toBe(
+                bars * projection.timeline.meter.measureTicks
+              );
+            }
+
+            const adjacentRepeatCount = signatures.reduce(
+              (count, signature, index) =>
+                count +
+                Number(index > 0 && signature === signatures[index - 1]),
+              0
+            );
+            if (adjacentRepeatCount > 0) {
+              const unfilteredSignatures = Array.from({ length: 20 }, (_, index) =>
+                notationSignature(
+                  generateTapRhythmExercise({
+                    track,
+                    section,
+                    meter,
+                    bars,
+                    focus,
+                    seed: `task30-ui-matrix-raw-${key}-${index}`,
+                  }).pattern
+                )
+              );
+              const rawUniqueCount = new Set(unfilteredSignatures).size;
+              expect(rawUniqueCount).toBe(1);
+              expect(adjacentRepeatCount).toBe(19);
+              singletonConfigurations.push(key);
+            }
+
+            if (
+              track === 3 &&
+              meter.numerator === 2 &&
+              meter.denominator === 4 &&
+              focus === "dots" &&
+              bars > 1
+            ) {
+              expect(new Set(signatures).size).toBeGreaterThan(1);
+              expect(adjacentRepeatCount).toBe(0);
+            }
+          }
+        }
+      }
+    }
+
+    expect(configurationsChecked).toBeGreaterThan(0);
+    expect(exercisesChecked).toBe(configurationsChecked * 20);
+    expect(singletonConfigurations).toEqual([
+      "3-2-4-dots-1",
+      "6-3-8-ties-1",
+    ]);
+  }, 120_000);
 });

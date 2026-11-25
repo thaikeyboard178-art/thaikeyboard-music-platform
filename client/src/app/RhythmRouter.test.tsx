@@ -54,7 +54,7 @@ describe("Phase5 real lazy Rhythm learner route integration", () => {
         .getAttribute("aria-current")
     ).toBe("page");
   });
-  it("loads Rhythm directly and returns through shared navigation, without fake Chord links", async () => {
+  it("loads Rhythm directly and returns through shared navigation, with the real Chord link", async () => {
     const user = userEvent.setup();
     const location = memoryLocation({ path: "/rhythm-training" });
     render(
@@ -63,7 +63,7 @@ describe("Phase5 real lazy Rhythm learner route integration", () => {
       </Router>
     );
     await screen.findByRole("heading", { name: "Luyện tiết tấu" });
-    expect(screen.queryByRole("link", { name: "Hợp âm" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Hợp âm" }).getAttribute("href")).toBe("/chord-recognition");
     await user.click(
       within(screen.getByRole("navigation", { name: "Điều hướng" })).getByRole(
         "link",
@@ -78,7 +78,7 @@ describe("Phase5 real lazy Rhythm learner route integration", () => {
     expect(
       within(
         screen.getByRole("article", { name: "Nhận diện hợp âm" })
-      ).getByText("Coming Soon")
-    ).not.toBeNull();
+      ).getByRole("link", { name: "Mở bài học" }).getAttribute("href")
+    ).toBe("/chord-recognition");
   });
 });

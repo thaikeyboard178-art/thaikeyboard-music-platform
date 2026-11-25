@@ -13,6 +13,7 @@ import {
 } from "../exercises/tapRhythm";
 import type { TapEngineOptions } from "../audio/tapEngine";
 import type { RhythmTrack } from "../types";
+import { notationSignature } from "../rhythm/signatures";
 import { SEVEN_METER_RUNTIME_FIXTURES } from "../runtime/fixtures";
 import {
   TapTrainingController,
@@ -189,6 +190,59 @@ describe("TapTrainingController with the production Phase 4B engine", () => {
     expect(h.inputTargetCalls()).toBe(0);
     expect(h.engines).toHaveLength(0);
     expect(Object.isFrozen(state)).toBe(true);
+  });
+
+  it("reconfigures to a fresh session, avoids adjacent patterns, and retains the last completed result", async () => {
+    const h = harness();
+    const configuration: TapUiConfiguration = {
+      ...CONFIG,
+      meter: { numerator: 2, denominator: 4 },
+      bars: 2,
+      focus: "dots",
+    };
+    await h.controller.prepare(configuration);
+    const firstExercise = h.controller.getSnapshot().exercise!;
+    const firstSignature = notationSignature(firstExercise.pattern);
+
+    await h.controller.start();
+    await finishAttempt(h);
+    const firstResult = h.controller.getSnapshot().result!;
+    expect(firstResult.status).toBe("completed");
+    expect(firstResult.scoreOutOfTen).toBe(10);
+    expect(h.controller.getSnapshot().session?.totalScore).toBe(10);
+
+    await h.controller.prepare(configuration);
+    const reconfigured = h.controller.getSnapshot();
+    const secondExercise = reconfigured.exercise!;
+    const secondSignature = notationSignature(secondExercise.pattern);
+    expect(secondSignature).not.toBe(firstSignature);
+    expect(reconfigured.session?.questionsAnswered).toBe(0);
+    expect(reconfigured.session?.totalScore).toBe(0);
+    expect(reconfigured.previousCompletedResult?.result).toBe(firstResult);
+
+    await h.controller.start();
+    await finishAttempt(h);
+    const secondResult = h.controller.getSnapshot().result!;
+    expect(secondResult.scoreOutOfTen).toBe(10);
+    await h.controller.continue();
+    const continued = h.controller.getSnapshot();
+    const thirdExercise = continued.exercise!;
+    const thirdSignature = notationSignature(thirdExercise.pattern);
+    expect(thirdSignature).not.toBe(secondSignature);
+    expect(continued.session?.questionsAnswered).toBe(1);
+    expect(continued.session?.totalScore).toBe(10);
+    expect(continued.previousCompletedResult?.result).toBe(secondResult);
+    expect(continued.previousCompletedResult?.points).toBe(10);
+
+    expect(await h.controller.skipCurrentExercise()).toBe(true);
+    const afterSkip = h.controller.getSnapshot();
+    expect(
+      notationSignature(afterSkip.exercise!.pattern)
+    ).not.toBe(thirdSignature);
+    expect(afterSkip.session?.questionsAnswered).toBe(1);
+    expect(afterSkip.session?.totalScore).toBe(5);
+    expect(afterSkip.previousCompletedResult?.result).toBe(secondResult);
+    expect(afterSkip.previousCompletedResult?.points).toBe(10);
   });
 
   it("forwards optional focus and creates the engine synchronously on Start's user gesture", async () => {
@@ -746,6 +800,7 @@ describe("approved Tap controller session lifecycle", () => {
     h.clock.at(timing.exerciseStartAudioTime + 0.05);
     expect(engine.state).toBe("collecting");
     expect(h.controller.canAdjustPracticeBpm).toBe(false);
+    tapFirstTarget(h);
     h.clock.at(timing.collectionEndAudioTime + 0.01);
     h.clock.advance(0.05);
     expect(engine.state).toBe("draining");

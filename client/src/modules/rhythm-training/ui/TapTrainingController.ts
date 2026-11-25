@@ -31,6 +31,7 @@ import type { RhythmTransportOptions } from "../audio/transport";
 import type { CurriculumSection } from "../curriculum/curriculum";
 import type { RhythmFocus } from "../generation/levels";
 import type { RhythmMeter, RhythmPattern, RhythmTrack } from "../types";
+import { notationSignature } from "../rhythm/signatures";
 import type { RhythmVoiceSettings } from "../audio/voices";
 import type {
   TapRoundNumber,
@@ -54,6 +55,12 @@ export type TapUiConfiguration = Readonly<{
   focus?: RhythmFocus;
 }>;
 
+export type TapPreviousResult = Readonly<{
+  exercise: TapRhythmExercise;
+  result: TapAttemptResult;
+  points: number | null;
+}>;
+
 export type TapUiPhase =
   | "setup"
   | "preparing"
@@ -66,6 +73,8 @@ export type TapUiState = Readonly<{
   phase: TapUiPhase;
   exercise: TapRhythmExercise | null;
   result: TapAttemptResult | null;
+  /** Most recently completed result, retained locally when a new item replaces it. */
+  previousCompletedResult: TapPreviousResult | null;
   gradedResult: TapAttemptResult | null;
   /** Official points for the latest attempt; practice attempts have no score. */
   points: number | null;
@@ -94,7 +103,8 @@ export type TapUiState = Readonly<{
 
 export type TapExerciseFactory = (
   configuration: TapUiConfiguration,
-  seed: string
+  seed: string,
+  avoidCanonicalSignature?: string
 ) => TapRhythmExercise | Promise<TapRhythmExercise>;
 export type TapEngineFactory = (options: TapEngineOptions) => TapRhythmEngine;
 export type TapTrainingControllerOptions = Readonly<{
@@ -126,6 +136,7 @@ function initialState(): TapUiState {
     phase: "setup",
     exercise: null,
     result: null,
+    previousCompletedResult: null,
     gradedResult: null,
     points: null,
     originalPoints: null,
@@ -242,7 +253,8 @@ function retimedPattern(
 
 function toGenerateInput(
   configuration: TapUiConfiguration,
-  seed: string
+  seed: string,
+  avoidCanonicalSignature?: string
 ): GenerateTapRhythmExerciseInput {
   return {
     track: configuration.track,
@@ -258,6 +270,9 @@ function toGenerateInput(
     ...(configuration.focus === undefined
       ? {}
       : { focus: configuration.focus }),
+    ...(avoidCanonicalSignature === undefined
+      ? {}
+      : { avoidCanonicalSignature }),
   };
 }
 
@@ -276,6 +291,7 @@ export class TapTrainingController {
   private readonly listeners = new Set<() => void>();
   private snapshot: TapUiState = initialState();
   private configuration: TapUiConfiguration | null = null;
+  private lastPatternSignature: string | null = null;
   private engine: TapRhythmEngine | null = null;
   private observationTimer: ReturnType<typeof setInterval> | null = null;
   private operationToken = 0;
@@ -310,8 +326,10 @@ export class TapTrainingController {
     this.usesInjectedAudio = options.transport !== undefined;
     this.createExercise =
       options.createExercise ??
-      ((configuration, seed) =>
-        generateTapRhythmExercise(toGenerateInput(configuration, seed)));
+      ((configuration, seed, avoidCanonicalSignature) =>
+        generateTapRhythmExercise(
+          toGenerateInput(configuration, seed, avoidCanonicalSignature)
+        ));
     this.engineFactory =
       options.engineFactory ??
       (engineOptions => new TapRhythmEngine(engineOptions));
@@ -498,6 +516,29 @@ export class TapTrainingController {
     if (this.disposed && patch.phase !== "disposed") return;
     this.snapshot = Object.freeze({ ...this.snapshot, ...patch });
     for (const listener of [...this.listeners]) listener();
+  }
+
+  private captureCompletedResult(): TapPreviousResult | null {
+    const { exercise, result } = this.snapshot;
+    if (!exercise || result?.status !== "completed") return null;
+    return Object.freeze({
+      exercise,
+      result,
+      points: this.snapshot.originalPoints ?? this.snapshot.points,
+    });
+  }
+
+  private previousCompletedResult(): TapPreviousResult | null {
+    return (
+      this.captureCompletedResult() ?? this.snapshot.previousCompletedResult
+    );
+  }
+
+  private previousPatternSignature(): string | undefined {
+    if (this.snapshot.exercise) {
+      return notationSignature(this.snapshot.exercise.pattern);
+    }
+    return this.lastPatternSignature ?? undefined;
   }
 
   private setBusy(busy: boolean): void {
@@ -965,11 +1006,13 @@ export class TapTrainingController {
   }
 
   private async loadExercise(
-    configuration: TapUiConfiguration,
-    token: number
-  ): Promise<void> {
-    this.configuration = configuration;
-    const oldEngine = this.engine;
+  configuration: TapUiConfiguration,
+  token: number
+): Promise<void> {
+  this.configuration = configuration;
+  const previousCompletedResult = this.previousCompletedResult();
+  const avoidCanonicalSignature = this.previousPatternSignature();
+  const oldEngine = this.engine;
     this.engineEpoch += 1;
     this.engine = null;
     this.stopObservation();
@@ -981,11 +1024,12 @@ export class TapTrainingController {
     this.modeLocked = false;
     this.skipInFlight = false;
     this.attemptStartedAt = 0;
-    this.publish({
-      phase: "preparing",
-      exercise: null,
-      result: null,
-      currentRound: null,
+  this.publish({
+    phase: "preparing",
+    exercise: null,
+    result: null,
+    previousCompletedResult,
+    currentRound: null,
       skippedRounds: Object.freeze([]),
       roundResults: EMPTY_ROUND_RESULTS,
       gradedResult: null,
@@ -1008,8 +1052,13 @@ export class TapTrainingController {
       if (oldEngine) await oldEngine.dispose();
       if (this.disposed || token !== this.operationToken) return;
       const seed = `${this.seedPrefix}-${++this.exerciseSequence}`;
-      const exercise = await this.createExercise(configuration, seed);
+      const exercise = await this.createExercise(
+        configuration,
+        seed,
+        avoidCanonicalSignature
+      );
       if (this.disposed || token !== this.operationToken) return;
+      this.lastPatternSignature = notationSignature(exercise.pattern);
       const session = freezeSession(
         createRhythmTrainingSession(
           { mode: "free", plannedQuestions: null },
@@ -1237,6 +1286,7 @@ export class TapTrainingController {
       return;
     }
     const token = ++this.operationToken;
+    const previousCompletedResult = this.previousCompletedResult();
     this.engineEpoch += 1;
     this.engine = null;
     this.stopObservation();
@@ -1248,6 +1298,7 @@ export class TapTrainingController {
       busy: true,
       error: null,
       result: null,
+      previousCompletedResult,
       currentRound: null,
       skippedRounds: Object.freeze([]),
       roundResults: EMPTY_ROUND_RESULTS,
@@ -1311,6 +1362,8 @@ export class TapTrainingController {
       session.currentExercise.id !== exercise.id
     )
       return;
+    const previousCompletedResult = this.previousCompletedResult();
+    const avoidCanonicalSignature = this.previousPatternSignature();
     const token = ++this.operationToken;
     const oldEngine = this.engine;
     this.engineEpoch += 1;
@@ -1331,9 +1384,11 @@ export class TapTrainingController {
       const seed = `${this.seedPrefix}-${++this.exerciseSequence}`;
       const nextExercise = await this.createExercise(
         copyConfiguration(configuration),
-        seed
+        seed,
+        avoidCanonicalSignature
       );
       if (this.disposed || token !== this.operationToken) return;
+      this.lastPatternSignature = notationSignature(nextExercise.pattern);
       const nextSession = freezeSession(
         advanceRhythmSession(session, nextExercise)
       );
@@ -1348,6 +1403,7 @@ export class TapTrainingController {
         exercise: nextExercise,
         session: nextSession,
         result: null,
+        previousCompletedResult,
         currentRound: null,
         skippedRounds: Object.freeze([]),
         roundResults: EMPTY_ROUND_RESULTS,
@@ -1394,6 +1450,8 @@ export class TapTrainingController {
       exercise.section === "lessons"
         ? "practice"
         : "graded";
+    const previousCompletedResult = this.previousCompletedResult();
+    const avoidCanonicalSignature = this.previousPatternSignature();
     const token = ++this.operationToken;
     this.skipInFlight = true;
     this.engineEpoch += 1;
@@ -1416,9 +1474,11 @@ export class TapTrainingController {
       const seed = `${this.seedPrefix}-${++this.exerciseSequence}`;
       const nextExercise = await this.createExercise(
         copyConfiguration(configuration),
-        seed
+        seed,
+        avoidCanonicalSignature
       );
       if (this.disposed || token !== this.operationToken) return false;
+      this.lastPatternSignature = notationSignature(nextExercise.pattern);
 
       const skipped = skipRhythmExercise(session, exercise, nextExercise, kind);
       if (skipped.status !== "skipped") {
@@ -1440,6 +1500,7 @@ export class TapTrainingController {
         exercise: nextExercise,
         session: freezeSession(skipped.session),
         result: null,
+        previousCompletedResult,
         currentRound: null,
         skippedRounds: Object.freeze([]),
         roundResults: EMPTY_ROUND_RESULTS,

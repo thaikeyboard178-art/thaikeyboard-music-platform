@@ -218,6 +218,7 @@ function roundStateText(
   isLive: boolean
 ): string {
   if (round?.status === "skipped") return "Đã bỏ qua";
+  if (round?.status === "unplayed") return "Chưa chơi";
   if (round?.status === "played") return "Hoàn tất";
   if (isLive && currentRound === roundNumber) return "Đang thực hiện";
   if (isLive && currentRound === null && roundNumber === 1)

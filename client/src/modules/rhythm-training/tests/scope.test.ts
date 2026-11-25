@@ -71,7 +71,7 @@ describe("Phase1 core isolation with explicitly approved Phase5 UI integration",
         /features\/training|note-reading|submitSessionAnswer|submitRhythmExerciseAnswer|navigator\.mediaDevices|speechSynthesis/
       );
   });
-  it("binds only the approved real Rhythm page and retains Chord metadata-only Coming Soon", () => {
+  it("binds the approved real Rhythm page alongside the approved real Chord page", () => {
     const catalog = readFileSync(
       resolve(projectRoot, "client/src/app/moduleRegistry.ts"),
       "utf8"
@@ -81,8 +81,9 @@ describe("Phase1 core isolation with explicitly approved Phase5 UI integration",
     expect(entry).toContain('path: "/rhythm-training"');
     expect(entry).toContain("rhythm-training/pages/RhythmTrainingPage");
     const chord = catalog.split('id: "chord-recognition",')[1].split("},")[0];
-    expect(chord).toContain('status: "coming-soon"');
-    expect(chord).not.toMatch(/\b(?:path|Page)\s*:/);
+    expect(chord).toContain('status: "active"');
+    expect(chord).toContain('path: "/chord-recognition"');
+    expect(chord).toContain("chord-recognition/pages/ChordRecognitionPage");
     const manifest = JSON.parse(
       readFileSync(
         resolve(projectRoot, "client/public/manus-routes.json"),
@@ -91,7 +92,7 @@ describe("Phase1 core isolation with explicitly approved Phase5 UI integration",
     );
     expect(
       manifest.routes.map((route: { path: string }) => route.path)
-    ).toEqual(["/", "/note-reading", "/rhythm-training"]);
+    ).toEqual(["/", "/note-reading", "/rhythm-training", "/chord-recognition"]);
   });
   it("never implements a second input clock, matching or FormulaB inside the learner UI", () => {
     for (const path of sourceFiles(moduleRoot).filter(

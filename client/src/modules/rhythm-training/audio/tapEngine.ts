@@ -666,8 +666,13 @@ export class TapRhythmEngine {
       try {
         this.bridge.sampleForEvent(this.now());
       } catch (error) {
-        this.abort(this.errorReason(error));
-        return;
+        // During warm-up, a stale sample can remain usable for event-time
+        // reconstruction; accept() will require a fresh-enough sample for taps.
+        // Abort only when no clock observation exists to reconstruct audio time.
+        if (this.bridge.latest === null) {
+          this.abort(this.errorReason(error));
+          return;
+        }
       }
     }
     if (nowAudio >= snapshot.exerciseStartAudioTime) {
